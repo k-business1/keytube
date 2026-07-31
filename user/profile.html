@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>KEYTUBE — User Profile</title>
+  <link rel="stylesheet" href="../style/main.css">
+  <link rel="stylesheet" href="../style/profile.css">
+  <link rel="stylesheet" href="../style/responsive.css">
+  <link rel="icon" href="../imagelib/logo.png" type="image/png">
+</head>
+<body>
+
+  <!-- Toast Notification Container -->
+  <div id="toast" class="toast"></div>
+
+  <!-- Header / Navigation Bar -->
+  <header class="app-header">
+    <div class="header-left">
+      <a href="../index.html" class="brand-logo">
+        <img src="../imagelib/logo.png" alt="KEYTUBE Logo" onerror="this.src='https://via.placeholder.com/40'">
+        <span class="brand-name">KEYTUBE</span>
+      </a>
+    </div>
+    <div class="header-right" id="navUserMenu">
+      <a href="../index.html" class="nav-btn">Home</a>
+    </div>
+  </header>
+
+  <!-- Main Profile Container -->
+  <main class="profile-container">
+    
+    <div class="profile-header-card">
+      <div class="profile-avatar-wrapper">
+        <img id="profileAvatar" src="https://via.placeholder.com/96" alt="User Avatar" onerror="this.src='https://via.placeholder.com/96'">
+      </div>
+      <h1 class="profile-name" id="profileNameDisplay">Loading...</h1>
+      <p class="profile-email" id="profileEmailDisplay">Loading email...</p>
+    </div>
+
+    <h3 class="profile-section-title">Account Settings</h3>
+    <form id="profileUpdateForm" class="profile-form">
+      <div class="form-group">
+        <label for="updateName">Display Name</label>
+        <input type="text" id="updateName" required>
+      </div>
+      <div class="form-group">
+        <label for="updateEmail">Email Address</label>
+        <input type="email" id="updateEmail" required>
+      </div>
+      <button type="submit" class="btn-save-profile">Save Changes</button>
+    </form>
+
+    <h3 class="profile-section-title">Quick Links</h3>
+    <div class="profile-links-list">
+      <div class="profile-nav-link" onclick="window.location.href='../pages/playlist.html'">
+        <span>📁 My Saved Playlists</span>
+        <span>➔</span>
+      </div>
+      <div class="profile-nav-link" onclick="window.location.href='studio/index.html'">
+        <span>🎬 Creator Studio Dashboard</span>
+        <span>➔</span>
+      </div>
+    </div>
+
+    <button type="button" class="logout-action-btn" id="logoutBtn">Sign Out</button>
+
+  </main>
+
+  <!-- JavaScript Modules -->
+  <script src="../app/api.js"></script>
+  <script src="../app/auth.js"></script>
+  <script src="../app/notifications.js"></script>
+  <script src="profile.js"></script>
+</body>
+</html>
