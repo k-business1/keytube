@@ -1,0 +1,165 @@
+/* ════════════════════════════════════════════════════════════════
+   KEYTUBE — Admin Control Panel Stylesheet (style/admin.css)
+   ════════════════════════════════════════════════════════════════ */
+
+.admin-body {
+  background-color: #0f172a; /* Sleek dark theme for Admin console */
+  color: #f8fafc;
+}
+
+.admin-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 24px;
+}
+
+/* Admin Top Header */
+.admin-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid #334155;
+}
+
+.admin-title h1 {
+  font-size: 1.6rem;
+  font-weight: 800;
+  letter-spacing: -0.5px;
+}
+
+.admin-title p {
+  font-size: 0.85rem;
+  color: #94a3b8;
+  margin-top: 2px;
+}
+
+.admin-badge {
+  background: #dc2626;
+  color: #fff;
+  font-size: 0.72rem;
+  font-weight: 800;
+  padding: 4px 10px;
+  border-radius: var(--radius-lg);
+  text-transform: uppercase;
+}
+
+/* Admin Metric Cards Grid */
+.admin-stats-grid {
+  display: grid;
+  grid-template-columns: repeat(1, 1fr);
+  gap: 16px;
+  margin-bottom: 30px;
+}
+
+@media (min-width: 600px) {
+  .admin-stats-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (min-width: 900px) {
+  .admin-stats-grid {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}
+
+.admin-stat-card {
+  background: #1e293b;
+  border: 1px solid #334155;
+  border-radius: var(--radius-md);
+  padding: 18px;
+}
+
+.admin-stat-title {
+  font-size: 0.8rem;
+  color: #94a3b8;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+.admin-stat-value {
+  font-size: 1.6rem;
+  font-weight: 800;
+  color: #fff;
+  margin-top: 6px;
+}
+
+/* Data Tables Section */
+.admin-section {
+  background: #1e293b;
+  border: 1px solid #334155;
+  border-radius: var(--radius-md);
+  padding: 20px;
+  margin-bottom: 24px;
+}
+
+.admin-section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+.admin-section-header h2 {
+  font-size: 1.1rem;
+  font-weight: 700;
+}
+
+.admin-table-wrapper {
+  overflow-x: auto;
+}
+
+.admin-table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+  font-size: 0.88rem;
+}
+
+.admin-table th {
+  background: #0f172a;
+  color: #94a3b8;
+  padding: 10px 14px;
+  font-weight: 600;
+  border-bottom: 1px solid #334155;
+}
+
+.admin-table td {
+  padding: 12px 14px;
+  border-bottom: 1px solid #334155;
+  color: #e2e8f0;
+}
+
+.admin-table tr:hover td {
+  background: rgba(255, 255, 255, 0.02);
+}
+
+/* Admin Action Buttons */
+.btn-admin-action {
+  padding: 6px 12px;
+  border-radius: var(--radius-sm);
+  font-size: 0.78rem;
+  font-weight: 700;
+  border: none;
+  cursor: pointer;
+}
+
+.btn-admin-danger {
+  background: rgba(220, 38, 38, 0.2);
+  color: #f87171;
+}
+
+.btn-admin-danger:hover {
+  background: rgba(220, 38, 38, 0.35);
+}
+
+.btn-admin-primary {
+  background: rgba(37, 99, 235, 0.2);
+  color: #60a5fa;
+}
+
+.btn-admin-primary:hover {
+  background: rgba(37, 99, 235, 0.35);
+}
