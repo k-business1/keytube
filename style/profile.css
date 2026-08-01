@@ -1,0 +1,9 @@
+
+/* ── profile.css ── Profile page specific ── */
+body.profile-page{background:var(--bg)}
+.settings-card{background:var(--w);border:1px solid var(--brd);border-radius:var(--r);padding:16px}
+.settings-card h3{font-size:.9rem;font-weight:700;margin-bottom:14px;padding-bottom:10px;border-bottom:1px solid var(--brd)}
+.danger-zone{border-color:rgba(255,0,0,.15)}
+.danger-zone h3{color:var(--red)}
+
+
