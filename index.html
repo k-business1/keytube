@@ -1,23 +1,20 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&family=Bebas+Neue&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="style/main.css">
-<link rel="stylesheet" href="style/responsive.css">
-<link rel="icon" href="imagelib/logo.png" type="image/png">
-<title>KEYTUBE — Home</title>
-</head>
+<link rel="stylesheet" href="style.css">
+<title>KEYTUBE</title>
+<script type="text/javascript" src="https://gc.kis.v2.scr.kaspersky-labs.com/FD126C42-EBFA-4E12-B309-BB3FDD723AC1/main.js?attr=oqX2r1br42-NfQvlcCaw4rAbP89HKDW8pr3TFQWSk6S0qntDkMdlGqAAF11OaXMl" charset="UTF-8"></script></head>
 <body>
 <div id="pbar"></div>
 <div id="pgLoad"><div class="ld">
-  <div class="kb kb-logo"><img src="imagelib/logo.png" alt="KEYTUBE"></div>
+  <div class="kb kb-logo"><img src="logo.png" alt="KEYTUBE"></div>
   <div class="ld-t">KEYTUBE</div>
   <div class="spin"></div>
 </div></div>
-<div id="toast" class="toast"></div>
+<div id="toast"></div>
 
 <div id="loginReq"><div class="lr-box">
   <div style="font-size:2rem;margin-bottom:7px">🔒</div>
@@ -28,24 +25,17 @@
 </div></div>
 
 <!-- ── HEADER ── -->
-<header class="app-header" id="hdr">
-  <div class="header-left">
-    <a href="index.html" class="brand-logo" onclick="goHome()">
-      <div class="kb kb-logo"><img src="imagelib/logo.png" alt="KEYTUBE Logo" onerror="this.src='https://via.placeholder.com/40'"></div>
-      <span class="brand-name" id="snEl">KEYTUBE</span>
-    </a>
+<header id="hdr">
+  <div class="logo" onclick="goHome()">
+    <div class="kb kb-logo"><img src="logo.png" alt="KEYTUBE"></div>
+    <span class="logo-t" id="snEl">KEYTUBE</span>
   </div>
-  <div class="header-center">
-    <form id="globalSearchForm" class="search-form" onsubmit="event.preventDefault();doSBtn();">
-      <input type="text" id="globalSearchInput" placeholder="Search movies, songs, news…" oninput="onSearch(this.value)" onkeydown="if(event.key==='Enter')doSBtn()">
-      <button type="submit" class="search-btn">🔍</button>
-    </form>
-  </div>
-  <div class="header-right" id="navUserMenu">
+  <div class="hdr-spacer"></div>
+  <div class="hdr-r">
     <div class="hicon" onclick="openSearch()">🔍</div>
     <div class="hicon" id="notifBtn" onclick="toggleNotif()" style="display:none">🔔<div class="notif-dot" id="notifDot"></div></div>
-    <a href="pages/login.html" class="nav-btn" id="siBtn" onclick="showAuth('login');return false;">Sign In</a>
-    <a href="pages/register.html" class="nav-btn btn-primary" id="suBtn" onclick="showAuth('register');return false;">Register</a>
+    <button class="nb nb-out" id="siBtn" onclick="showAuth('login')">Sign in</button>
+    <button class="nb nb-red" id="suBtn" onclick="showAuth('register')">Sign up</button>
     <div id="uChip" style="display:none"><div class="av" id="avEl" onclick="toggleDrop()">U</div></div>
   </div>
 </header>
@@ -57,7 +47,7 @@
 <div id="udrop">
   <div class="di" onclick="cd();goToTab('mylist')">📋 My List</div>
   <div class="di" onclick="cd();showProfile()">👤 Profile</div>
-  <a href="pages/studio.html" class="upload-btn">Creator Studio</a>
+  <a href="./upload/" class="upload-btn">Upload Movie</a>
   <div class="ddiv"></div>
   <div class="di" style="color:var(--red)" onclick="logout()">🚪 Sign out</div>
 </div>
@@ -88,114 +78,96 @@
   </div>
 </div>
 
-<div class="app-layout">
-  <!-- ── SIDEBAR ── -->
-  <aside class="sidebar">
-    <nav class="sidebar-nav">
-      <a href="index.html" class="nav-item active" onclick="goToTab('home');return false;">🏠 Home</a>
-      <a href="pages/playlist.html" class="nav-item" onclick="goToTab('mylist');return false;">📁 Saved Playlist</a>
-      <a href="pages/studio.html" class="nav-item">🎬 Creator Studio</a>
-      <hr class="sidebar-divider">
-      <a href="pages/about.html" class="nav-item" onclick="showPage('about');return false;">ℹ️ About</a>
-      <a href="pages/contact.html" class="nav-item" onclick="showPage('contact');return false;">✉️ Contact</a>
-      <a href="pages/help.html" class="nav-item" onclick="showPage('help');return false;">❓ Help</a>
-    </nav>
-  </aside>
-
-  <!-- ── MAIN CONTENT ── -->
-  <main class="main-content">
-    <!-- ── HOME TAB ── -->
-    <section id="tab-home">
-      <div class="hero-wrap" id="heroWrap">
-        <img id="hCover" src="" alt="">
-        <div class="hero-shade"></div>
-        <div class="hdots" id="hDots"></div>
-        <div class="hero-info">
-          <span class="hbadge" id="hBadge">★ Featured</span>
-          <div class="htitle" id="hTitle">KEYTUBE</div>
-          <div class="hmeta" id="hMeta"></div>
-          <div class="hdesc" id="hDesc"></div>
-          <div class="hbtns">
-            <button class="hbp" onclick="heroPlay()">▶ Watch Now</button>
-            <button class="hbi" id="heroListBtn" onclick="heroToggleList()">+ My List</button>
-          </div>
-        </div>
+<!-- ── HOME TAB ── -->
+<section id="tab-home">
+  <div class="hero-wrap" id="heroWrap">
+    <img id="hCover" src="" alt="">
+    <div class="hero-shade"></div>
+    <div class="hdots" id="hDots"></div>
+    <div class="hero-info">
+      <span class="hbadge" id="hBadge">★ Featured</span>
+      <div class="htitle" id="hTitle">KEYTUBE</div>
+      <div class="hmeta" id="hMeta"></div>
+      <div class="hdesc" id="hDesc"></div>
+      <div class="hbtns">
+        <button class="hbp" onclick="heroPlay()">▶ Watch Now</button>
+        <button class="hbi" id="heroListBtn" onclick="heroToggleList()">+ My List</button>
       </div>
+    </div>
+  </div>
 
-      <section class="category-bar" id="categoryBar">
-        <button class="cat-btn active" data-category="all" onclick="setCat('all',this)">All</button>
-        <button class="cat-btn" data-category="movie" onclick="setCat('Movies',this)">Movies</button>
-        <button class="cat-btn" data-category="series" onclick="setCat('series',this)">Series</button>
-        <button class="cat-btn" data-category="music" onclick="setCat('song',this)">Music</button>
-        <button class="cat-btn" data-category="gaming" onclick="setCat('gaming',this)">Gaming</button>
-        <button class="cat-btn" data-category="education" onclick="setCat('education',this)">Education</button>
-        <button class="cat-btn" data-category="comedy" onclick="setCat('comedy',this)">😂 Comedy</button>
-        <button class="cat-btn" data-category="news" onclick="setCat('news',this)">📰 News</button>
-      </section>
+  <div class="catpills" id="catPills">
+    <button class="cp active" onclick="setCat('all',this)">All</button>
+    <button class="cp" onclick="setCat('Movies',this)">Movies</button>
+    <button class="cp" onclick="setCat('drama',this)">Drama</button>
+    <button class="cp" onclick="setCat('chinese',this)">Chinese</button>
+    <button class="cp" onclick="setCat('indian',this)">Indian</button>
+    <button class="cp" onclick="setCat('cartoon',this)">Cartoon</button>
+    <button class="cp" onclick="setCat('comedy',this)">😂 Comedy</button>
+    <button class="cp" onclick="setCat('song',this)">🎵 Song</button>
+    <button class="cp" onclick="setCat('news',this)">📰 News</button>
+    <button class="cp" onclick="setCat('series',this)">📺 Series</button>
+  </div>
 
-      <div class="sec">
-        <div class="sec-hd"><h2>🔥 Trending Now</h2><span class="see" onclick="goToTab('trending')">See all</span></div>
-        <div class="row-w" id="tRow"></div>
-      </div>
+  <div class="sec">
+    <div class="sec-hd"><h2>🔥 Trending Now</h2><span class="see" onclick="goToTab('trending')">See all</span></div>
+    <div class="row-w" id="tRow"></div>
+  </div>
 
-      <div class="sec hidden" id="newSec">
-        <div class="sec-hd"><h2>✨ New Releases</h2><span class="see" onclick="showNew()">See all</span></div>
-        <div class="row-w" id="nRow"></div>
-      </div>
+  <div class="sec hidden" id="newSec">
+    <div class="sec-hd"><h2>✨ New Releases</h2><span class="see" onclick="showNew()">See all</span></div>
+    <div class="row-w" id="nRow"></div>
+  </div>
 
-      <div id="guestBanner">
-        <h3>🔒 Sign in to see more</h3>
-        <p>Create a free account to access new releases, your list and more.</p>
-        <button class="abtn" onclick="showAuth('register')">Create Free Account</button>
-      </div>
+  <div id="guestBanner">
+    <h3>🔒 Sign in to see more</h3>
+    <p>Create a free account to access new releases, your list and more.</p>
+    <button class="abtn" onclick="showAuth('register')">Create Free Account</button>
+  </div>
 
-      <section class="video-grid-container">
-        <h2>Recommended Videos</h2>
-        <div class="video-grid" id="videoGrid">
-          <p class="loading-text">Loading videos...</p>
-        </div>
-        <div class="empty-st hidden" id="emptySt"><div class="ei">🎬</div><p id="emptyMsg">No content found in this category.</p></div>
-      </section>
-    </section>
+  <div class="sec">
+    <div class="sec-hd"><h2 id="gTitle">All Content</h2></div>
+    <div class="gw" id="mGrid"></div>
+    <div class="empty-st hidden" id="emptySt"><div class="ei">🎬</div><p id="emptyMsg">No content found.</p></div>
+  </div>
+</section>
 
-    <!-- ── TRENDING TAB ── -->
-    <section class="hidden" id="tab-trending">
-      <div class="sec">
-        <div class="sec-hd"><h2>🔥 Trending</h2></div>
-        <div class="gw video-grid" id="trendGrid"></div>
-      </div>
-    </section>
+<!-- ── TRENDING TAB ── -->
+<section class="hidden" id="tab-trending">
+  <div class="sec">
+    <div class="sec-hd"><h2>🔥 Trending</h2></div>
+    <div class="gw" id="trendGrid"></div>
+  </div>
+</section>
 
-    <!-- ── DOWNLOADS TAB ── -->
-    <section class="hidden" id="tab-downloads">
-      <div class="sec">
-        <div class="sec-hd"><h2>⬇ Your Downloads</h2></div>
-        <div id="dlList"></div>
-        <div class="empty-st hidden" id="dlEmpty"><div class="ei">⬇</div><p>Nothing downloaded yet — open any video and tap Download.</p></div>
-      </div>
-    </section>
+<!-- ── DOWNLOADS TAB ── -->
+<section class="hidden" id="tab-downloads">
+  <div class="sec">
+    <div class="sec-hd"><h2>⬇ Your Downloads</h2></div>
+    <div id="dlList"></div>
+    <div class="empty-st hidden" id="dlEmpty"><div class="ei">⬇</div><p>Nothing downloaded yet — open any video and tap Download.</p></div>
+  </div>
+</section>
 
-    <!-- ── MY LIST TAB ── -->
-    <section class="hidden" id="tab-mylist">
-      <div class="sec">
-        <div class="sec-hd"><h2>📋 Saved Playlist</h2></div>
-        <div class="gw video-grid" id="mylistGrid"></div>
-        <div class="empty-st hidden" id="mylistEmpty"><div class="ei">📋</div><p id="mylistEmptyMsg">Sign in to build your playlist.</p></div>
-      </div>
-    </section>
-  </main>
-</div>
+<!-- ── MY LIST TAB ── -->
+<section class="hidden" id="tab-mylist">
+  <div class="sec">
+    <div class="sec-hd"><h2>📋 My List</h2></div>
+    <div class="gw" id="mylistGrid"></div>
+    <div class="empty-st hidden" id="mylistEmpty"><div class="ei">📋</div><p id="mylistEmptyMsg">Sign in to build your list.</p></div>
+  </div>
+</section>
 
 <footer id="mainFooter">
   <div class="fg2">
     <div class="fc">
       <div style="display:flex;align-items:center;gap:5px;margin-bottom:9px">
-        <div class="kb kb-logo" style="width:24px;height:20px"><img src="imagelib/logo.png" alt="KEYTUBE"></div>
+        <div class="kb kb-logo" style="width:24px;height:20px"><img src="logo.png" alt="KEYTUBE"></div>
         <strong id="fbrand" style="font-family:'Bebas Neue';letter-spacing:1px">KEYTUBE</strong>
       </div>
       <p style="font-size:.76rem;color:var(--t2)">Stream &amp; download worldwide.</p>
     </div>
-    <div class="fc"><h4>Info</h4><a href="pages/contact.html" onclick="showPage('contact');return false;">Contact Us</a><a href="pages/about.html" onclick="showPage('about');return false;">About Us</a><a href="pages/help.html" onclick="showPage('help');return false;">Help &amp; Follow</a></div>
+    <div class="fc"><h4>Info</h4><a onclick="showPage('contact')">Contact Us</a><a onclick="showPage('about')">About Us</a><a onclick="showPage('follow')">Follow Us</a></div>
   </div>
   <div class="foot-bot">© <span id="yrSpan">2026</span> KEYTUBE. All rights reserved.</div>
 </footer>
@@ -205,7 +177,7 @@
   <button class="tbtn act" id="tb-home" onclick="goToTab('home')"><span class="tic">🏠</span>Home</button>
   <button class="tbtn" id="tb-trending" onclick="goToTab('trending')"><span class="tic">🔥</span>Trending</button>
   <button class="tbtn" id="tb-downloads" onclick="goToTab('downloads')"><span class="tic">⬇</span>Downloads</button>
-  <button class="tbtn" id="tb-mylist" onclick="goToTab('mylist')"><span class="tic">📋</span>Playlist</button>
+  <button class="tbtn" id="tb-mylist" onclick="goToTab('mylist')"><span class="tic">📋</span>My List</button>
 </nav>
 
 <!-- ── AUTH MODAL ── -->
@@ -213,7 +185,7 @@
   <div class="mbox">
     <div class="mxbtn" onclick="cOv('authOv')">✕</div>
     <div class="auth-hd">
-      <div class="kb kb-logo" style="margin:0 auto 8px"><img src="imagelib/logo.png" alt="KEYTUBE"></div>
+      <div class="kb kb-logo" style="margin:0 auto 8px"><img src="logo.png" alt="KEYTUBE"></div>
       <h2 id="authTitle">Sign in to KEYTUBE</h2>
     </div>
     <div class="atabs">
@@ -254,30 +226,26 @@
     <div class="page-title" id="pageTit">Page</div>
     <div class="page-body" id="pageBody"></div>
   </div>
-</div>
 
-<!-- Scripts configuration matching project structure -->
-<script src="app/api.js"></script>
-<script src="app/auth.js"></script>
-<script src="app/movies.js"></script>
-<script src="app/playlist.js"></script>
-<script src="app/search.js"></script>
-<script src="app/notifications.js"></script>
-<script src="app/main.js"></script>
+<!-- Core scripts (keep existing app.js/home.js for compatibility) -->
 <script src="app.js"></script>
 <script src="home.js"></script>
-<script>
-document.addEventListener("DOMContentLoaded",()=>{
-  if(typeof loadHomeVideos === 'function') {
-    loadHomeVideos();
-  }
-  if(typeof setupCategoryFilters === 'function') {
-    setupCategoryFilters();
-  }
-});
-function renderVideoCard(movie){
-  return `<div class="video-card" onclick="window.location.href='pages/watch.html?id=${movie.id}'"><div class="thumbnail-wrapper"><img src="${movie.coverUrl||movie.cover||'https://via.placeholder.com/320x180'}" alt="${movie.name}" class="thumbnail" onerror="this.src='https://via.placeholder.com/320x180'"></div><div class="card-details"><h3 class="video-title">${movie.name}</h3><p class="video-meta">${movie.category||'General'} • ${movie.views||0} views</p></div></div>`;
-}
-</script>
+
+<!-- All app scripts required by the project (added as requested) -->
+<script src="/app/main.js"></script>
+<script src="/app/api.js"></script>
+<script src="/app/auth.js"></script>
+<script src="/app/movies.js"></script>
+<script src="/app/users.js"></script>
+<script src="/app/comments.js"></script>
+<script src="/app/playlist.js"></script>
+<script src="/app/notifications.js"></script>
+<script src="/app/search.js"></script>
+<script src="/app/studio.js"></script>
+
+<!-- User and admin scripts -->
+<script src="/user/channels/channel.js"></script>
+<script src="/admin/admin.js"></script>
+
 </body>
 </html>
