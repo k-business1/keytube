@@ -1,0 +1,86 @@
+
+/* ── responsive.css ── Mobile-first breakpoints ── */
+/* SMALL PHONES: up to 380px */
+@media(max-width:380px){
+  :root{--nav:52px}
+  .logo-t{font-size:16px}
+  .gw{grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:9px}
+  .mc{width:130px}
+  .htitle{font-size:1.6rem}
+  .hinfo{padding:14px 10px}
+  .dstat-card .dstat-n{font-size:1.5rem}
+}
+/* MEDIUM PHONES: 381–480px */
+@media(max-width:480px){
+  .stats-showcase{grid-template-columns:1fr 1fr}
+  .plans-grid{grid-template-columns:1fr}
+  .earnings-summary{grid-template-columns:1fr}
+  .social-links-grid{grid-template-columns:1fr}
+  .qa-grid{grid-template-columns:repeat(2,1fr)}
+  .card-row2{grid-template-columns:1fr}
+  .up-grid2,.up-grid3{grid-template-columns:1fr}
+}
+/* ALL PHONES: up to 640px */
+@media(max-width:640px){
+  .nav-links{display:none}
+  #hdr .nb-out{display:none}
+  .search-header-bar input{font-size:.82rem}
+  .auth-wrap{padding:12px}
+  .auth-card{padding:20px 16px}
+  .info-main{padding:0 10px 20px}
+  .sec{padding:12px 10px}
+  .adslot{margin:4px 10px}
+  #guestBanner{margin:0 10px 10px;padding:18px}
+  .wallet-hero{}
+  .playlist-hero-card{flex-direction:column;align-items:flex-start}
+  .ph-thumb{width:60px;height:80px}
+  .faq-list{padding:0 10px}
+  .payment-main{padding:0 10px 24px}
+  .plans-grid{grid-template-columns:1fr}
+  .channel-header-card{padding:10px}
+  .about-stats{grid-template-columns:repeat(3,1fr)}
+  .abar .atb:nth-child(n+6){display:none}
+}
+/* TABLETS: 641–1024px */
+@media(min-width:641px) and (max-width:1024px){
+  .gw{grid-template-columns:repeat(auto-fill,minmax(160px,1fr))}
+  .plans-grid{grid-template-columns:repeat(2,1fr)}
+  .stats-showcase{grid-template-columns:repeat(3,1fr)}
+  .studio-sidebar{width:180px;min-width:180px}
+  .snav-btn{font-size:.8rem;padding:8px 12px}
+}
+/* DESKTOP: 1025px+ */
+@media(min-width:1025px){
+  :root{--nav:60px;--tabbar:0px}
+  body{padding-bottom:0}
+  #tabbar{display:none}
+  .upload-main{max-width:700px}
+  .payment-main{max-width:960px}
+  .info-main{max-width:760px}
+  .gw{grid-template-columns:repeat(auto-fill,minmax(180px,1fr))}
+  .hinfo{padding:28px 32px;max-width:520px}
+  .hero-wrap.detail{aspect-ratio:16/6;max-height:500px}
+  #videoWrap{border-radius:0}
+  #hdr .nb-out{display:flex}
+  /* 2-col watch layout on desktop */
+  .watch-body{display:grid;grid-template-columns:1fr 360px;gap:16px;padding:16px;max-width:1280px;margin:0 auto}
+  .watch-body .act-row{grid-column:1;border-radius:var(--r)}
+  .watch-body .watch-info-card{grid-column:1}
+  .watch-body #relatedSec{grid-column:2;grid-row:1/10;padding:0}
+  .watch-body .comments-section{grid-column:1}
+  /* Studio wider on desktop */
+  .studio-main .studio-tab{max-width:1100px;margin:0 auto}
+}
+/* LARGE DESKTOP: 1440px+ */
+@media(min-width:1440px){
+  .gw{grid-template-columns:repeat(auto-fill,minmax(200px,1fr))}
+  .watch-body{max-width:1440px;grid-template-columns:1fr 400px}
+}
+/* DARK MODE (future) */
+@media(prefers-color-scheme:dark){
+  /* Opt-in only via .dark class on body */
+}
+body.dark{
+  --w:#0f0f0f;--bg:#080808;--bg2:#1a1a1a;--bg3:#222;
+  --brd:#333;--txt:#f1f1f1;--t2:#aaa;--t3:#666;
+}
