@@ -6,6 +6,7 @@ body.auth-page{background:var(--bg);padding-top:0;padding-bottom:0;min-height:10
 .auth-card{background:var(--w);border-radius:12px;box-shadow:var(--shadow-md);padding:24px 22px;border:1px solid var(--brd)}
 .auth-logo{display:flex;align-items:center;gap:7px;justify-content:center;margin-bottom:16px;cursor:pointer}
 .logo-kb img{width:100%;height:100%;object-fit:contain}
+.logo-kb{color:#fff;font-family:'Bebas Neue',sans-serif;width:34px;height:28px;display:grid;place-items:center;border-radius:4px;font-size:19px;overflow:hidden}
 .logo-brand{font-family:'Bebas Neue',sans-serif;font-size:1.3rem;letter-spacing:1px}
 .auth-title{font-size:1.15rem;font-weight:700;text-align:center;margin-bottom:4px}
 .auth-sub{font-size:.82rem;color:var(--t2);text-align:center;margin-bottom:18px}
