@@ -5,7 +5,6 @@ body.auth-page{background:var(--bg);padding-top:0;padding-bottom:0;min-height:10
 .auth-wrap{width:100%;max-width:420px;margin:0 auto;padding:16px}
 .auth-card{background:var(--w);border-radius:12px;box-shadow:var(--shadow-md);padding:24px 22px;border:1px solid var(--brd)}
 .auth-logo{display:flex;align-items:center;gap:7px;justify-content:center;margin-bottom:16px;cursor:pointer}
-.logo-kb{background:var(--red);color:#fff;font-family:'Bebas Neue',sans-serif;width:34px;height:28px;display:grid;place-items:center;border-radius:4px;font-size:19px;overflow:hidden}
 .logo-kb img{width:100%;height:100%;object-fit:contain}
 .logo-brand{font-family:'Bebas Neue',sans-serif;font-size:1.3rem;letter-spacing:1px}
 .auth-title{font-size:1.15rem;font-weight:700;text-align:center;margin-bottom:4px}
