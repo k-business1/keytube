@@ -148,7 +148,7 @@ body.studio-body{padding:0;background:var(--bg);overflow:hidden;height:100vh}
 .handle-status{font-size:.73rem;margin-top:4px}
 .handle-ok{color:var(--green)}.handle-err{color:var(--red)}.handle-checking{color:var(--t2)}
 .social-inputs{display:flex;flex-direction:column;gap:7px}
-/* PROFILE EDIT */
+/* PROFILE EDIT (CSS YAWE Y'UMWIMERERE) */
 .profile-edit-card{background:var(--w);border:1px solid var(--brd);border-radius:var(--r);padding:16px;margin-bottom:16px}
 .profile-edit-card h3{font-size:.88rem;font-weight:700;margin-bottom:14px}
 .pe-avatar-section{display:flex;align-items:center;gap:14px;margin-bottom:18px}
@@ -157,13 +157,11 @@ body.studio-body{padding:0;background:var(--bg);overflow:hidden;height:100vh}
 .up-prog-bar-wrap{width:160px;height:5px;background:var(--bg2);border-radius:3px;overflow:hidden}
 .up-prog-bar-fill{height:100%;background:var(--red);width:0%;transition:width .2s;border-radius:3px}
 
-/* KOSORA SCROLLING KURI CONTAINER Y'IZI CARDS */
-#profileEditView, .profile-settings-container {
-  overflow-y: auto;
-  max-height: calc(100vh - var(--nav) - var(--tabbar));
-  padding-top: var(--nav);
-  padding-bottom: 120px;
-  box-sizing: border-box;
+/* ICYAKOSORA IKOSA RYO MU IFOTO (SHYIRA KURI PAJI/TAB YOSE) */
+.tab-panel.active {
+  overflow-y: auto !important;
+  max-height: calc(100vh - var(--nav) - var(--tabbar)) !important;
+  padding-bottom: 100px !important;
 }
 /* SETTINGS */
 .settings-sections{display:flex;flex-direction:column;gap:12px}
