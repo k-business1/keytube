@@ -26,19 +26,27 @@ input,select,textarea{font-family:inherit;font-size:1rem}
 #toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
 #toast.tok{background:#2e7d32}#toast.terr{background:#d32f2f}#toast.tinfo{background:var(--blue)}
 /* ── NAVBAR ── */
-#hdr{position:fixed;top:3px;left:0;right:0;z-index:900;height:var(--nav);background:var(--w);border-bottom:1px solid var(--brd);display:flex;align-items:center;padding:0 12px;gap:8px}
+#hdr{position:fixed;top:0;left:0;right:0;z-index:900;height:var(--nav);background:var(--w);border-bottom:1px solid var(--brd);display:flex;align-items:center;padding:0 12px;gap:8px;box-sizing:border-box}
 .hdr-back{width:36px;height:36px;border-radius:50%;display:grid;place-items:center;font-size:1.4rem;color:var(--t2);flex-shrink:0;transition:background .15s}
 .hdr-back:hover{background:var(--bg2)}
 .logo{display:flex;align-items:center;gap:5px;cursor:pointer;flex-shrink:0;text-decoration:none}
 .logo-t{font-family:'Bebas Neue',sans-serif;font-size:18px;letter-spacing:1px;color:var(--txt);white-space:nowrap}
 .hdr-spacer{flex:1}
-.hdr-r{display:flex;align-items:center;gap:5px}
+.hdr-r{display:flex;align-items:center;gap:5px;flex-shrink:0}
 .hicon{width:34px;height:34px;border-radius:50%;display:grid;place-items:center;cursor:pointer;font-size:1rem;transition:background .15s;position:relative;flex-shrink:0}
 .hicon:hover{background:var(--bg2)}
 .nb{height:32px;padding:0 12px;border-radius:var(--r);font-size:.8rem;font-weight:500;display:flex;align-items:center;gap:5px;transition:all .15s;cursor:pointer;white-space:nowrap}
 .nb:hover{background:rgba(0,0,0,.06)}
 .nb-red{background:var(--red);color:#fff}.nb-red:hover{background:var(--r2)}
 .nb-out{border:1.5px solid var(--brd);color:var(--blue)}.nb-out:hover{background:rgba(6,95,212,.06)}
+
+/* Responsive Automatic Resize */
+@media(max-width:600px){
+  #hdr{padding:0 8px;gap:4px}
+  .logo-t{font-size:16px}
+  .hicon{width:30px;height:30px;font-size:.9rem}
+  .nb{height:28px;padding:0 8px;font-size:.75rem}
+}}
 /* ── AVATAR ── */
 .av{width:32px;height:32px;border-radius:50%;background:var(--red);color:#fff;font-size:.77rem;font-weight:700;display:grid;place-items:center;cursor:pointer;flex-shrink:0;overflow:hidden;position:relative}
 .av img{width:100%;height:100%;object-fit:cover}
