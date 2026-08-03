@@ -1,5 +1,5 @@
-body.channel-page{padding-top:var(--nav);padding-bottom:var(--tabbar)}
-.channel-main{}
+body.channel-page{padding-top:var(--nav);padding-bottom:var(--tabbar);min-height:100vh;height:auto;overflow-y:auto}
+.channel-main{width:100%;height:auto;min-height:100%;overflow:visible}
 .channel-banner{position:relative;width:100%;height:120px;background:linear-gradient(135deg,#1a1a2e,#16213e);overflow:hidden}
 .channel-banner-img{width:100%;height:100%;object-fit:cover;background-size:cover;background-position:center}
 .channel-header-card{padding:14px;background:var(--w);border-bottom:1px solid var(--brd)}
@@ -24,8 +24,8 @@ body.channel-page{padding-top:var(--nav);padding-bottom:var(--tabbar)}
 .channel-tabs::-webkit-scrollbar{display:none}
 .chtab{flex:1;padding:10px 4px;text-align:center;font-size:.78rem;font-weight:500;color:var(--t2);border-bottom:2px solid transparent;cursor:pointer;transition:all .15s;border-top:none;border-left:none;border-right:none;background:none;white-space:nowrap}
 .chtab.active{color:var(--red);border-bottom-color:var(--red)}
-.ch-tab-content{}
-.ch-panel{display:none;padding:14px}.ch-panel.active{display:block}
+.ch-tab-content{height:auto;overflow:visible}
+.ch-panel{display:none;padding:14px;height:auto;overflow:visible}.ch-panel.active{display:block}
 .ch-sort-row{margin-bottom:12px}
 .about-card{background:var(--w);padding:0}
 .about-card h3{font-size:.9rem;font-weight:700;margin-bottom:10px}
