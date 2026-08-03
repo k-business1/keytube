@@ -20,12 +20,12 @@ function renderHero(i){
   var hb=document.getElementById('hBadge');if(hb)hb.textContent=m.isNew?'🆕 New':'⭐ Featured';
   var hm=document.getElementById('hMeta');if(hm)hm.innerHTML='<span class="hrat">⭐ '+(m.rating||'?')+'</span><span>'+h(m.year||'')+'</span><span>'+cap(m.category)+'</span>';
   document.querySelectorAll('.hdot').forEach(function(d,j){d.classList.toggle('active',j===i);});
-  var hero=document.getElementById('hero');if(hero)hero.onclick=function(){window.location.href='../pages/watch.html?id='+m.id;};
+  var hero=document.getElementById('hero');if(hero)hero.onclick=function(){window.location.href='pages/watch.html?id='+m.id;};
 }
 function buildHeroDots(){var c=document.getElementById('hDots');if(!c)return;c.innerHTML='';_heroMovies.forEach(function(_,i){var d=document.createElement('span');d.className='hdot'+(i===0?' active':'');d.onclick=function(){_heroIdx=i;renderHero(i);};c.appendChild(d);});}
 function startHeroTimer(){clearInterval(_heroTimer);_heroTimer=setInterval(function(){_heroIdx=(_heroIdx+1)%Math.max(1,_heroMovies.length);renderHero(_heroIdx);},6500);}
-function heroPlay(){var m=_heroMovies[_heroIdx];if(m)window.location.href='../pages/watch.html?id='+m.id;}
-function heroInfo(){var m=_heroMovies[_heroIdx];if(m)window.location.href='../pages/watch.html?id='+m.id;}
+function heroPlay(){var m=_heroMovies[_heroIdx];if(m)window.location.href='pages/watch.html?id='+m.id;}
+function heroInfo(){var m=_heroMovies[_heroIdx];if(m)window.location.href='pages/watch.html?id='+m.id;}
 
 // WATCH PAGE
 function initWatchPage(){
