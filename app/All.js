@@ -90,12 +90,4 @@ function doSearch(q){
 function cSearch(){document.getElementById('srOverlay').style.display='none';document.getElementById('si').value='';}
 document.addEventListener('keydown',function(e){if(e.key==='Escape')cSearch();});
 
-// Admin trigger (6 clicks on "2026")
-function trackAdminClicks(){
-  _adminClickCount++;
-  clearTimeout(_adminClickTimer);
-  _adminClickTimer=setTimeout(function(){_adminClickCount=0;},2000);
-  if(_adminClickCount>=6){_adminClickCount=0;triggerAdminLogin();}
-}
-function triggerAdminLogin(){window.location.href='admin/admin.html';}
-function openAdminPanel(){window.location.href='admin/admin.html';}
+
