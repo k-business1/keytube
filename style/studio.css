@@ -181,14 +181,47 @@ body.studio-body{padding:0;background:var(--bg);overflow:hidden;height:100vh}
 .sci-actions{display:flex;gap:5px;margin-top:5px}
 /* LIKES GRID */
 /* RESPONSIVE */
-@media(max-width:768px){
-  .studio-sidebar{position:fixed;left:0;top:0;bottom:0;z-index:300;transform:translateX(-100%)}
-  .studio-sidebar.open{transform:translateX(0);box-shadow:4px 0 20px rgba(0,0,0,.15)}
-  .studio-mobile-bar{display:flex}
-  .studio-main{height:100vh}
-  .studio-tab{padding:12px}
-  .dash-stats-grid{grid-template-columns:repeat(2,1fr)}
-  .qa-grid{grid-template-columns:repeat(2,1fr)}
-  .earnings-summary{grid-template-columns:1fr}
-  .videos-table{min-width:500px}
+@media(max-width: 768px){
+  /* Sidebar off-screen by default, full viewport height */
+  .studio-sidebar {
+    position: fixed;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 260px; /* or whatever width your sidebar uses */
+    z-index: 300;
+    transform: translateX(-100%);
+    transition: transform 0.3s ease;
+  }
+  
+  .studio-sidebar.open {
+    transform: translateX(0);
+    box-shadow: 4px 0 20px rgba(0, 0, 0, 0.15);
+  }
+
+  /* Force main content & layout wrapper to take 100% width */
+  .studio-layout, 
+  .studio-container,
+  .studio-main {
+    width: 100% !important;
+    max-width: 100% !important;
+    margin-left: 0 !important;
+    padding-left: 0 !important;
+    flex: 1 1 100% !important;
+    height: auto;
+    min-height: 100vh;
+  }
+
+  /* Ensure top bar displays the 3 lines toggle correctly across full width */
+  .studio-mobile-bar {
+    display: flex;
+    width: 100%;
+    align-items: center;
+  }
+
+  .studio-tab { padding: 12px; }
+  .dash-stats-grid { grid-template-columns: repeat(2, 1fr); }
+  .qa-grid { grid-template-columns: repeat(2, 1fr); }
+  .earnings-summary { grid-template-columns: 1fr; }
+  .videos-table { min-width: 500px; }
 }
