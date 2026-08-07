@@ -199,7 +199,7 @@ function loadMyComments(){
         avatarHTML=
           '<div class="cmt-av cmt-av-img">'+
             '<img src="'+h(c.avatar)+'" alt="'+init+'" '+
-                 'onerror="this.style.display=\'none\';this.nextSibling.style.display=\'grid\'">'+
+                 'onerror="this.style.display=\'none\';this.parentElement.querySelector(\'.cmt-av-fallback\').style.display=\'grid\'">'+
             '<span class="cmt-av-fallback" style="display:none">'+init+'</span>'+
           '</div>';
       }else{
