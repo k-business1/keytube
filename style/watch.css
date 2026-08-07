@@ -52,10 +52,11 @@ body.watch-page{padding-top:var(--nav);padding-bottom:var(--tabbar);background:v
 .comments-hd{margin-bottom:12px}
 .comments-hd h2{font-size:.9rem;font-weight:700;display:flex;align-items:center;gap:7px}
 .cmt-count{color:var(--t2);font-weight:400;font-size:.78rem}
-.cmt-list{display:flex;flex-direction:column;gap:0}
+.cmt-list{display:flex;flex-dir:column;gap:0}
 .cmt-item{display:flex;gap:9px;padding:10px 0;border-bottom:1px solid var(--bg2)}
 .cmt-item:last-child{border-bottom:none}
-/* COMMENT AVATARS */
+
+/* COMMENT AVATARS & FIXES */
 .cmt-av {
   width: 36px;
   height: 36px;
@@ -69,6 +70,12 @@ body.watch-page{padding-top:var(--nav);padding-bottom:var(--tabbar);background:v
   font-size: 0.85rem;
   flex-shrink: 0;
   overflow: hidden;
+}
+
+.cmt-av-img {
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .cmt-av-img img {
