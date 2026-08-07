@@ -192,7 +192,21 @@ function loadMyComments(){
     if(empty)empty.classList.add('hidden');
     if(list){list.innerHTML='';r.comments.forEach(function(c){
       var d=document.createElement('div');d.className='studio-cmt-item';
-      d.innerHTML='<div class="sci-avatar">'+c.name[0].toUpperCase()+'</div>'+
+      
+      var init=(c.name||c.gmail||'?')[0].toUpperCase();
+      var avatarHTML;
+      if(c.avatar&&c.avatar.trim()){
+        avatarHTML=
+          '<div class="cmt-av cmt-av-img">'+
+            '<img src="'+h(c.avatar)+'" alt="'+init+'" '+
+                 'onerror="this.style.display=\'none\';this.nextSibling.style.display=\'grid\'">'+
+            '<span class="cmt-av-fallback" style="display:none">'+init+'</span>'+
+          '</div>';
+      }else{
+        avatarHTML='<div class="cmt-av">'+init+'</div>';
+      }
+
+      d.innerHTML=avatarHTML+
         '<div class="sci-body"><div class="sci-header"><span class="sci-user">'+h(c.name||c.gmail)+'</span>'+
         '<span class="sci-movie" onclick="watchVideo(\''+c.movieId+'\')">on a video</span>'+
         '<span class="sci-date">'+fmtDate(c.date)+'</span></div>'+
@@ -209,7 +223,6 @@ function deleteStudioComment(id){
   var u=_studioUser;
   api('deleteComment',{token:adm,gmail:u.gmail,id:id},function(r){if(r.ok){toastOK('Deleted');loadMyComments();}else toastErr(r.msg);});
 }
-
 // ── LIKES ───────────────────────────────────────────────────
 function loadMyLikes(){
   var u=_studioUser;
