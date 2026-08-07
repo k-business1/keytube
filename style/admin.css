@@ -49,7 +49,7 @@ body{background:var(--bg);color:var(--txt);font-family:'Roboto',sans-serif;min-h
 }
 .abar::-webkit-scrollbar { display: none; }
 .abar-logo { display: flex; align-items: center; gap: 7px; flex-shrink: 0; margin-right: 6px; }
-.abar-kb { width: 28px; height: 24px; background: var(--red); border-radius: 4px; display: grid; place-items: center; overflow: hidden; }
+.abar-kb { width: 28px; height: 24px; border-radius: 4px; display: grid; place-items: center; overflow: hidden; }
 .abar-kb img { width: 100%; height: 100%; object-fit: contain; }
 .abar-kb span { font-family: 'Bebas Neue', sans-serif; font-size: 14px; color: #fff; }
 .abar-title { font-family: 'Bebas Neue', sans-serif; font-size: 1rem; letter-spacing: 1px; color: var(--red); white-space: nowrap; }
