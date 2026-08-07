@@ -152,13 +152,13 @@ function renderChannelPage(ch,u){
   // Social links
   if(ch.socialLinks){try{var sl=JSON.parse(ch.socialLinks);var links=['facebook','twitter','instagram','youtube'];var html='';links.forEach(function(l){if(sl[l])html+='<a class="ch-social-link" href="'+h(sl[l])+'" target="_blank" rel="noopener">'+cap(l)+'</a>';});var csl=document.getElementById('channelSocial');if(csl)csl.innerHTML=html;var asl=document.getElementById('aboutSocial');if(asl)asl.innerHTML=html;}catch(e){}}
   // Own channel — show edit button
-  if(u&&u.gmail===ch.gmail){var fb=document.getElementById('followBtn');if(fb){fb.textContent='✏️ Edit Channel';fb.onclick=function(){window.location.href='../pages/studio.html?tab=channel';};}}
+  if(u&&u.gmail===ch.gmail){var fb=document.getElementById('followBtn');if(fb){fb.textContent='✏️ Edit Channel';fb.onclick=function(){window.location.href='../pages/studio.html';};}}
 }
 
 function toggleFollow(){
   var ch=window._currentChannel;if(!ch)return;
   var u=getUser();if(!u){showLoginReq();return;}
-  if(u.gmail===ch.gmail){window.location.href='../pages/studio.html?tab=channel';return;}
+  if(u.gmail===ch.gmail){window.location.href='../pages/studio.html';return;}
   var following=window._isFollowing;
   var action=following?'unfollowChannel':'followChannel';
   api(action,{gmail:u.gmail,channelGmail:ch.gmail},function(r){
