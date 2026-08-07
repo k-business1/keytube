@@ -197,13 +197,13 @@ function loadMyComments(){
       var avatarHTML;
       if(c.avatar&&c.avatar.trim()){
         avatarHTML=
-          '<div class="cmt-av cmt-av-img">'+
+          '<div class="sci-avatar sci-avatar-img">'+
             '<img src="'+h(c.avatar)+'" alt="'+init+'" '+
-                 'onerror="this.style.display=\'none\';this.parentElement.querySelector(\'.cmt-av-fallback\').style.display=\'grid\'">'+
-            '<span class="cmt-av-fallback" style="display:none">'+init+'</span>'+
+                 'onerror="this.style.display=\'none\';this.parentElement.querySelector(\'.sci-avatar-fallback\').style.display=\'grid\'">'+
+            '<span class="sci-avatar-fallback" style="display:none">'+init+'</span>'+
           '</div>';
       }else{
-        avatarHTML='<div class="cmt-av">'+init+'</div>';
+        avatarHTML='<div class="sci-avatar">'+init+'</div>';
       }
 
       d.innerHTML=avatarHTML+
@@ -216,7 +216,9 @@ function loadMyComments(){
     });}
   });
 }
+
 function filterStudioComments(){}
+
 function deleteStudioComment(id){
   if(!confirm('Delete?'))return;
   var adm=getAdminToken()||'';
