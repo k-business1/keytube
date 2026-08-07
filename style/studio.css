@@ -180,8 +180,6 @@ body.studio-body{padding:0;background:var(--bg);overflow:hidden;height:100vh}
 .comments-filter-row{margin-bottom:12px}
 .studio-cmt-item{display:flex;gap:10px;padding:10px 12px;background:var(--w);border-radius:var(--r);border:1px solid var(--brd);margin-bottom:7px;align-items:flex-start}
 
-/* Avatar styles supporting both images and red background fallbacks */
-.studio-cmt-item .cmt-av,
 .sci-avatar{
   width: 32px;
   height: 32px;
@@ -197,18 +195,18 @@ body.studio-body{padding:0;background:var(--bg);overflow:hidden;height:100vh}
   overflow: hidden;
 }
 
-.studio-cmt-item .cmt-av.cmt-av-img {
+.sci-avatar.sci-avatar-img{
   background: transparent;
 }
 
-.studio-cmt-item .cmt-av-img img {
+.sci-avatar-img img{
   width: 100%;
   height: 100%;
   object-fit: cover;
   border-radius: 50%;
 }
 
-.studio-cmt-item .cmt-av-fallback {
+.sci-avatar-fallback{
   width: 100%;
   height: 100%;
   display: grid;
