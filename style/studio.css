@@ -166,16 +166,23 @@ body.studio-body{padding:0;background:var(--bg);overflow:hidden;height:100vh}
   -webkit-overflow-scrolling: touch;
 }
 /* SETTINGS */
-.settings-sections{display:flex;flex-direction:column;gap:12px}
-.settings-section{background:var(--w);border:1px solid var(--brd);border-radius:var(--r);padding:14px}
-.settings-section h3{font-size:.85rem;font-weight:700;margin-bottom:10px}
-.setting-row{display:flex;align-items:center;justify-content:space-between;padding:9px 0;border-bottom:1px solid var(--bg2)}
-.setting-row:last-child{border-bottom:none}
-.sr-label{font-size:.83rem}
-.theme-toggle{display:flex;gap:0;background:var(--bg2);border-radius:20px;padding:3px}
-.tt-btn{padding:5px 12px;border-radius:20px;font-size:.77rem;font-weight:600;border:none;background:transparent;cursor:pointer;transition:all .2s;color:var(--t2)}
-.tt-btn.active{background:var(--w);color:var(--txt);box-shadow:var(--shadow)}
-.danger-section{border-color:rgba(255,0,0,.2)}
+.settings-sections {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  overflow-y: auto;
+  max-height: calc(100vh - 130px); /* Bituma yuzuza screen isigaranye aho iscrollira */
+  padding-right: 6px;              /* Bituma scrollbar itwikira ibintu */
+}
+.settings-section { background: var(--w); border: 1px solid var(--brd); border-radius: var(--r); padding: 14px; }
+.settings-section h3 { font-size: .85rem; font-weight: 700; margin-bottom: 10px; }
+.setting-row { display: flex; align-items: center; justify-content: space-between; padding: 9px 0; border-bottom: 1px solid var(--bg2); }
+.setting-row:last-child { border-bottom: none; }
+.sr-label { font-size: .83rem; }
+.theme-toggle { display: flex; gap: 0; background: var(--bg2); border-radius: 20px; padding: 3px; }
+.tt-btn { padding: 5px 12px; border-radius: 20px; font-size: .77rem; font-weight: 600; border: none; background: transparent; cursor: pointer; transition: all .2s; color: var(--t2); }
+.tt-btn.active { background: var(--w); color: var(--txt); box-shadow: var(--shadow); }
+.danger-section { border-color: rgba(255,0,0,.2); }
 /* COMMENTS IN STUDIO */
 .comments-filter-row { margin-bottom: 12px; }
 .studio-cmt-item { 
