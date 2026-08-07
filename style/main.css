@@ -170,7 +170,7 @@ input:checked + .ts-slider:before{transform:translateX(20px)}
 .afg select,.afg input{border:1px solid var(--brd);border-radius:var(--r2px);padding:5px 8px;font-size:.78rem;background:var(--w);color:var(--txt);outline:none;min-width:90px;-webkit-appearance:none}
 .filter-toggle{display:flex;align-items:center;gap:5px;padding:4px 14px 7px;font-size:.77rem;color:var(--t2);cursor:pointer;border:none;background:none}
 .filter-toggle:hover{color:var(--txt)}
-/* ── COMMENTS ── */
+* ── COMMENTS ── */
 .cmt-av{width:30px;height:30px;border-radius:50%;background:var(--red);color:#fff;display:grid;place-items:center;font-size:.72rem;font-weight:700;flex-shrink:0;overflow:hidden}
 .cmt-av img{width:100%;height:100%;object-fit:cover}
 .cmt-name{font-size:.78rem;font-weight:600;display:flex;align-items:center;gap:5px}
