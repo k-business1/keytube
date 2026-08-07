@@ -183,6 +183,8 @@ body.studio-body{padding:0;background:var(--bg);overflow:hidden;height:100vh}
 .sci-avatar{
   width: 32px;
   height: 32px;
+  min-width: 32px;
+  min-height: 32px;
   border-radius: 50%;
   background: var(--red);
   color: #fff;
@@ -193,20 +195,21 @@ body.studio-body{padding:0;background:var(--bg);overflow:hidden;height:100vh}
   font-weight: 700;
   flex-shrink: 0;
   overflow: hidden;
+  position: relative;
 }
 
-.sci-avatar.sci-avatar-img{
-  background: transparent;
-}
-
-.sci-avatar-img img{
+.sci-avatar img{
   width: 100%;
   height: 100%;
   object-fit: cover;
   border-radius: 50%;
+  display: block;
 }
 
 .sci-avatar-fallback{
+  position: absolute;
+  top: 0;
+  left: 0;
   width: 100%;
   height: 100%;
   display: grid;
