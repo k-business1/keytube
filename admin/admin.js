@@ -178,13 +178,28 @@ function aComments(){
     var list=r.comments||[];
     document.getElementById('aBody').innerHTML='<div class="atw"><div class="ath"><h3>💬 All Comments ('+list.length+')</h3></div>'+
       '<div style="overflow-x:auto"><table class="dt"><thead><tr><th>User</th><th>Movie ID</th><th>Comment</th><th>Date</th><th></th></tr></thead>'+
-      '<tbody>'+list.map(function(c){return'<tr>'+
-        '<td>'+h(c.name||c.gmail)+'</td>'+
-        '<td style="font-size:.7rem;color:var(--t2)">'+h(c.movieId)+'</td>'+
-        '<td>'+h(c.emoji||'💬')+' '+h((c.comment||'').substring(0,60))+'</td>'+
-        '<td style="font-size:.7rem">'+fmtDate(c.date)+'</td>'+
-        '<td><button class="ab2 ab2-red" onclick="aDelCmt(\''+c.id+'\')">Delete</button></td>'+
-        '</tr>';}).join('')+
+      '<tbody>'+list.map(function(c){
+        var init=(c.name||c.gmail||'?')[0].toUpperCase();
+        var avatarHTML;
+        if(c.avatar&&c.avatar.trim()){
+          avatarHTML=
+            '<div class="cmt-av cmt-av-img" style="width:28px;height:28px;min-width:28px;min-height:28px;border-radius:50%;overflow:hidden;position:relative;display:inline-flex;align-items:center;justify-content:center;vertical-align:middle;margin-right:6px;background:transparent;">'+
+              '<img src="'+h(c.avatar)+'" alt="'+init+'" style="width:28px;height:28px;object-fit:cover;border-radius:50%;display:block;" '+
+                   'onerror="this.style.display=\'none\';this.nextElementSibling.style.display=\'grid\'">'+
+              '<span class="cmt-av-fallback" style="display:none;position:absolute;top:0;left:0;width:100%;height:100%;background:var(--red,#cc0000);color:#fff;display:grid;place-items:center;font-size:.7rem;font-weight:700;">'+init+'</span>'+
+            '</div>';
+        }else{
+          avatarHTML='<div class="cmt-av" style="width:28px;height:28px;min-width:28px;min-height:28px;border-radius:50%;background:var(--red,#cc0000);color:#fff;display:inline-flex;align-items:center;justify-content:center;font-size:.7rem;font-weight:700;vertical-align:middle;margin-right:6px;">'+init+'</div>';
+        }
+
+        return '<tr>'+
+          '<td>'+avatarHTML+'<span style="vertical-align:middle;">'+h(c.name||c.gmail)+'</span></td>'+
+          '<td style="font-size:.7rem;color:var(--t2)">'+h(c.movieId)+'</td>'+
+          '<td>'+h(c.emoji||'💬')+' '+h((c.comment||'').substring(0,60))+'</td>'+
+          '<td style="font-size:.7rem">'+fmtDate(c.date)+'</td>'+
+          '<td><button class="ab2 ab2-red" onclick="aDelCmt(\''+c.id+'\')">Delete</button></td>'+
+          '</tr>';
+      }).join('')+
       '</tbody></table></div></div>';
   });
 }
