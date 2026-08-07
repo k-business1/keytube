@@ -55,6 +55,35 @@ body.watch-page{padding-top:var(--nav);padding-bottom:var(--tabbar);background:v
 .cmt-list{display:flex;flex-direction:column;gap:0}
 .cmt-item{display:flex;gap:9px;padding:10px 0;border-bottom:1px solid var(--bg2)}
 .cmt-item:last-child{border-bottom:none}
+/* COMMENT AVATARS */
+.cmt-av {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: var(--bg2, #e0e0e0);
+  color: var(--t1, #333);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 0.85rem;
+  flex-shrink: 0;
+  overflow: hidden;
+}
+
+.cmt-av-img img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 50%;
+}
+
+.cmt-av-fallback {
+  width: 100%;
+  height: 100%;
+  display: grid;
+  place-items: center;
+}
 /* RELATED */
 #relatedSec{padding:14px;background:var(--bg)}
 #relatedTitle{font-size:.9rem}
