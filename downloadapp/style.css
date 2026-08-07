@@ -1,0 +1,201 @@
+*{
+    margin:0;
+    padding:0;
+    box-sizing:border-box;
+}
+
+
+body{
+
+    width:100%;
+    height:100vh;
+
+    background:
+    linear-gradient(
+        135deg,
+        #111827,
+        #e60000
+    );
+
+    display:flex;
+    justify-content:center;
+    align-items:center;
+
+    font-family:Arial, sans-serif;
+
+}
+
+
+
+.container{
+
+    width:100%;
+    padding:20px;
+
+    display:flex;
+    justify-content:center;
+
+}
+
+
+
+.card{
+
+    width:100%;
+    max-width:420px;
+
+    background:white;
+
+    border-radius:25px;
+
+    padding:35px 25px;
+
+    text-align:center;
+
+    box-shadow:
+    0 20px 50px rgba(0,0,0,.4);
+
+}
+
+
+
+.logo{
+
+    width:100px;
+    height:100px;
+
+    object-fit:contain;
+
+}
+
+
+
+h1{
+
+    font-size:42px;
+
+    margin-top:15px;
+
+    font-weight:900;
+
+}
+
+
+
+.subtitle{
+
+    color:#777;
+
+    margin:10px 0 25px;
+
+}
+
+
+
+.download-card{
+
+    background:#f5f5f5;
+
+    border-radius:18px;
+
+    padding:20px;
+
+    margin:15px 0;
+
+    text-align:left;
+
+}
+
+
+
+.icon{
+
+    font-size:35px;
+
+    float:left;
+
+    margin-right:15px;
+
+}
+
+
+
+.download-card h2{
+
+    font-size:20px;
+
+}
+
+
+
+.download-card p{
+
+    color:#777;
+
+    margin:5px 0 15px;
+
+}
+
+
+
+button{
+
+    width:100%;
+
+    padding:15px;
+
+    border:none;
+
+    border-radius:30px;
+
+    background:#e60000;
+
+    color:white;
+
+    font-size:17px;
+
+    font-weight:bold;
+
+    cursor:pointer;
+
+}
+
+
+
+button:hover{
+
+    background:#b90000;
+
+}
+
+
+
+#message{
+
+    margin-top:20px;
+
+    color:red;
+
+    font-weight:bold;
+
+}
+.back-btn{
+    width:100%;
+    padding:14px;
+    margin-top:15px;
+
+    border:none;
+    border-radius:30px;
+
+    background:#111827;
+    color:white;
+
+    font-size:16px;
+    font-weight:bold;
+
+    cursor:pointer;
+}
+
+.back-btn:hover{
+    background:#000;
+}
