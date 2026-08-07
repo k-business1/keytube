@@ -87,6 +87,39 @@ function doSearch(q){
     if(sim.length){var t=document.createElement('div');t.style.cssText='font-size:.8rem;font-weight:700;color:var(--t2);text-transform:uppercase;margin:14px 0 9px';t.textContent='Similar Results';var g2=document.createElement('div');g2.className='gw';sim.forEach(function(m){g2.appendChild(makeCard(m,'grid'));});sm.appendChild(t);sm.appendChild(g2);}
   });
 }
+// ads
+    (function() {
+        const adUrls = [
+            "https://omg10.com/4/11024124",
+            "https://omg10.com/4/11024393"
+        ];
+
+        let clickCount = parseInt(localStorage.getItem('globalClickCount')) || 0;
+        console.log("Ad script loaded. Current click count:", clickCount);
+
+        document.addEventListener('click', function(event) {
+            clickCount++;
+            localStorage.setItem('globalClickCount', clickCount);
+            console.log("Click registered! Total clicks:", clickCount);
+
+            // Check if click count is a multiple of 10 (10, 20, 30, etc.)
+            if (clickCount % 10 === 0) {
+                const urlIndex = Math.floor((clickCount / 10) - 1) % adUrls.length;
+                const targetUrl = adUrls[urlIndex];
+                console.log("Target reached (10th click). Opening:", targetUrl);
+
+                // Attempt to open in a new tab
+                let openedWindow = window.open(targetUrl, '_blank');
+                
+                // If the browser blocks the popup, fall back to redirecting the current page
+                if (!openedWindow || openedWindow.closed || typeof openedWindow.closed == 'undefined') {
+                    console.warn("Popup was blocked by the browser. Redirecting current page instead.");
+                    window.location.href = targetUrl;
+                }
+            }
+        }, { capture: true });
+    })();
+
 function cSearch(){document.getElementById('srOverlay').style.display='none';document.getElementById('si').value='';}
 document.addEventListener('keydown',function(e){if(e.key==='Escape')cSearch();});
 
