@@ -22,8 +22,12 @@ body.studio-body{padding:0;background:var(--bg);overflow:hidden;height:100vh}
 .smb-title{font-family:'Bebas Neue',sans-serif;font-size:1.1rem;letter-spacing:1px;flex:1}
 .smb-r{}
 /* MAIN CONTENT */
-.studio-main{flex:1;overflow-y:auto;height:100vh;background:var(--bg)}
-.studio-tab{padding:16px;display:none}
+.studio-main{flex:1;overflow-y:auto;height:100vh;max-height:100vh;background:var(--bg)}
+.studio-main::-webkit-scrollbar{width:6px}
+.studio-main::-webkit-scrollbar-track{background:var(--bg)}
+.studio-main::-webkit-scrollbar-thumb{background:var(--red);border-radius:3px}
+
+.studio-tab{padding:16px;display:none;padding-bottom:40px}
 .studio-tab.active{display:block}
 .stab-header{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:18px;flex-wrap:wrap}
 .stab-header h1{font-family:'Bebas Neue',sans-serif;font-size:1.6rem;letter-spacing:1px}
@@ -95,6 +99,11 @@ body.studio-body{padding:0;background:var(--bg);overflow:hidden;height:100vh}
 .follower-name{font-size:.83rem;font-weight:600}
 .follower-date{font-size:.71rem;color:var(--t2)}
 /* ANALYTICS */
+.analytics-page-container {
+  overflow-y: auto;
+  max-height: calc(100vh - 120px);
+  padding-right: 4px;
+}
 .analytics-period{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:14px}
 .aperiod-btn{padding:6px 14px;border-radius:20px;font-size:.78rem;font-weight:600;border:1.5px solid var(--brd);background:var(--w);cursor:pointer;transition:all .15s}
 .aperiod-btn.active{background:var(--txt);color:var(--w);border-color:var(--txt)}
@@ -102,7 +111,7 @@ body.studio-body{padding:0;background:var(--bg);overflow:hidden;height:100vh}
 .ao-card{background:var(--w);border:1px solid var(--brd);border-radius:var(--r);padding:14px}
 .ao-card h3{font-size:.73rem;font-weight:700;color:var(--t2);text-transform:uppercase;letter-spacing:.3px;margin-bottom:7px}
 .ao-n{font-family:'Bebas Neue',sans-serif;font-size:1.8rem;color:var(--txt);line-height:1}
-.analytics-table-card{background:var(--w);border:1px solid var(--brd);border-radius:var(--r);padding:14px}
+.analytics-table-card{background:var(--w);border:1px solid var(--brd);border-radius:var(--r);padding:14px;overflow-x:auto}
 .analytics-table-card h3{font-size:.85rem;font-weight:700;margin-bottom:10px}
 /* NOTIFICATIONS */
 .studio-notif-item{display:flex;gap:10px;align-items:flex-start;padding:12px;background:var(--w);border-radius:var(--r);border:1px solid var(--brd);margin-bottom:8px;transition:background .15s}
