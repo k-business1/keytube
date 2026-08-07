@@ -313,3 +313,9 @@ function aSaveSettings(){
 }
 
 function aErr(msg){document.getElementById('aBody').innerHTML='<div class="aerr" style="padding:18px;color:var(--red);font-size:.84rem">❌ '+h(msg)+'</div>';}
+function toggleAdminMenu() {
+  var abar = document.querySelector('.abar');
+  if (abar) {
+    abar.classList.toggle('open');
+  }
+}
