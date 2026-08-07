@@ -197,9 +197,9 @@ function loadMyComments(){
       var avatarHTML;
       if(c.avatar&&c.avatar.trim()){
         avatarHTML=
-          '<div class="sci-avatar sci-avatar-img">'+
+          '<div class="sci-avatar">'+
             '<img src="'+h(c.avatar)+'" alt="'+init+'" '+
-                 'onerror="this.style.display=\'none\';this.parentElement.querySelector(\'.sci-avatar-fallback\').style.display=\'grid\'">'+
+                 'onerror="this.style.display=\'none\';this.nextElementSibling.style.display=\'grid\'">'+
             '<span class="sci-avatar-fallback" style="display:none">'+init+'</span>'+
           '</div>';
       }else{
