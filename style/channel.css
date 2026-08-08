@@ -3,7 +3,13 @@ body.channel-page{padding-top:var(--nav);padding-bottom:var(--tabbar);min-height
 .channel-banner{position:relative;width:100%;height:120px;background:linear-gradient(135deg,#1a1a2e,#16213e);overflow:hidden}
 .channel-banner-img{width:100%;height:100%;object-fit:cover;background-size:cover;background-position:center}
 .channel-header-card{padding:14px;background:var(--w);border-bottom:1px solid var(--brd)}
-.channel-avatar-wrap{margin-top:-40px;margin-bottom:10px}
+.channel-avatar-wrap {
+  margin-top: -65px;
+  margin-bottom: 10px;
+  position: relative;
+  z-index: 3;
+  display: inline-block;
+}
 .channel-avatar{width:72px;height:72px;border-radius:50%;background:var(--red);color:#fff;display:grid;place-items:center;font-size:1.8rem;font-weight:700;border:3px solid var(--w);overflow:hidden;flex-shrink:0}
 .channel-avatar img{width:100%;height:100%;object-fit:cover}
 .channel-name{font-size:1.1rem;font-weight:700;margin-bottom:3px;display:flex;align-items:center;gap:6px}
