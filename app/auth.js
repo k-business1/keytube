@@ -1,13 +1,12 @@
-
 // ── auth.js — Auth, session, nav UI ────────────────────────
 var _S={user:null,adminToken:null,settings:{},pages:{}};
 
 // Session
-function getUser(){if(!_S.user){try{var u=sessionStorage.getItem('kt_u');if(u)_S.user=JSON.parse(u);}catch(e){}}return _S.user;}
-function getAdminToken(){if(!_S.adminToken)_S.adminToken=sessionStorage.getItem('kt_a')||null;return _S.adminToken;}
-function setUser(u){_S.user=u;sessionStorage.setItem('kt_u',JSON.stringify(u));}
-function setAdminToken(t){_S.adminToken=t;sessionStorage.setItem('kt_a',t);}
-function clearSession(){_S.user=null;_S.adminToken=null;sessionStorage.removeItem('kt_u');sessionStorage.removeItem('kt_a');}
+function getUser(){if(!_S.user){try{var u=localStorage.getItem('kt_u');if(u)_S.user=JSON.parse(u);}catch(e){}}return _S.user;}
+function getAdminToken(){if(!_S.adminToken)_S.adminToken=localStorage.getItem('kt_a')||null;return _S.adminToken;}
+function setUser(u){_S.user=u;localStorage.setItem('kt_u',JSON.stringify(u));}
+function setAdminToken(t){_S.adminToken=t;localStorage.setItem('kt_a',t);}
+function clearSession(){_S.user=null;_S.adminToken=null;localStorage.removeItem('kt_u');localStorage.removeItem('kt_a');}
 
 // Login required
 function showLoginReq(){var el=document.getElementById('loginReq');if(el)el.classList.add('show');var f=document.querySelector('.lr-fill');if(f){f.style.width='0%';void f.offsetWidth;f.style.animation='none';void f.offsetWidth;f.style.animation='';}}
