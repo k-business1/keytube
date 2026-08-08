@@ -161,7 +161,7 @@ function renderVideosTable(movies){
 function filterMyVideos(q){var v=window._myVideos||[];if(!q)renderVideosTable(v);else renderVideosTable(v.filter(function(m){return m.name.toLowerCase().indexOf(q.toLowerCase())!==-1;}));}
 function sortMyVideos(by){var v=window._myVideos||[];var sorted=v.slice().sort(function(a,b){if(by==='likes')return 0;if(by==='popular')return 0;return new Date(b.added||0)-new Date(a.added||0);});renderVideosTable(sorted);}
 function watchVideo(id){window.open('../pages/watch.html?id='+id,'_blank');}
-function editVideo(id){window.location.href='../uploads/upload.html?edit='+id;}
+function editVideo(id){window.location.href='upload.html?edit='+id;}
 function deleteVideo(id,name){
   if(!confirm('Delete "'+name+'"? This cannot be undone.'))return;
   var u=_studioUser;
