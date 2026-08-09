@@ -86,6 +86,138 @@ function doSearch(q){
     var sm=document.getElementById('srSim');sm.innerHTML='';
     if(sim.length){var t=document.createElement('div');t.style.cssText='font-size:.8rem;font-weight:700;color:var(--t2);text-transform:uppercase;margin:14px 0 9px';t.textContent='Similar Results';var g2=document.createElement('div');g2.className='gw';sim.forEach(function(m){g2.appendChild(makeCard(m,'grid'));});sm.appendChild(t);sm.appendChild(g2);}
   });
+  searchChannels(q);  // ← ADD THIS LINE
+} // search chaner
+function searchChannels(q) {
+  api('searchChannels', {query: q}, function(r) {
+    if (!r.ok) return;
+    var channels = r.channels || [];
+    renderChannelResults(channels);
+  });
+}
+
+function renderChannelResults(channels) {
+  // Find or create the channels container
+  var wrap = document.getElementById('srChannels');
+  if (!wrap) return;
+  wrap.innerHTML = '';
+
+  if (!channels.length) {
+    wrap.style.display = 'none';
+    return;
+  }
+
+  // Section heading
+  var hd = document.createElement('div');
+  hd.style.cssText = 'font-size:.82rem;font-weight:700;color:var(--t2);text-transform:uppercase;letter-spacing:.4px;margin:14px 0 10px;display:flex;align-items:center;gap:6px';
+  hd.innerHTML = '📺 Channels <span style="font-weight:400;color:var(--t3);font-size:.75rem">('+channels.length+')</span>';
+  wrap.appendChild(hd);
+
+  // Channel cards
+  channels.forEach(function(ch) {
+    wrap.appendChild(makeChannelCard(ch));
+  });
+
+  wrap.style.display = 'block';
+}
+
+function makeChannelCard(ch) {
+  var d = document.createElement('div');
+  d.style.cssText = 'display:flex;align-items:center;gap:12px;padding:12px 14px;' +
+                    'background:var(--w);border:1px solid var(--brd);border-radius:var(--r);' +
+                    'cursor:pointer;transition:background .15s;margin-bottom:8px';
+  d.onmouseenter = function(){ this.style.background = 'var(--bg2)'; };
+  d.onmouseleave = function(){ this.style.background = 'var(--w)'; };
+
+  // Pick a unique colour for channels without avatars
+  var colors = ['#e53935','#d81b60','#8e24aa','#1e88e5',
+                '#00897b','#43a047','#f4511e','#fb8c00'];
+  var gmail  = ch.gmail || '';
+  var seed   = gmail.split('').reduce(function(a,c){ return a * 31 + c.charCodeAt(0); }, 0);
+  var color  = colors[Math.abs(seed) % colors.length];
+  var init   = (ch.name || ch.gmail || '?')[0].toUpperCase();
+
+  // Avatar: real photo if available, coloured initial otherwise
+  var avHTML;
+  if (ch.avatar && ch.avatar.trim()) {
+    avHTML = '<div style="width:52px;height:52px;border-radius:50%;overflow:hidden;flex-shrink:0;background:var(--bg2)">' +
+               '<img src="' + h(ch.avatar) + '" alt="' + init + '" ' +
+                    'style="width:100%;height:100%;object-fit:cover;border-radius:50%;display:block" ' +
+                    'onerror="this.parentNode.style.background=\'' + color + '\';' +
+                              'this.parentNode.innerHTML=\'<span style=&quot;width:100%;height:100%;color:#fff;' +
+                              'font-size:1.3rem;font-weight:700;display:grid;place-items:center&quot;>' + init + '</span>\'">' +
+             '</div>';
+  } else {
+    avHTML = '<div style="width:52px;height:52px;border-radius:50%;background:' + color + ';color:#fff;' +
+                         'font-size:1.3rem;font-weight:700;display:grid;place-items:center;flex-shrink:0">' +
+               init +
+             '</div>';
+  }
+
+  // Monetized badge
+  var badge = ch.monetizationEnabled
+    ? '<span style="font-size:.63rem;background:rgba(245,197,24,.15);color:#9a7d0a;' +
+             'border:1px solid rgba(245,197,24,.5);border-radius:3px;padding:1px 5px;font-weight:700">💰 Monetized</span>'
+    : '';
+
+  d.innerHTML =
+    avHTML +
+    '<div style="flex:1;min-width:0">' +
+      '<div style="font-size:.9rem;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">' +
+        h(ch.name || ch.gmail) +
+      '</div>' +
+      '<div style="font-size:.74rem;color:var(--t2);margin:2px 0">' + h(ch.handle || '') + '</div>' +
+      '<div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-top:2px">' +
+        '<span style="font-size:.74rem;color:var(--t2)">👥 ' + fmtNum(ch.followerCount || 0) + ' followers</span>' +
+        '<span style="font-size:.74rem;color:var(--t2)">🎬 ' + (ch.videoCount || 0) + ' videos</span>' +
+        badge +
+      '</div>' +
+      (ch.bio
+        ? '<div style="font-size:.74rem;color:var(--t3);margin-top:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">' +
+            h(ch.bio) + '</div>'
+        : '') +
+    '</div>' +
+    '<button onclick="event.stopPropagation(); followFromSearch(\'' + h(ch.gmail) + '\', this)" ' +
+            'style="padding:6px 14px;border-radius:20px;border:1.5px solid var(--red);' +
+                   'background:var(--red);color:#fff;font-size:.76rem;font-weight:700;' +
+                   'cursor:pointer;white-space:nowrap;flex-shrink:0;transition:all .2s">' +
+      'Follow' +
+    '</button>';
+
+  // Click card → go to channel page
+  d.onclick = function() {
+    window.location.href = 'channel.html?gmail=' + encodeURIComponent(ch.gmail);
+  };
+
+  return d;
+}
+
+// Follow / Unfollow directly from search results
+function followFromSearch(channelGmail, btn) {
+  var u = getUser();
+  if (!u) { showLoginReq(); return; }
+
+  var isFollowing = btn.textContent.trim() === 'Following';
+
+  api(isFollowing ? 'unfollowChannel' : 'followChannel',
+      {gmail: u.gmail, channelGmail: channelGmail},
+      function(r) {
+        if (r.ok) {
+          if (isFollowing) {
+            btn.textContent = 'Follow';
+            btn.style.background = 'var(--red)';
+            btn.style.color = '#fff';
+          } else {
+            btn.textContent = 'Following';
+            btn.style.background = 'var(--w)';
+            btn.style.color = 'var(--red)';
+            btn.style.borderColor = 'var(--red)';
+            toastOK('Following ✓');
+          }
+        } else {
+          toastErr(r.msg || 'Error');
+        }
+      });
 }
 // ads
     (function() {
