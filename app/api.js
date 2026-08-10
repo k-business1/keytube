@@ -1,7 +1,21 @@
 
 // ── api.js — Central API layer ──────────────────────────────
-var API_URL='https://script.google.com/macros/s/AKfycbxbYUKZYwYRssm80AnP8kDj-8_ymsaFczKmecbchEntyhhr5-zqAIDYov-Nt7Ko0pDOMA/exec';
+// ── api.js — Central API layer ──────────────────────────────
+var API_URL = 'https://script.google.com/macros/s/AKfycbxbYUKZYwYRssm80AnP8kDj-8_ymsaFczKmecbchEntyhhr5-zqAIDYov-Nt7Ko0pDOMA/exec';
 var SITE_ORIGIN = window.location.hostname;
+const originalFetch = window.fetch;
+window.fetch = async function(resource, init) {
+  if (resource === API_URL && init && init.body) {
+    try {
+      let bodyData = JSON.parse(init.body);
+      if (typeof bodyData === 'object' && bodyData !== null) {
+        bodyData.origin = SITE_ORIGIN;
+        init.body = JSON.stringify(bodyData);
+      }
+    } catch (e) {}
+  }
+  return originalFetch(resource, init);
+};
 // Cloudinary configs
 var CDN_USER={cloud:'dxm2dqdfi',preset:'Keytube',folder:'Keytube/profiles'};
 var CDN_ADMIN={cloud:'dajgyzx3c',preset:'Keytube',folder:'Keytube'};
