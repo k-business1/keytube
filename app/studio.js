@@ -298,24 +298,143 @@ function markAllReadStudio(){markAllRead();setTimeout(loadStudioNotifs,600);}
 
 // ── EARNINGS ────────────────────────────────────────────────
 function loadEarnings(){
-  var u=_studioUser;
+  var _allEarnHistory = [];
+
+function loadEarnings(){
+  var u = _studioUser;
+
+  api('getFollowers',{gmail:u.gmail},function(fr){
+    api('getEarningRates',{},function(rr){
+      var threshold = rr.ok ? rr.rates.monetize_threshold : 1000;
+      var count     = fr.ok ? fr.count : 0;
+      var unlocked  = count >= threshold;
+      var pct       = Math.min((count/threshold)*100, 100);
+
+      setText('earnMonoIcon',    unlocked ? '💰' : '🔒');
+      setText('earnMonoTitle',   unlocked ? '✅ Monetization Active!' : '🔒 Monetization Locked');
+      setText('earnMonoDesc',    unlocked
+        ? 'Your channel is earning from views, likes, comments and followers.'
+        : 'You need '+(threshold-count).toLocaleString()+' more followers. ('+count.toLocaleString()+'/'+threshold.toLocaleString()+')');
+      setText('earnMonoCurrent', count.toLocaleString()+' followers');
+      setText('earnMonoGoal',    threshold.toLocaleString()+' needed');
+
+      var bar = document.getElementById('earnMonoBar');
+      if(bar) bar.style.width = pct+'%';
+
+      if(unlocked && rr.ok){
+        var card = document.getElementById('earnRatesCard');
+        if(card) card.style.display = '';
+        var grid = document.getElementById('earnRatesGrid');
+        if(grid){
+          var rt = rr.rates;
+          grid.innerHTML =
+            makeEarnRateChip('👁','Per View',     rt.rate_per_view)+
+            makeEarnRateChip('❤️','Per Like',     rt.rate_per_like)+
+            makeEarnRateChip('💬','Per Comment',  rt.rate_per_comment)+
+            makeEarnRateChip('👥','Per Follower', rt.rate_per_follower);
+        }
+      }
+    });
+  });
+
   api('getEarnings',{gmail:u.gmail},function(r){
-    if(!r.ok)return;
-    setText('earnTotal','$'+r.total.toFixed(2));
-    setText('earnPending','$'+r.pending.toFixed(2));
-    var now=new Date(),mo=r.earnings.filter(function(e){var d=new Date(e.date);return d.getMonth()===now.getMonth()&&d.getFullYear()===now.getFullYear();}).reduce(function(s,e){return s+e.amount;},0);
-    setText('earnMonth','$'+mo.toFixed(2));
-    var es=document.getElementById('earnStatus');
-    if(es){var fc=_studioStats?_studioStats.followerCount:0;es.innerHTML=fc>=1000?'<span style="color:var(--green);font-weight:700">✅ Monetization Active</span>':'<span style="color:var(--t2)">🔒 Need '+(1000-fc)+' more followers to unlock earnings</span>';}
-    var eh=document.getElementById('earnHistory'),ee=document.getElementById('earnHistoryEmpty');
-    if(!r.earnings.length){if(ee)ee.classList.remove('hidden');return;}
-    if(ee)ee.classList.add('hidden');
-    if(eh){eh.innerHTML='';r.earnings.slice().reverse().forEach(function(e){
-      var d=document.createElement('div');d.className='eh-item';
-      var icons={earning:'💰',withdrawal:'💸',bonus:'⭐'};var credit=e.type!=='withdrawal';
-      d.innerHTML='<div class="eh-icon">'+(icons[e.type]||'💰')+'</div><div class="eh-info"><div class="eh-title">'+cap(e.type||'earning')+' — '+h(e.description||'')+'</div><div class="eh-date">'+fmtDateFull(e.date)+'</div></div><div class="eh-amount '+(credit?'eh-credit':'eh-debit')+'">'+(credit?'+':'-')+'$'+Math.abs(e.amount).toFixed(2)+'</div>';
-      eh.appendChild(d);
-    });}
+    if(!r.ok) return;
+    _allEarnHistory = r.earnings || [];
+
+    var total=0, withdrawn=0, thisMonth=0;
+    var now = new Date();
+    var byType = {view_revenue:0,like_revenue:0,comment_revenue:0,follower_bonus:0};
+
+    _allEarnHistory.forEach(function(e){
+      var amt = parseFloat(e.amount||0);
+      if(e.type==='withdrawal'){ withdrawn+=amt; return; }
+      if(e.status==='paid'){
+        total+=amt;
+        var d=new Date(e.date);
+        if(d.getMonth()===now.getMonth()&&d.getFullYear()===now.getFullYear()) thisMonth+=amt;
+        if(byType[e.type]!==undefined) byType[e.type]+=amt;
+      }
+    });
+
+    setText('earnTotal',     '$'+total.toFixed(2));
+    setText('earnMonth',     '$'+thisMonth.toFixed(2));
+    setText('earnWithdrawn', '$'+withdrawn.toFixed(2));
+
+    var bd = document.getElementById('earnBreakdown');
+    if(bd){
+      if(total<=0){
+        bd.innerHTML='<div style="text-align:center;padding:20px;color:var(--t2);font-size:.82rem">No earnings data yet.</div>';
+      } else {
+        bd.innerHTML=
+          makeEarnBar('👁 Views',    byType.view_revenue,    total,'var(--blue)')+
+          makeEarnBar('❤️ Likes',   byType.like_revenue,    total,'var(--red)')+
+          makeEarnBar('💬 Comments',byType.comment_revenue, total,'var(--green)')+
+          makeEarnBar('👥 Followers',byType.follower_bonus, total,'#b8860b');
+      }
+    }
+
+    renderEarnHistory(_allEarnHistory);
+  });
+}
+
+function makeEarnRateChip(icon,label,rate){
+  return '<div style="background:var(--bg);border:1px solid var(--brd);border-radius:var(--r2px);padding:9px 10px;text-align:center">'+
+    '<div style="font-size:.73rem;color:var(--t2);margin-bottom:3px">'+icon+' '+label+'</div>'+
+    '<div style="font-size:.9rem;font-weight:700;color:var(--green)">$'+parseFloat(rate||0).toFixed(4)+'</div>'+
+  '</div>';
+}
+
+function makeEarnBar(label,amount,total,color){
+  var pct=total>0?Math.round((amount/total)*100):0;
+  return '<div style="margin-bottom:11px">'+
+    '<div style="display:flex;justify-content:space-between;font-size:.79rem;margin-bottom:4px">'+
+      '<span style="font-weight:500">'+label+'</span>'+
+      '<span style="color:var(--green);font-weight:700">$'+amount.toFixed(4)+
+      ' <span style="color:var(--t3);font-weight:400">('+pct+'%)</span></span>'+
+    '</div>'+
+    '<div style="height:7px;background:var(--bg2);border-radius:4px;overflow:hidden">'+
+      '<div style="height:100%;width:'+pct+'%;background:'+color+';border-radius:4px;transition:width .5s"></div>'+
+    '</div>'+
+  '</div>';
+}
+
+function renderEarnHistory(list){
+  var el=document.getElementById('earnHistory');
+  var empty=document.getElementById('earnHistoryEmpty');
+  if(!el)return;
+  el.innerHTML='';
+  if(!list.length){if(empty)empty.classList.remove('hidden');return;}
+  if(empty)empty.classList.add('hidden');
+  var icons={view_revenue:'👁',like_revenue:'❤️',comment_revenue:'💬',follower_bonus:'👥',withdrawal:'💸',bonus:'⭐'};
+  var labels={view_revenue:'View Revenue',like_revenue:'Like Revenue',comment_revenue:'Comment Revenue',follower_bonus:'Follower Bonus',withdrawal:'Withdrawal',bonus:'Bonus'};
+  list.slice(0,60).forEach(function(e){
+    var icon=icons[e.type]||'💰';
+    var label=labels[e.type]||e.type;
+    var isDebit=e.type==='withdrawal';
+    var amt=parseFloat(e.amount||0);
+    var d=document.createElement('div');
+    d.className='eh-item';
+    d.innerHTML=
+      '<div class="eh-icon">'+icon+'</div>'+
+      '<div class="eh-info">'+
+        '<div class="eh-title">'+label+
+          (e.description?' <span style="color:var(--t3);font-weight:400;font-size:.72rem">— '+h(e.description)+'</span>':'')+
+        '</div>'+
+        '<div class="eh-date">'+fmtDateFull(e.date)+'</div>'+
+      '</div>'+
+      '<div class="eh-amount '+(isDebit?'eh-debit':'eh-credit')+'">'+
+        (isDebit?'-':'+')+' $'+amt.toFixed(4)+
+      '</div>';
+    el.appendChild(d);
+  });
+}
+
+function filterEarnHistory(type){
+  var filtered=type==='all'
+    ?_allEarnHistory
+    :_allEarnHistory.filter(function(e){return e.type===type;});
+  renderEarnHistory(filtered);
+}
   });
 }
 
