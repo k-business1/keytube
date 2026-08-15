@@ -273,17 +273,17 @@ function testAI(){
 function streamText(el, text, onDone){
   var i=0, content='';
   if(!el)return;
-  el.textContent='';
+  el.innerHTML='';
   var interval=setInterval(function(){
     if(i>=text.length){clearInterval(interval);if(onDone)onDone();return;}
     var chunk=Math.min(3,text.length-i);
     content+=text.slice(i,i+chunk);
     el.style.whiteSpace='pre-wrap';
-    el.textContent=content+'▌';
+    el.innerHTML=content+'▌';
     i+=chunk;
   }, 18);
   setTimeout(function(){
-    if(el.textContent.endsWith('▌'))el.textContent=content;
+    if(el.innerHTML.endsWith('▌'))el.innerHTML=content;
   }, text.length*7+200);
 }
 
