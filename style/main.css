@@ -238,7 +238,7 @@ input:checked + .ts-slider:before{transform:translateX(20px)}
 .upload-progress.show{display:flex;align-items:center;gap:8px;font-size:.75rem;color:var(--t2)}
 .ai-shake-btn {
     position: fixed;
-    bottom: 20px;
+    bottom: 60px;
     left: 20px;
     z-index: 9999;
     display: inline-flex;
