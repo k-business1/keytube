@@ -86,51 +86,89 @@ function appendUserMessage(text) {
   var wrap = document.createElement('div');
   wrap.className = 'ai-msg ai-msg-user';
 
-  // Avatar — profile pic if logged in
-  var avHTML = '';
-  if (u && u.avatar) {
+ // Avatar — profile pic if logged in
+var avHTML = '';
+
+if (u && u.avatar) {
     avHTML = '<div class="ai-av ai-av-user">' +
-               '<img src="' + h(u.avatar) + '" alt="' + h((u.name||'U')[0]) + '" ' +
+               '<img src="' + h(u.avatar) + '" alt="' + h((u.name || 'U')[0]) + '" ' +
                     'onerror="this.style.display=\'none\';this.nextSibling.style.display=\'grid\'">' +
-               '<span class="ai-av-init" style="display:none">' + h((u.name||'U')[0].toUpperCase()) + '</span>' +
+               '<span class="ai-av-init" style="display:none">' +
+                    h((u.name || 'U')[0].toUpperCase()) +
+               '</span>' +
              '</div>';
-  } else if (u) {
+
+} else if (u) {
     var init = (u.name || u.gmail || 'U')[0].toUpperCase();
-    avHTML = '<div class="ai-av ai-av-user"><span class="ai-av-init">' + init + '</span></div>';
-  } else {
-    avHTML = '<div class="ai-av ai-av-user"><span class="ai-av-init">U</span></div>';
-  }
 
-  // Name label
-  var nameLabel = u ? h(u.name || 'You') : 'You';
+    avHTML = '<div class="ai-av ai-av-user">' +
+               '<span class="ai-av-init">' + init + '</span>' +
+             '</div>';
 
-  wrap.innerHTML =
+} else {
+    avHTML = '<div class="ai-av ai-av-user">' +
+               '<span class="ai-av-init">U</span>' +
+             '</div>';
+}
+
+// Name label
+var nameLabel = u ? h(u.name || 'You') : 'You';
+
+wrap.innerHTML =
     '<div class="ai-msg-inner user-inner">' +
-      '<div class="ai-msg-name user-name">' + nameLabel + '</div>' +
-      '<div class="ai-bubble user-bubble">' + h(text) + '</div>' +
+        '<div class="ai-msg-name user-name">' + nameLabel + '</div>' +
+        '<div class="ai-bubble user-bubble">' + h(text) + '</div>' +
     '</div>' +
     avHTML;
 
-  chat.appendChild(wrap);
-  scrollChat();
-  _aiHistory.push({role:'user', text:text});
+chat.appendChild(wrap);
+scrollChat();
+_aiHistory.push({role:'user', text:text});
 }
+
+
+// ── HEADER USER AVATAR ─────────────────────────────────────
 document.addEventListener("DOMContentLoaded", function() {
+
     var u = getUser();
     var container = document.getElementById("aiHeaderUserAvatar");
+
     if (!container) return;
 
     var avHTML = '';
+
     if (u && u.avatar) {
-        avHTML = '<div class="ai-av ai-av-user ai-chat-header" style="width:36px;height:36px;cursor:pointer;" onclick="window.location.href=\'../pages/profile.html\'">' +
-                   '<img src="' + h(u.avatar) + '" alt="' + h((u.name||'U')[0]) + '" style="width:100%;height:100%;object-fit:cover;border-radius:50%;" onerror="this.style.display=\'none\';this.nextSibling.style.display=\'grid\'">' +
-                   '<span class="ai-av-init" style="display:none;width:100%;height:100%;place-items:center;font-size:0.75rem;font-weight:700;color:#fff;background:var(--blue);border-radius:50%;">' + h((u.name||'U')[0].toUpperCase()) + '</span>' +
-                 '</div>';
+
+        avHTML =
+            '<div class="ai-header-user-avatar" ' +
+            'onclick="window.location.href=\'../pages/profile.html\'">' +
+
+                '<img src="' + h(u.avatar) + '" ' +
+                'alt="' + h((u.name || 'U')[0]) + '" ' +
+                'onerror="this.style.display=\'none\';this.nextSibling.style.display=\'grid\'">' +
+
+                '<span class="ai-av-init" style="display:none">' +
+                    h((u.name || 'U')[0].toUpperCase()) +
+                '</span>' +
+
+            '</div>';
+
     } else if (u) {
+
         var init = (u.name || u.gmail || 'U')[0].toUpperCase();
-        avHTML = '<div class="ai-av ai-av-user ai-chat-header" style="width:36px;height:36px;cursor:pointer;display:grid;place-items:center;background:var(--blue);color:#fff;border-radius:50%;font-size:0.75rem;font-weight:700;" onclick="window.location.href=\'../pages/profile.html\'">' + init + '</div>';
+
+        avHTML =
+            '<div class="ai-header-user-avatar" ' +
+            'onclick="window.location.href=\'../pages/profile.html\'">' +
+                init +
+            '</div>';
+
     } else {
-        avHTML = '<a href="../pages/login.html" class="ai-header-login-btn" style="display:flex;align-items:center;gap:6px;padding:6px 12px;background:linear-gradient(135deg,#6c3fc5,#4a2a8a);color:#fff;border-radius:20px;font-size:0.78rem;font-weight:600;text-decoration:none;">Login</a>';
+
+        avHTML =
+            '<a href="../pages/login.html" class="ai-header-login-btn">' +
+                'Login' +
+            '</a>';
     }
 
     container.innerHTML = avHTML;
