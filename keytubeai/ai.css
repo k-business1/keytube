@@ -16,8 +16,8 @@
     background: var(--w);
     color: var(--txt);
     border-radius: var(--r);
-    border: 1px solid var(--brd);
-    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+    border: 1.5px solid rgba(108, 63, 197, 0.2);
+    box-shadow: 0 4px 20px rgba(108, 63, 197, 0.06);
     margin-bottom: 12px;
 }
 
