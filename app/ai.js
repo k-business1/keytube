@@ -302,6 +302,26 @@ function clearAIChat() {
   setTimeout(function(){
     var u = getUser();
     var welcome = u
+      document.addEventListener("DOMContentLoaded", function() {
+    var u = getUser();
+    var container = document.getElementById("aiHeaderUserAvatar");
+    if (!container) return;
+
+    var avHTML = '';
+    if (u && u.avatar) {
+        avHTML = '<div class="ai-av ai-av-user ai-chat-header" style="width:36px;height:36px;cursor:pointer;" onclick="window.location.href=\'../pages/profile.html\'">' +
+                   '<img src="' + h(u.avatar) + '" alt="' + h((u.name||'U')[0]) + '" style="width:100%;height:100%;object-fit:cover;border-radius:50%;" onerror="this.style.display=\'none\';this.nextSibling.style.display=\'grid\'">' +
+                   '<span class="ai-av-init" style="display:none;width:100%;height:100%;place-items:center;font-size:0.75rem;font-weight:700;color:#fff;background:var(--blue);border-radius:50%;">' + h((u.name||'U')[0].toUpperCase()) + '</span>' +
+                 '</div>';
+    } else if (u) {
+        var init = (u.name || u.gmail || 'U')[0].toUpperCase();
+        avHTML = '<div class="ai-av ai-av-user ai-chat-header" style="width:36px;height:36px;cursor:pointer;display:grid;place-items:center;background:var(--blue);color:#fff;border-radius:50%;font-size:0.75rem;font-weight:700;" onclick="window.location.href=\'../pages/profile.html\'">' + init + '</div>';
+    } else {
+        avHTML = '<a href="../pages/login.html" class="ai-header-login-btn" style="display:flex;align-items:center;gap:6px;padding:6px 12px;background:linear-gradient(135deg,#6c3fc5,#4a2a8a);color:#fff;border-radius:20px;font-size:0.78rem;font-weight:600;text-decoration:none;">Login</a>';
+    }
+
+    container.innerHTML = avHTML;
+});
       ? 'Hello ' + (u.name||'there') + '! 👋 How can I help you today?'
       : 'Hello! 👋 Ask me anything about KEYTUBE!';
     appendAIMessage(welcome, {}, false);
