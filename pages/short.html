@@ -1,0 +1,139 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no"><title>KeyShort · Comedy Shorts</title><link rel="icon" href="../imagelib/sort.png"><link rel="preconnect" href="https://fonts.googleapis.com"><link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&family=Bebas+Neue&display=swap" rel="stylesheet"><link rel="stylesheet" href="../style/short.css"></head>
+<body class="ks-body">
+<div id="pbar"></div>
+<div id="toast"></div>
+
+<!-- PAGE LOADER -->
+<div id="ksLoader" class="ks-loader"><div class="ks-loader-inner"><img src="../imagelib/sort.png" alt="" onerror="this.style.display='none'"><div class="ks-loader-title">KeyShort</div><div class="ks-loader-sub">Comedy Shorts</div><div class="ks-spin"></div></div></div>
+
+<!-- EMPTY STATE -->
+<div id="ksEmpty" class="ks-empty hidden"><div class="ks-empty-icon">😂</div><h2>No Comedy Shorts Yet</h2><p>Admin hasn't added any comedy videos yet.</p><a href="../index.html" class="ks-go-home-btn">← Go to KEYTUBE</a></div>
+
+<!-- MAIN CONTAINER -->
+<div class="ks-wrap" id="ksWrap">
+
+  <!-- TOP BAR -->
+  <div class="ks-topbar">
+    <a href="../index.html" class="ks-home-btn" title="Home">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9,22 9,12 15,12 15,22"/></svg>
+    </a>
+    <div class="ks-logo">
+      <img src="../imagelib/sort.png" alt="K" onerror="this.style.display='none'">
+      <span>KeyShort</span>
+      <span class="ks-logo-sub">Comedy</span>
+    </div>
+    <div class="ks-topbar-r">
+      <!-- User avatar / sign in -->
+      <div id="ksUserBtn" onclick="handleUserBtn()"></div>
+    </div>
+  </div>
+
+  <!-- VIDEO STAGE -->
+  <div class="ks-stage" id="ksStage">
+    <!-- Player injected here -->
+    <div class="ks-player-wrap" id="ksPlayerWrap"></div>
+
+    <!-- Gradient overlays -->
+    <div class="ks-grad-top"></div>
+    <div class="ks-grad-bot"></div>
+
+    <!-- Tap zones: left=prev, right=next -->
+    <div class="ks-tap-prev" onclick="prevVideo()" title="Previous"></div>
+    <div class="ks-tap-next" onclick="nextVideo()" title="Next"></div>
+
+    <!-- Progress bar (auto-next countdown) -->
+    <div class="ks-progress-wrap"><div class="ks-progress-bar" id="ksProgressBar"></div></div>
+
+    <!-- Auto-next indicator -->
+    <div class="ks-autonext" id="ksAutoNext" style="display:none">
+      <div class="ks-an-ring"><svg viewBox="0 0 44 44" width="44" height="44"><circle class="an-bg" cx="22" cy="22" r="18"/><circle class="an-fill" id="anFill" cx="22" cy="22" r="18"/></svg><span id="anNum">5</span></div>
+      <span>Next</span>
+      <button onclick="cancelAutoNext()">✕</button>
+    </div>
+  </div>
+
+  <!-- RIGHT ACTIONS (TikTok style) -->
+  <div class="ks-actions" id="ksActions">
+
+    <!-- Channel avatar -->
+    <div class="ks-action" id="ksChAction">
+      <div class="ks-ch-av" id="ksChAv" onclick="goToChannel()"><span id="ksChInit">?</span><img id="ksChImg" src="" style="display:none" alt=""></div>
+      <div class="ks-follow-dot" id="ksFollowDot" onclick="followChannel()">+</div>
+    </div>
+
+    <!-- Like -->
+    <div class="ks-action" onclick="toggleLike()">
+      <div class="ks-action-icon" id="ksLikeIcon">🤍</div>
+      <div class="ks-action-count" id="ksLikeCount">0</div>
+    </div>
+
+    <!-- Comment -->
+    <div class="ks-action" onclick="openComments()">
+      <div class="ks-action-icon">💬</div>
+      <div class="ks-action-count" id="ksCmtCount">0</div>
+    </div>
+
+    <!-- Save -->
+    <div class="ks-action" onclick="saveVideo()">
+      <div class="ks-action-icon" id="ksSaveIcon">📋</div>
+      <div class="ks-action-count" id="ksSaveTxt">Save</div>
+    </div>
+
+    <!-- Share -->
+    <div class="ks-action" onclick="shareVideo()">
+      <div class="ks-action-icon">↗</div>
+      <div class="ks-action-count">Share</div>
+    </div>
+
+    <!-- Views -->
+    <div class="ks-action">
+      <div class="ks-action-icon">👁</div>
+      <div class="ks-action-count" id="ksViewCount">0</div>
+    </div>
+
+  </div>
+
+  <!-- BOTTOM INFO -->
+  <div class="ks-bottom">
+    <div class="ks-bottom-inner">
+      <div class="ks-vid-title" id="ksTitle">Loading…</div>
+      <div class="ks-vid-meta"><span id="ksChannelName" onclick="goToChannel()" class="ks-ch-link"></span><span id="ksVidMeta"></span></div>
+    </div>
+    <!-- NAV arrows -->
+    <div class="ks-nav-btns">
+      <button class="ks-nav-btn" onclick="prevVideo()" title="Previous">▲</button>
+      <button class="ks-nav-btn" onclick="nextVideo()" title="Next">▼</button>
+    </div>
+  </div>
+
+</div>
+
+<!-- COMMENTS PANEL (slides up from bottom) -->
+<div class="ks-cmt-overlay hidden" id="ksCmtOverlay" onclick="if(event.target===this)closeComments()">
+  <div class="ks-cmt-panel" id="ksCmtPanel">
+    <div class="ks-cmt-hd">
+      <span class="ks-cmt-hd-title">Comments <span id="ksCmtTotal"></span></span>
+      <button class="ks-cmt-close" onclick="closeComments()">✕</button>
+    </div>
+    <div class="ks-cmt-list" id="ksCmtList"></div>
+    <div class="ks-cmt-input-row" id="ksCmtInputRow"></div>
+  </div>
+</div>
+
+<!-- LOGIN REQUIRED -->
+<div class="ks-login-req hidden" id="ksLoginReq">
+  <div class="ks-lr-box">
+    <div style="font-size:2rem;margin-bottom:7px">🔒</div>
+    <h3>Sign in required</h3>
+    <p>Create a free account to like, save and comment.</p>
+    <a href="login.html" class="ks-lr-btn">Sign In</a>
+    <a href="register.html" class="ks-lr-btn ks-lr-btn2">Create Account</a>
+    <button onclick="closeLoginReq()" style="display:block;margin:10px auto 0;background:none;border:none;color:rgba(255,255,255,.5);cursor:pointer;font-size:.8rem">Not now</button>
+  </div>
+</div>
+
+<script src="../app/api.js"></script>
+<script src="../app/auth.js"></script>
+<script src="../app/short.js"></script>
+<script>initShorts();</script>
+</body></html>
