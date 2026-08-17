@@ -1,1 +1,391 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>KeyTube AI Assistant</title><link rel="icon" href="../imagelib/logo.png"><link rel="stylesheet" href="ai.css"></head><body><section class="info-card ai-chat-card"><div class="ai-chat-header"><div class="ai-chat-header-av"><img src="../imagelib/ailogo.png" alt="AI" onerror="this.src='../imagelib/logo.png'"><div class="ai-online-dot"></div></div><div class="ai-chat-header-info"><div class="ai-chat-header-name">KEYTUBE AI</div><div class="ai-chat-header-status">Always online · Instant answers</div></div><button class="ai-clear-btn" onclick="clearAIChat()" title="Clear chat">🗑</button><a href="../index.html"><img src="../imagelib/logo.png" alt="Logo" width="40" height="40"></a></div></section><div class="ai-suggestions-wrap" id="aiSuggestions"></div><div class="ai-chat-window" id="aiChat"></div><div class="ai-input-bar-wrapper"><div class="ai-input-avatar-mini"><img src="../imagelib/ailogo.png" alt="AI Logo" onerror="this.src='../imagelib/logo.png'"></div><textarea id="aiInput" class="ai-textarea" placeholder="Ask me anything" rows="1" onkeydown="aiKeyDown(event)" oninput="autoResize(this)"></textarea><div class="ai-input-tools"><button class="ai-tool-btn" title="Emoji"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><path d="M8 14s1.5 2 4 2 4-2 4-2"></path><line x1="9" y1="9" x2="9.01" y2="9"></line><line x1="15" y1="9" x2="15.01" y2="9"></line></svg></button><button class="ai-tool-btn" title="Attach file"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"></path></svg></button><button class="ai-tool-btn" title="Voice input"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"></path><path d="M19 10v1a7 7 0 0 1-14 0v-1"></path><line x1="12" y1="19" x2="12" y2="23"></line><line x1="8" y1="23" x2="16" y2="23"></line></svg></button></div><button class="ai-send-btn" onclick="sendAIMessage()" title="Send"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg></button></div><div class="ai-footer-note">🔒 AI does not share private information. Powered by KEYTUBE AI.</div><div id="aiSubmitModal" class="ai-modal hidden" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); align-items:center; justify-content:center; z-index:1000;"><div class="ai-modal-content" style="background:#fff; padding:20px; border-radius:8px; width:90%; max-width:400px; box-shadow:0 4px 12px rgba(0,0,0,0.15);"><h3>Submit Question to Team</h3><p style="font-size:13px; color:#666;">Our AI couldn't find an answer. Send it directly to our support team:</p><label style="font-size:12px; font-weight:bold; display:block; margin-top:10px;">Your Question:</label><textarea id="submitQText" rows="3" style="width:100%; padding:8px; margin-top:4px; border:1px solid #ccc; border-radius:4px;"></textarea><label style="font-size:12px; font-weight:bold; display:block; margin-top:10px;">Your Email (optional):</label><input type="email" id="submitQEmail" placeholder="name@example.com" style="width:100%; padding:8px; margin-top:4px; border:1px solid #ccc; border-radius:4px;" /><div id="submitQErr" style="color:red; font-size:12px; margin-top:5px;"></div><div style="margin-top:15px; display:flex; justify-content:flex-end; gap:8px;"><button type="button" onclick="closeSubmitQuestion()" style="padding:6px 12px; background:#ccc; border:none; border-radius:4px; cursor:pointer;">Cancel</button><button type="button" id="submitQBtn" onclick="sendSubmitQuestion()" style="padding:6px 12px; background:#4f46e5; color:#fff; border:none; border-radius:4px; cursor:pointer;">📩 Submit Question</button></div></div></div><script src="../app/api.js"></script><script src="../app/auth.js"></script><script src="../app/ai.js"></script></body></html>
+// ── ai.js — KEYTUBE AI Chat Interface ───────────────────────
+// Used on help.html — streaming responses, movie links, user profile pic
+
+var _aiHistory = [];   // {role:'user'|'ai', text, movieLinks}
+var _aiStreaming = false;
+
+// Suggested starter questions
+var _SUGGESTIONS = [
+  'How do I upload a video?',
+  'How do I earn money?',
+  'What movies are trending?',
+  'How do I create a channel?',
+  'How do I download videos?',
+  'How many movies are on KEYTUBE?'
+];
+
+// ── INIT ──────────────────────────────────────────────────────
+function initAIChat() {
+  var u = typeof getUser === 'function' ? getUser() : null;
+  renderSuggestions();
+  
+  // Welcome message
+  setTimeout(function(){
+    let firstName = "there";
+    
+    if (u) {
+      let rawName = u.name || u.username || u.fullname || "";
+      if (rawName.trim() !== "") {
+        let firstPart = rawName.trim().split(" ")[0];
+        firstName = firstPart.charAt(0).toUpperCase() + firstPart.slice(1).toLowerCase();
+      }
+    }
+
+    var welcome = 'Hello ' + firstName + '! 👋 I am KEYTUBE AI. Ask me anything about movies, channels, uploading, earnings and more!';
+      
+    appendAIMessage(welcome, {}, true, true, '');
+  }, 400);
+}
+
+// Automatically trigger initialization when the script loads or page is ready
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', initAIChat);
+} else {
+  initAIChat();
+}
+
+// ── RENDER SUGGESTIONS ────────────────────────────────────────
+function renderSuggestions() {
+  var wrap = document.getElementById('aiSuggestions');
+  if (!wrap) return;
+  wrap.innerHTML = '';
+  _SUGGESTIONS.forEach(function(q){
+    var btn = document.createElement('button');
+    btn.className = 'ai-sugg-btn';
+    btn.textContent = q;
+    btn.onclick = function(){
+      document.getElementById('aiInput').value = q;
+      sendAIMessage();
+      wrap.style.display = 'none';
+    };
+    wrap.appendChild(btn);
+  });
+}
+
+// ── SEND MESSAGE ──────────────────────────────────────────────
+function sendAIMessage() {
+  if (_aiStreaming) return;
+  var input = document.getElementById('aiInput');
+  var q = (input.value || '').trim();
+  if (!q) return;
+  input.value = '';
+
+  // Hide suggestions after first message
+  var sugg = document.getElementById('aiSuggestions');
+  if (sugg) sugg.style.display = 'none';
+
+  // Append user message
+  appendUserMessage(q);
+
+  // Show typing indicator
+  var typingId = showTyping();
+
+  _aiStreaming = true;
+
+  // Call AI backend
+  api('aiQuery', {query: q}, function(r){
+    removeTyping(typingId);
+    _aiStreaming = false;
+    var response = r.ok ? r.response : "...";
+    var matched  = r.ok && r.matched;
+    appendAIMessage(response, r.movieLinks||{}, true, matched, q);
+  });
+}
+
+// ── APPEND USER MESSAGE ───────────────────────────────────────
+function appendUserMessage(text) {
+  var u = typeof getUser === 'function' ? getUser() : null;
+  var chat = document.getElementById('aiChat');
+  if (!chat) return;
+
+  var wrap = document.createElement('div');
+  wrap.className = 'ai-msg ai-msg-user';
+
+  // Avatar — profile pic if logged in
+  var avHTML = '';
+  if (u && u.avatar) {
+    avHTML = '<div class="ai-av ai-av-user">' +
+             '<img src="' + h(u.avatar) + '" alt="' + h((u.name||'U')[0]) + '" ' +
+                  'onerror="this.style.display=\'none\';this.nextSibling.style.display=\'grid\'">' +
+             '<span class="ai-av-init" style="display:none">' + h((u.name||'U')[0].toUpperCase()) + '</span>' +
+           '</div>';
+  } else if (u) {
+    var init = (u.name || u.gmail || 'U')[0].toUpperCase();
+    avHTML = '<div class="ai-av ai-av-user"><span class="ai-av-init">' + init + '</span></div>';
+  } else {
+    avHTML = '<div class="ai-av ai-av-user"><span class="ai-av-init">U</span></div>';
+  }
+
+  // Name label
+  var nameLabel = u ? h(u.name || 'You') : 'You';
+
+  wrap.innerHTML =
+    '<div class="ai-msg-inner user-inner">' +
+      '<div class="ai-msg-name user-name">' + nameLabel + '</div>' +
+      '<div class="ai-bubble user-bubble">' + h(text) + '</div>' +
+    '</div>' +
+    avHTML;
+
+  chat.appendChild(wrap);
+  scrollChat();
+  _aiHistory.push({role:'user', text:text});
+}
+
+// ── APPEND AI MESSAGE ─────────────────────────────────────────
+function appendAIMessage(text, movieLinks, doStream, matched, originalQuery) {
+  var chat = document.getElementById('aiChat');
+  if (!chat) return;
+ 
+  var wrap = document.createElement('div');
+  wrap.className = 'ai-msg ai-msg-ai';
+ 
+  var avHTML =
+    '<div class="ai-av ai-av-bot">' +
+      '<img src="../imagelib/ailogo.png" alt="AI" ' +
+           'onerror="this.style.display=\'none\';this.nextSibling.style.display=\'grid\'">' +
+      '<span class="ai-av-init" style="display:none">AI</span>' +
+    '</div>';
+ 
+  var bubble = document.createElement('div');
+  bubble.className = 'ai-bubble bot-bubble';
+ 
+  var inner = document.createElement('div');
+  inner.className = 'ai-msg-inner bot-inner';
+  var nameDiv = document.createElement('div');
+  nameDiv.className = 'ai-msg-name bot-name';
+  nameDiv.textContent = 'KEYTUBE AI';
+ 
+  inner.appendChild(nameDiv);
+  inner.appendChild(bubble);
+  wrap.insertAdjacentHTML('afterbegin', avHTML);
+  wrap.appendChild(inner);
+  chat.appendChild(wrap);
+  scrollChat();
+ 
+  function afterStream() {
+    // If AI didn't match — show "Submit Question" button below bubble
+    if (matched === false) {
+      var submitRow = document.createElement('div');
+      submitRow.className = 'ai-submit-row';
+      submitRow.innerHTML =
+        '<button class="ai-submit-q-btn" onclick="openSubmitQuestion(\'' +
+        encodeURIComponent(originalQuery || '') + '\')">' +
+        '📩 Submit this question to our team' +
+        '</button>';
+      inner.appendChild(submitRow);
+    }
+    scrollChat();
+    _aiHistory.push({role:'ai', text:text});
+  }
+ 
+  if (doStream) {
+    streamText(bubble, text, movieLinks || {}, afterStream);
+  } else {
+    bubble.innerHTML = formatResponse(text, movieLinks || {});
+    afterStream();
+  }
+}
+ 
+// ── SUBMIT QUESTION MODAL ─────────────────────────────────────
+function openSubmitQuestion(encodedQ) {
+  var q = decodeURIComponent(encodedQ || '');
+  var modal = document.getElementById('aiSubmitModal');
+  if (!modal) {
+    // Fallback if modal HTML is missing from page
+    var manualQ = prompt("Submit your question to our team:", q);
+    if (manualQ) {
+      var u = typeof getUser === 'function' ? getUser() : null;
+      api('saveUnknownQuestion', {
+        question: manualQ,
+        gmail: u ? u.gmail : 'guest',
+        email: ''
+      }, function(r) {
+        alert("✅ Thank you! Your question has been sent.");
+      });
+    }
+    return;
+  }
+  var qInput = document.getElementById('submitQText');
+  if (qInput) qInput.value = q;
+  
+  var u = typeof getUser === 'function' ? getUser() : null;
+  var emailInput = document.getElementById('submitQEmail');
+  if (emailInput && u) emailInput.value = u.gmail || '';
+  
+  modal.classList.remove('hidden');
+  modal.style.display = 'flex';
+}
+ 
+function closeSubmitQuestion() {
+  var modal = document.getElementById('aiSubmitModal');
+  if (modal) {
+    modal.classList.add('hidden');
+    modal.style.display = 'none';
+  }
+}
+ 
+function sendSubmitQuestion() {
+  var qEl  = document.getElementById('submitQText');
+  var emEl = document.getElementById('submitQEmail');
+  var erEl = document.getElementById('submitQErr');
+  var q    = (qEl  ? qEl.value.trim()  : '');
+  var em   = (emEl ? emEl.value.trim() : '');
+ 
+  if (!q) { if (erEl) erEl.textContent = 'Please describe your question.'; return; }
+  if (erEl) erEl.textContent = '';
+ 
+  var btn = document.getElementById('submitQBtn');
+  if (btn) { btn.disabled = true; btn.textContent = 'Sending…'; }
+ 
+  var u = typeof getUser === 'function' ? getUser() : null;
+  api('saveUnknownQuestion', {
+    question: q,
+    gmail:     u ? u.gmail : 'guest',
+    email:     em
+  }, function(r) {
+    if (btn) { btn.disabled = false; btn.textContent = '📩 Submit Question'; }
+    closeSubmitQuestion();
+    appendAIMessage(
+      '✅ Thank you! Your question has been sent to our team.\n\nWe will add an answer soon. You can also reach us directly at contact@keytube.com 📧',
+      {}, true, true, ''
+    );
+  });
+}
+
+// ── STREAMING TEXT (like ChatGPT) ─────────────────────────────
+function streamText(el, text, movieLinks, onDone) {
+  var i = 0;
+  el.textContent = '';
+  el.style.whiteSpace = 'pre-wrap';
+
+  var interval = setInterval(function(){
+    if (i >= text.length) {
+      clearInterval(interval);
+      el.style.whiteSpace = '';
+      el.innerHTML = formatResponse(text, movieLinks);
+      if (onDone) onDone();
+      return;
+    }
+    var speed = text.charCodeAt(i) === 10 ? 1 : 3;
+    el.textContent = text.slice(0, i + speed) + '▌';
+    i += speed;
+    scrollChat();
+  }, 14);
+}
+
+// ── FORMAT RESPONSE — links + newlines ───────────────────────
+function formatResponse(text, movieLinks) {
+  var safe = text
+    .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+
+  safe = safe.replace(/\n/g, '<br>');
+  safe = safe.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
+
+  if (movieLinks && Object.keys(movieLinks).length) {
+    Object.keys(movieLinks).forEach(function(name) {
+      var id   = movieLinks[name];
+      var esc  = name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+      safe = safe.replace(
+        new RegExp('"(' + esc + ')"', 'g'),
+        '"<a href="../pages/watch.html?id=' + id +
+          '" class="ai-movie-link" onclick="openMovieFromAI(event,\'' + id + '\')">$1</a>"'
+      );
+      safe = safe.replace(
+        new RegExp('🎬 &quot;(' + esc + ')&quot;', 'g'),
+        '🎬 "<a href="../pages/watch.html?id=' + id +
+          '" class="ai-movie-link" onclick="openMovieFromAI(event,\'' + id + '\')">$1</a>"'
+      );
+    });
+  }
+
+  safe = safe.replace(
+    /"([^"]{3,60})"/g,
+    function(match, name){
+      if(match.indexOf('<a ')!==-1) return match;
+      return '"<span class="ai-movie-search" onclick="searchMovieFromAI(\'' +
+             encodeURIComponent(name) + '\')" title="Search for this">' + name + '</span>"';
+    }
+  );
+
+  safe = safe.replace(/(\d+)\. /g, '<span class="ai-num">$1.</span> ');
+  safe = safe.replace(/^• /gm, '<span class="ai-bullet">•</span> ');
+
+  return safe;
+}
+
+// ── OPEN MOVIE FROM AI LINK ───────────────────────────────────
+function openMovieFromAI(event, movieId) {
+  event.preventDefault();
+  var base = window.location.pathname.indexOf('/pages/') !== -1 ? '' : 'pages/';
+  window.location.href = base + 'watch.html?id=' + encodeURIComponent(movieId);
+}
+
+// ── SEARCH MOVIE BY NAME ──────────────────────────────────────
+function searchMovieFromAI(encodedName) {
+  var name = decodeURIComponent(encodedName);
+  var base = window.location.pathname.indexOf('/pages/') !== -1 ? '' : 'pages/';
+  window.location.href = base + 'search.html?q=' + encodeURIComponent(name);
+}
+
+// ── TYPING INDICATOR ─────────────────────────────────────────
+function showTyping() {
+  var chat = document.getElementById('aiChat');
+  if (!chat) return null;
+  var id = 'typing_' + Date.now();
+  var wrap = document.createElement('div');
+  wrap.className = 'ai-msg ai-msg-ai';
+  wrap.id = id;
+  wrap.innerHTML =
+    '<div class="ai-av ai-av-bot">' +
+      '<img src="../imagelib/ailogo.png" alt="AI" onerror="this.style.display=\'none\';this.nextSibling.style.display=\'grid\'">' +
+      '<span class="ai-av-init" style="display:none">AI</span>' +
+    '</div>' +
+    '<div class="ai-msg-inner bot-inner">' +
+      '<div class="ai-msg-name bot-name">KEYTUBE AI</div>' +
+      '<div class="ai-bubble bot-bubble">' +
+        '<div class="ai-typing-dots"><span></span><span></span><span></span></div>' +
+      '</div>' +
+    '</div>';
+  chat.appendChild(wrap);
+  scrollChat();
+  return id;
+}
+
+function removeTyping(id) {
+  if (!id) return;
+  var el = document.getElementById(id);
+  if (el) el.remove();
+}
+
+// ── HELPERS ───────────────────────────────────────────────────
+function scrollChat() {
+  var chat = document.getElementById('aiChat');
+  if (chat) chat.scrollTop = chat.scrollHeight;
+}
+
+function h(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+function aiKeyDown(e) {
+  if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendAIMessage(); }
+}
+
+function clearAIChat() {
+  var chat = document.getElementById('aiChat');
+  if (chat) chat.innerHTML = '';
+  _aiHistory = [];
+  var sugg = document.getElementById('aiSuggestions');
+  if (sugg) sugg.style.display = '';
+  setTimeout(function(){
+    let firstName = "there";
+    var u = typeof getUser === 'function' ? getUser() : null;
+    if (u) {
+      let rawName = u.name || u.username || u.fullname || "";
+      if (rawName.trim() !== "") {
+        let firstPart = rawName.trim().split(" ")[0];
+        firstName = firstPart.charAt(0).toUpperCase() + firstPart.slice(1).toLowerCase();
+      }
+    }
+    var welcome = 'Hello ' + firstName + '! 👋 I am KEYTUBE AI. Ask me anything about movies, channels, uploading, earnings and more!';
+    appendAIMessage(welcome, {}, true, true, '');
+  }, 200);
+}
