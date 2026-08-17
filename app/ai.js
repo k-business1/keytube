@@ -122,7 +122,8 @@ function appendUserMessage(text) {
   scrollChat();
   _aiHistory.push({role:'user', text:text});
 }
-// Updated appendAIMessage — add 'matched' and 'originalQuery' params
+
+// ── APPEND AI MESSAGE ─────────────────────────────────────────
 function appendAIMessage(text, movieLinks, doStream, matched, originalQuery) {
   var chat = document.getElementById('aiChat');
   if (!chat) return;
@@ -181,19 +182,38 @@ function appendAIMessage(text, movieLinks, doStream, matched, originalQuery) {
 function openSubmitQuestion(encodedQ) {
   var q = decodeURIComponent(encodedQ || '');
   var modal = document.getElementById('aiSubmitModal');
-  if (!modal) return;
+  if (!modal) {
+    // Fallback if modal HTML is missing from page
+    var manualQ = prompt("Submit your question to our team:", q);
+    if (manualQ) {
+      var u = typeof getUser === 'function' ? getUser() : null;
+      api('saveUnknownQuestion', {
+        question: manualQ,
+        gmail: u ? u.gmail : 'guest',
+        email: ''
+      }, function(r) {
+        alert("✅ Thank you! Your question has been sent.");
+      });
+    }
+    return;
+  }
   var qInput = document.getElementById('submitQText');
   if (qInput) qInput.value = q;
-  // Pre-fill email if logged in
-  var u = getUser ? getUser() : null;
+  
+  var u = typeof getUser === 'function' ? getUser() : null;
   var emailInput = document.getElementById('submitQEmail');
   if (emailInput && u) emailInput.value = u.gmail || '';
+  
   modal.classList.remove('hidden');
+  modal.style.display = 'flex';
 }
  
 function closeSubmitQuestion() {
   var modal = document.getElementById('aiSubmitModal');
-  if (modal) modal.classList.add('hidden');
+  if (modal) {
+    modal.classList.add('hidden');
+    modal.style.display = 'none';
+  }
 }
  
 function sendSubmitQuestion() {
@@ -209,7 +229,7 @@ function sendSubmitQuestion() {
   var btn = document.getElementById('submitQBtn');
   if (btn) { btn.disabled = true; btn.textContent = 'Sending…'; }
  
-  var u = getUser ? getUser() : null;
+  var u = typeof getUser === 'function' ? getUser() : null;
   api('saveUnknownQuestion', {
     question: q,
     gmail:    u ? u.gmail : 'guest',
@@ -217,15 +237,12 @@ function sendSubmitQuestion() {
   }, function(r) {
     if (btn) { btn.disabled = false; btn.textContent = '📩 Submit Question'; }
     closeSubmitQuestion();
-    // Show thank-you message in chat
     appendAIMessage(
       '✅ Thank you! Your question has been sent to our team.\n\nWe will add an answer soon. You can also reach us directly at contact@keytube.com 📧',
       {}, true, true, ''
     );
   });
 }
- 
- 
 
 // ── STREAMING TEXT (like ChatGPT) ─────────────────────────────
 function streamText(el, text, movieLinks, onDone) {
@@ -236,15 +253,12 @@ function streamText(el, text, movieLinks, onDone) {
   var interval = setInterval(function(){
     if (i >= text.length) {
       clearInterval(interval);
-      // After streaming finishes — format with links and icons
       el.style.whiteSpace = '';
       el.innerHTML = formatResponse(text, movieLinks);
       if (onDone) onDone();
       return;
     }
-    // Stream 3-5 chars at a time — faster feels more natural
-    var speed = text.charCodeAt(i) === 10 ? 1 : 3; // slow on newlines
-    var chunk  = text.slice(i, i + speed);
+    var speed = text.charCodeAt(i) === 10 ? 1 : 3;
     el.textContent = text.slice(0, i + speed) + '▌';
     i += speed;
     scrollChat();
@@ -253,22 +267,16 @@ function streamText(el, text, movieLinks, onDone) {
 
 // ── FORMAT RESPONSE — links + newlines ───────────────────────
 function formatResponse(text, movieLinks) {
-  // Escape HTML first
   var safe = text
     .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
 
-  // Convert newlines to <br>
   safe = safe.replace(/\n/g, '<br>');
-
-  // Bold **text**
   safe = safe.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
 
-  // Make movie names clickable — backend sends movieLinks: {name: id}
   if (movieLinks && Object.keys(movieLinks).length) {
     Object.keys(movieLinks).forEach(function(name) {
       var id   = movieLinks[name];
       var esc  = name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-      // Match the name inside quotes or alone
       safe = safe.replace(
         new RegExp('"(' + esc + ')"', 'g'),
         '"<a href="../pages/watch.html?id=' + id +
@@ -282,21 +290,16 @@ function formatResponse(text, movieLinks) {
     });
   }
 
-  // Also detect quoted movie names without IDs and make them searchable
   safe = safe.replace(
     /"([^"]{3,60})"/g,
     function(match, name){
-      // Skip if already a link
       if(match.indexOf('<a ')!==-1) return match;
       return '"<span class="ai-movie-search" onclick="searchMovieFromAI(\'' +
              encodeURIComponent(name) + '\')" title="Search for this">' + name + '</span>"';
     }
   );
 
-  // Numbered list styling
   safe = safe.replace(/(\d+)\. /g, '<span class="ai-num">$1.</span> ');
-
-  // Bullet styling
   safe = safe.replace(/^• /gm, '<span class="ai-bullet">•</span> ');
 
   return safe;
@@ -305,12 +308,11 @@ function formatResponse(text, movieLinks) {
 // ── OPEN MOVIE FROM AI LINK ───────────────────────────────────
 function openMovieFromAI(event, movieId) {
   event.preventDefault();
-  // Check if help.html is inside pages/ or root
   var base = window.location.pathname.indexOf('/pages/') !== -1 ? '' : 'pages/';
   window.location.href = base + 'watch.html?id=' + encodeURIComponent(movieId);
 }
 
-// ── SEARCH MOVIE BY NAME (fallback for quoted names without IDs)
+// ── SEARCH MOVIE BY NAME ──────────────────────────────────────
 function searchMovieFromAI(encodedName) {
   var name = decodeURIComponent(encodedName);
   var base = window.location.pathname.indexOf('/pages/') !== -1 ? '' : 'pages/';
@@ -355,12 +357,10 @@ function scrollChat() {
 
 function h(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
 
-// Handle Enter key
 function aiKeyDown(e) {
   if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendAIMessage(); }
 }
 
-// Clear chat
 function clearAIChat() {
   var chat = document.getElementById('aiChat');
   if (chat) chat.innerHTML = '';
@@ -369,7 +369,7 @@ function clearAIChat() {
   if (sugg) sugg.style.display = '';
   setTimeout(function(){
     let firstName = "there";
-    var u = getUser();
+    var u = typeof getUser === 'function' ? getUser() : null;
     if (u) {
       let rawName = u.name || u.username || u.fullname || "";
       if (rawName.trim() !== "") {
