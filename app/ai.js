@@ -115,49 +115,110 @@ function appendUserMessage(text) {
   scrollChat();
   _aiHistory.push({role:'user', text:text});
 }
-
-// ── APPEND AI MESSAGE ─────────────────────────────────────────
-function appendAIMessage(text, movieLinks, doStream) {
+// Updated appendAIMessage — add 'matched' and 'originalQuery' params
+function appendAIMessage(text, movieLinks, doStream, matched, originalQuery) {
   var chat = document.getElementById('aiChat');
   if (!chat) return;
-
+ 
   var wrap = document.createElement('div');
   wrap.className = 'ai-msg ai-msg-ai';
-
+ 
   var avHTML =
     '<div class="ai-av ai-av-bot">' +
       '<img src="../imagelib/ailogo.png" alt="AI" ' +
            'onerror="this.style.display=\'none\';this.nextSibling.style.display=\'grid\'">' +
       '<span class="ai-av-init" style="display:none">AI</span>' +
     '</div>';
-
+ 
   var bubble = document.createElement('div');
   bubble.className = 'ai-bubble bot-bubble';
-
+ 
   var inner = document.createElement('div');
   inner.className = 'ai-msg-inner bot-inner';
   var nameDiv = document.createElement('div');
   nameDiv.className = 'ai-msg-name bot-name';
   nameDiv.textContent = 'KEYTUBE AI';
-
+ 
   inner.appendChild(nameDiv);
   inner.appendChild(bubble);
-  wrap.insertAdjacentHTML('beforeend', avHTML);
-  wrap.insertBefore(inner, wrap.firstChild);
-
+  wrap.insertAdjacentHTML('afterbegin', avHTML);
+  wrap.appendChild(inner);
   chat.appendChild(wrap);
   scrollChat();
-
-  if (doStream) {
-    streamText(bubble, text, movieLinks || {}, function(){
-      scrollChat();
-      _aiHistory.push({role:'ai', text:text});
-    });
-  } else {
-    bubble.innerHTML = formatResponse(text, movieLinks || {});
+ 
+  function afterStream() {
+    // If AI didn't match — show "Submit Question" button below bubble
+    if (matched === false) {
+      var submitRow = document.createElement('div');
+      submitRow.className = 'ai-submit-row';
+      submitRow.innerHTML =
+        '<button class="ai-submit-q-btn" onclick="openSubmitQuestion(\'' +
+        encodeURIComponent(originalQuery || '') + '\')">' +
+        '📩 Submit this question to our team' +
+        '</button>';
+      inner.appendChild(submitRow);
+    }
+    scrollChat();
     _aiHistory.push({role:'ai', text:text});
   }
+ 
+  if (doStream) {
+    streamText(bubble, text, movieLinks || {}, afterStream);
+  } else {
+    bubble.innerHTML = formatResponse(text, movieLinks || {});
+    afterStream();
+  }
 }
+ 
+// ── SUBMIT QUESTION MODAL ─────────────────────────────────────
+function openSubmitQuestion(encodedQ) {
+  var q = decodeURIComponent(encodedQ || '');
+  var modal = document.getElementById('aiSubmitModal');
+  if (!modal) return;
+  var qInput = document.getElementById('submitQText');
+  if (qInput) qInput.value = q;
+  // Pre-fill email if logged in
+  var u = getUser ? getUser() : null;
+  var emailInput = document.getElementById('submitQEmail');
+  if (emailInput && u) emailInput.value = u.gmail || '';
+  modal.classList.remove('hidden');
+}
+ 
+function closeSubmitQuestion() {
+  var modal = document.getElementById('aiSubmitModal');
+  if (modal) modal.classList.add('hidden');
+}
+ 
+function sendSubmitQuestion() {
+  var qEl  = document.getElementById('submitQText');
+  var emEl = document.getElementById('submitQEmail');
+  var erEl = document.getElementById('submitQErr');
+  var q    = (qEl  ? qEl.value.trim()  : '');
+  var em   = (emEl ? emEl.value.trim() : '');
+ 
+  if (!q) { if (erEl) erEl.textContent = 'Please describe your question.'; return; }
+  if (erEl) erEl.textContent = '';
+ 
+  var btn = document.getElementById('submitQBtn');
+  if (btn) { btn.disabled = true; btn.textContent = 'Sending…'; }
+ 
+  var u = getUser ? getUser() : null;
+  api('saveUnknownQuestion', {
+    question: q,
+    gmail:    u ? u.gmail : 'guest',
+    email:    em
+  }, function(r) {
+    if (btn) { btn.disabled = false; btn.textContent = '📩 Submit Question'; }
+    closeSubmitQuestion();
+    // Show thank-you message in chat
+    appendAIMessage(
+      '✅ Thank you! Your question has been sent to our team.\n\nWe will add an answer soon. You can also reach us directly at contact@keytube.com 📧',
+      {}, true, true, ''
+    );
+  });
+}
+ 
+ 
 
 // ── STREAMING TEXT (like ChatGPT) ─────────────────────────────
 function streamText(el, text, movieLinks, onDone) {
