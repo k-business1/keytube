@@ -18,15 +18,24 @@ var _SUGGESTIONS = [
 function initAIChat() {
   var u = getUser();
   renderSuggestions();
+  
   // Welcome message
   setTimeout(function(){
-    var welcome = u
-      ? 'Hello ' + (u.name || 'there') + '! 👋 I am KEYTUBE AI. Ask me anything about movies, channels, uploading, earnings and more!'
-      : 'Hello! 👋 I am KEYTUBE AI. Ask me anything about movies, channels, how to upload, earn money and more!';
+    let firstName = "there";
+    
+    if (u) {
+      let rawName = u.name || u.username || u.fullname || "";
+      if (rawName.trim() !== "") {
+        let firstPart = rawName.trim().split(" ")[0];
+        firstName = firstPart.charAt(0).toUpperCase() + firstPart.slice(1).toLowerCase();
+      }
+    }
+
+    var welcome = 'Hello ' + firstName + '! 👋 I am KEYTUBE AI. Ask me anything about movies, channels, uploading, earnings and more!';
+      
     appendAIMessage(welcome, {}, false);
   }, 400);
 }
-
 // ── RENDER SUGGESTIONS ────────────────────────────────────────
 function renderSuggestions() {
   var wrap = document.getElementById('aiSuggestions');
