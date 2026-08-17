@@ -78,11 +78,9 @@ function sendAIMessage() {
   api('aiQuery', {query: q}, function(r){
     removeTyping(typingId);
     _aiStreaming = false;
-    var response = r.ok
-      ? r.response
-      : "I'm not sure about that. 🤔\n\nTry asking about:\n• Uploading videos\n• Earning money\n• Finding movies\n• Creating a channel\n\nOr email us at contact@keytube.com";
-    var movieLinks = (r.ok && r.movieLinks) ? r.movieLinks : {};
-    appendAIMessage(response, movieLinks, true);
+    var response = r.ok ? r.response : "...";
+    var matched  = r.ok && r.matched;
+    appendAIMessage(response, r.movieLinks||{}, true, matched, q);
   });
 }
 
@@ -370,10 +368,16 @@ function clearAIChat() {
   var sugg = document.getElementById('aiSuggestions');
   if (sugg) sugg.style.display = '';
   setTimeout(function(){
+    let firstName = "there";
     var u = getUser();
-    var welcome = u
-      ? 'Hello ' + (u.name||'there') + '! 👋 How can I help you today?'
-      : 'Hello! 👋 Ask me anything about KEYTUBE!';
+    if (u) {
+      let rawName = u.name || u.username || u.fullname || "";
+      if (rawName.trim() !== "") {
+        let firstPart = rawName.trim().split(" ")[0];
+        firstName = firstPart.charAt(0).toUpperCase() + firstPart.slice(1).toLowerCase();
+      }
+    }
+    var welcome = 'Hello ' + firstName + '! 👋 I am KEYTUBE AI. Ask me anything about movies, channels, uploading, earnings and more!';
     appendAIMessage(welcome, {}, false);
   }, 200);
 }
