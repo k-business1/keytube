@@ -33,7 +33,7 @@ function initAIChat() {
 
     var welcome = 'Hello ' + firstName + '! 👋 I am KEYTUBE AI. Ask me anything about movies, channels, uploading, earnings and more!';
       
-    appendAIMessage(welcome, {}, false);
+    appendAIMessage(welcome, {}, true);
   }, 400);
 }
 // ── RENDER SUGGESTIONS ────────────────────────────────────────
