@@ -154,7 +154,7 @@ body {
 }
 
 .ai-chat-window {
-    height: 64vh;
+    height: 70vh;
     min-height: 300px;
     max-height: 560px;
     overflow-y: auto;
