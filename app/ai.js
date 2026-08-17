@@ -97,10 +97,10 @@ function appendUserMessage(text) {
   var avHTML = '';
   if (u && u.avatar) {
     avHTML = '<div class="ai-av ai-av-user">' +
-               '<img src="' + h(u.avatar) + '" alt="' + h((u.name||'U')[0]) + '" ' +
-                    'onerror="this.style.display=\'none\';this.nextSibling.style.display=\'grid\'">' +
-               '<span class="ai-av-init" style="display:none">' + h((u.name||'U')[0].toUpperCase()) + '</span>' +
-             '</div>';
+             '<img src="' + h(u.avatar) + '" alt="' + h((u.name||'U')[0]) + '" ' +
+                  'onerror="this.style.display=\'none\';this.nextSibling.style.display=\'grid\'">' +
+             '<span class="ai-av-init" style="display:none">' + h((u.name||'U')[0].toUpperCase()) + '</span>' +
+           '</div>';
   } else if (u) {
     var init = (u.name || u.gmail || 'U')[0].toUpperCase();
     avHTML = '<div class="ai-av ai-av-user"><span class="ai-av-init">' + init + '</span></div>';
@@ -232,8 +232,8 @@ function sendSubmitQuestion() {
   var u = typeof getUser === 'function' ? getUser() : null;
   api('saveUnknownQuestion', {
     question: q,
-    gmail:    u ? u.gmail : 'guest',
-    email:    em
+    gmail:     u ? u.gmail : 'guest',
+    email:     em
   }, function(r) {
     if (btn) { btn.disabled = false; btn.textContent = '📩 Submit Question'; }
     closeSubmitQuestion();
@@ -378,6 +378,6 @@ function clearAIChat() {
       }
     }
     var welcome = 'Hello ' + firstName + '! 👋 I am KEYTUBE AI. Ask me anything about movies, channels, uploading, earnings and more!';
-    appendAIMessage(welcome, {}, false);
+    appendAIMessage(welcome, {}, true, true, '');
   }, 200);
 }
