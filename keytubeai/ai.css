@@ -1,4 +1,4 @@
-/* ══ KEYTUBE AI CHAT (Compact & Spacing Fix) ══ */
+/* ══ KEYTUBE AI CHAT (Custom Bottom Spacing Fix) ══ */
 
 * {
     box-sizing: border-box;
@@ -6,14 +6,14 @@
 
 body {
     margin: 0;
-    padding: 6px;
+    padding: 6px 6px 15px 6px;
     background: var(--bg, #f8fafc);
     font-family: inherit;
     overflow-x: hidden;
 }
 
 .ai-chat-card {
-    padding: 8px !important;
+    padding: 8px 8px 15px 8px !important;
     overflow: hidden;
     border-radius: var(--r, 14px) !important;
     background: var(--w, #fff);
@@ -433,7 +433,7 @@ body {
     text-align: center;
     font-size: 0.65rem;
     color: var(--t3, #94a3b8);
-    padding: 4px 6px 0;
+    padding: 6px 6px 0;
     background: transparent;
     display: flex;
     align-items: center;
@@ -449,10 +449,10 @@ body {
 /* Mobile Screen Optimization */
 @media(max-width: 480px) {
     body {
-        padding: 2px;
+        padding: 2px 2px 15px 2px;
     }
     .ai-chat-card {
-        padding: 6px !important;
+        padding: 6px 6px 15px 6px !important;
         border-radius: 10px !important;
     }
     .ai-chat-window {
