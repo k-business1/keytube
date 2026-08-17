@@ -19,6 +19,7 @@ window.onload=function(){
   TOKEN=sessionStorage.getItem('kt_a')||'';
   if(!TOKEN){toast('Not logged in as admin','terr');setTimeout(function(){window.location.href='../admin/admin.html';},1500);return;}
   loadTerms();
+  loadUnknownQuestions();
 };
 
 // ── LOAD TERMS ────────────────────────────────────────────────
