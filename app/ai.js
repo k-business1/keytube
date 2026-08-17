@@ -16,7 +16,7 @@ var _SUGGESTIONS = [
 
 // ── INIT ──────────────────────────────────────────────────────
 function initAIChat() {
-  var u = getUser();
+  var u = typeof getUser === 'function' ? getUser() : null;
   renderSuggestions();
   
   // Welcome message
@@ -33,9 +33,17 @@ function initAIChat() {
 
     var welcome = 'Hello ' + firstName + '! 👋 I am KEYTUBE AI. Ask me anything about movies, channels, uploading, earnings and more!';
       
-    appendAIMessage(welcome, {}, true);
+    appendAIMessage(welcome, {}, true, true, '');
   }, 400);
 }
+
+// Automatically trigger initialization when the script loads or page is ready
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', initAIChat);
+} else {
+  initAIChat();
+}
+
 // ── RENDER SUGGESTIONS ────────────────────────────────────────
 function renderSuggestions() {
   var wrap = document.getElementById('aiSuggestions');
@@ -86,7 +94,7 @@ function sendAIMessage() {
 
 // ── APPEND USER MESSAGE ───────────────────────────────────────
 function appendUserMessage(text) {
-  var u = getUser();
+  var u = typeof getUser === 'function' ? getUser() : null;
   var chat = document.getElementById('aiChat');
   if (!chat) return;
 
