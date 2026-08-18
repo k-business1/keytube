@@ -387,6 +387,7 @@ body {
     display: flex;
     align-items: center;
     gap: 2px;
+    bottom: 35px;
 }
 
 .ai-tool-btn {
@@ -443,6 +444,7 @@ body {
     justify-content: center;
     gap: 4px;
     font-weight: 500;
+    bottom: 10px;
 }
 
 .ai-footer-note svg {
