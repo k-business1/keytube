@@ -252,3 +252,16 @@ body.wallet-page{padding-top:var(--nav);padding-bottom:var(--tabbar)}
 .modal-hd{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px}
 .modal-hd h3{font-size:1rem;font-weight:700}
 .modal-close{width:28px;height:28px;border-radius:50%;background:var(--bg2);display:grid;place-items:center;cursor:pointer;border:none;font-size:.9rem}
+.forgot-password-btn {
+  background: transparent;
+  border: none;
+  color: var(--blue);
+  text-decoration: none;
+  cursor: pointer;
+  font-size: .85rem;
+  padding: 0;
+}
+
+.forgot-password-btn:hover {
+  text-decoration: underline;
+}
