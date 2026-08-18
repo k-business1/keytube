@@ -274,66 +274,97 @@ function streamText(el, text, movieLinks, onDone) {
 }
 
 // ── FORMAT RESPONSE — links + newlines ───────────────────────
-function formatResponse(text, movieLinks) {
-  var safe = text
-    .replace(/&/g,'&')
-    .replace(/</g,'<')
-    .replace(/>/g,'>');
 
+  function formatResponse(text, movieLinks) {
+  var safe = String(text || '')
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;');
+
+  // New lines
   safe = safe.replace(/\n/g, '<br>');
-  safe = safe.replace(/**(.+?)**/g, '<strong>$1</strong>');
 
+  // **bold**
+  safe = safe.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
+
+  // ── MOVIE LINKS ─────────────────────────────────────────────
   if (movieLinks && Object.keys(movieLinks).length) {
-    Object.keys(movieLinks).forEach(function(name) {
-      var id   = movieLinks[name];
-      var esc  = name.replace(/[.*+?^${}()|[]\]/g, '\$&');
 
+    Object.keys(movieLinks).forEach(function(name) {
+
+      var id = movieLinks[name];
+
+      // Escape movie name for RegExp
+      var esc = name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+
+      // "Movie Name"
       safe = safe.replace(
-        new RegExp('"(' + esc + ')"', 'g'),
-        '"<a href="../pages/watch.html?id=' + id +
-          '" class="ai-movie-link" onclick="openMovieFromAI(event,\'' + id + '\')">$1</a>"'
+        new RegExp('&quot;(' + esc + ')&quot;', 'g'),
+        '&quot;<a href="../pages/watch.html?id=' +
+          encodeURIComponent(id) +
+          '" class="ai-movie-link" onclick="openMovieFromAI(event,\'' +
+          encodeURIComponent(id) +
+          '\')">$1</a>&quot;'
       );
 
+      // 🎬 "Movie Name"
       safe = safe.replace(
-        new RegExp('🎬 "(' + esc + ')"', 'g'),
-        '🎬 "<a href="../pages/watch.html?id=' + id +
-          '" class="ai-movie-link" onclick="openMovieFromAI(event,\'' + id + '\')">$1</a>"'
+        new RegExp('🎬 &quot;(' + esc + ')&quot;', 'g'),
+        '🎬 &quot;<a href="../pages/watch.html?id=' +
+          encodeURIComponent(id) +
+          '" class="ai-movie-link" onclick="openMovieFromAI(event,\'' +
+          encodeURIComponent(id) +
+          '\')">$1</a>&quot;'
       );
     });
   }
 
+  // ── QUOTED MOVIE SEARCH ─────────────────────────────────────
   safe = safe.replace(
-    /"([^"]{3,60})"/g,
-    function(match, name){
-      if(match.indexOf('<a ')!==-1) return match;
+    /&quot;([^&]{3,60})&quot;/g,
+    function(match, name) {
 
-      return '"<span class="ai-movie-search" onclick="searchMovieFromAI(\'' +
+      // Don't modify an already-created link
+      if (match.indexOf('<a ') !== -1) {
+        return match;
+      }
+
+      return '&quot;<span class="ai-movie-search" ' +
+        'onclick="searchMovieFromAI(\'' +
         encodeURIComponent(name) +
-        '\')" title="Search for this">' +
+        '\')" ' +
+        'title="Search for this">' +
         name +
-        '</span>"';
+        '</span>&quot;';
     }
   );
 
-  // ── NUMBER → SEARCH THE TEXT BEFORE "(X views)" ───────────
+  // ── NUMBER → SEARCH TEXT BEFORE "(X views)" ────────────────
   safe = safe.replace(
     /(\d+)\.\s*([^<]*?)(?=\s*\(\d+\s*views?\))/g,
     function(match, number, title) {
+
       title = title.trim();
 
-      return '<span class="ai-num" onclick="searchMovieFromAI(\'' +
+      return '<span class="ai-num" ' +
+        'onclick="searchMovieFromAI(\'' +
         encodeURIComponent(title) +
-        '\')" title="Search for this">' +
+        '\')" ' +
+        'title="Search for this">' +
         number +
         '.</span> ' +
         title;
     }
   );
 
-  safe = safe.replace(/^• /gm, '<span class="ai-bullet">•</span> ');
+  // ── BULLETS ─────────────────────────────────────────────────
+  safe = safe.replace(
+    /^• /gm,
+    '<span class="ai-bullet">•</span> '
+  );
 
   return safe;
-}
+}    
 
 // ── OPEN MOVIE FROM AI LINK ───────────────────────────────────
 function openMovieFromAI(event, movieId) {
