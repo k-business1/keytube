@@ -316,14 +316,14 @@ function formatResponse(text, movieLinks) {
 // ── OPEN MOVIE FROM AI LINK ───────────────────────────────────
 function openMovieFromAI(event, movieId) {
   event.preventDefault();
-  var base = window.location.pathname.indexOf('/pages/') !== -1 ? '' : 'pages/';
+  var base = window.location.pathname.indexOf('../pages/') !== -1 ? '' : '../pages/';
   window.location.href = base + 'watch.html?id=' + encodeURIComponent(movieId);
 }
 
 // ── SEARCH MOVIE BY NAME ──────────────────────────────────────
 function searchMovieFromAI(encodedName) {
   var name = decodeURIComponent(encodedName);
-  var base = window.location.pathname.indexOf('/pages/') !== -1 ? '' : 'pages/';
+  var base = window.location.pathname.indexOf('../pages/') !== -1 ? '' : '../pages/';
   window.location.href = base + 'search.html?q=' + encodeURIComponent(name);
 }
 
