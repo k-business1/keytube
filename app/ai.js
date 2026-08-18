@@ -276,22 +276,26 @@ function streamText(el, text, movieLinks, onDone) {
 // ── FORMAT RESPONSE — links + newlines ───────────────────────
 function formatResponse(text, movieLinks) {
   var safe = text
-    .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+    .replace(/&/g,'&')
+    .replace(/</g,'<')
+    .replace(/>/g,'>');
 
   safe = safe.replace(/\n/g, '<br>');
-  safe = safe.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
+  safe = safe.replace(/**(.+?)**/g, '<strong>$1</strong>');
 
   if (movieLinks && Object.keys(movieLinks).length) {
     Object.keys(movieLinks).forEach(function(name) {
       var id   = movieLinks[name];
-      var esc  = name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+      var esc  = name.replace(/[.*+?^${}()|[]\]/g, '\$&');
+
       safe = safe.replace(
         new RegExp('"(' + esc + ')"', 'g'),
         '"<a href="../pages/watch.html?id=' + id +
           '" class="ai-movie-link" onclick="openMovieFromAI(event,\'' + id + '\')">$1</a>"'
       );
+
       safe = safe.replace(
-        new RegExp('🎬 &quot;(' + esc + ')&quot;', 'g'),
+        new RegExp('🎬 "(' + esc + ')"', 'g'),
         '🎬 "<a href="../pages/watch.html?id=' + id +
           '" class="ai-movie-link" onclick="openMovieFromAI(event,\'' + id + '\')">$1</a>"'
       );
@@ -302,12 +306,30 @@ function formatResponse(text, movieLinks) {
     /"([^"]{3,60})"/g,
     function(match, name){
       if(match.indexOf('<a ')!==-1) return match;
+
       return '"<span class="ai-movie-search" onclick="searchMovieFromAI(\'' +
-             encodeURIComponent(name) + '\')" title="Search for this">' + name + '</span>"';
+        encodeURIComponent(name) +
+        '\')" title="Search for this">' +
+        name +
+        '</span>"';
     }
   );
 
-  safe = safe.replace(/(\d+)\. /g, '<span class="ai-num">$1.</span> ');
+  // ── NUMBER → SEARCH THE TEXT BEFORE "(X views)" ───────────
+  safe = safe.replace(
+    /(\d+)\.\s*([^<]*?)(?=\s*\(\d+\s*views?\))/g,
+    function(match, number, title) {
+      title = title.trim();
+
+      return '<span class="ai-num" onclick="searchMovieFromAI(\'' +
+        encodeURIComponent(title) +
+        '\')" title="Search for this">' +
+        number +
+        '.</span> ' +
+        title;
+    }
+  );
+
   safe = safe.replace(/^• /gm, '<span class="ai-bullet">•</span> ');
 
   return safe;
