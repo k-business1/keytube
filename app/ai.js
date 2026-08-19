@@ -314,14 +314,16 @@ function formatResponse(text, movieLinks) {
     });
   }
 
-  // ── QUOTED SEARCH LINKS (Guarantees ALL "..." become clickable searches) ──
+  // ── QUOTED SEARCH LINKS (Handles raw quotes & HTML entities &quot;) ──
   safe = safe.replace(
-    /&quot;([^&]{1,80})&quot;/g,
+    /(?:&quot;|"|“)([^&"]{1,80})(?:&quot;|"|”)/g,
     function(match, name) {
       // Don't modify if it was already converted to a direct playback link
       if (match.indexOf('<a ') !== -1) {
         return match;
       }
+      name = name.trim();
+      if (!name) return match;
       return '&quot;<span class="ai-movie-search" ' +
         'onclick="searchMovieFromAI(\'' +
         encodeURIComponent(name) +
