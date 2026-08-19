@@ -292,44 +292,35 @@ function formatResponse(text, movieLinks) {
       var id = movieLinks[name];
       var esc = name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 
-      // "Movie Name"
+      // Match literal quotes, &quot;, or smart quotes around the movie name
+      var reg = new RegExp('(?:&quot;|["“])(' + esc + ')(?:&quot;|["”])', 'gi');
       safe = safe.replace(
-        new RegExp('&quot;(' + esc + ')&quot;', 'g'),
-        '&quot;<a href="../pages/watch.html?id=' +
+        reg,
+        '"<a href="../pages/watch.html?id=' +
           encodeURIComponent(id) +
           '" class="ai-movie-link" onclick="openMovieFromAI(event,\'' +
           encodeURIComponent(id) +
-          '\')">$1</a>&quot;'
-      );
-
-      // 🎬 "Movie Name"
-      safe = safe.replace(
-        new RegExp('🎬 &quot;(' + esc + ')&quot;', 'g'),
-        '🎬 &quot;<a href="../pages/watch.html?id=' +
-          encodeURIComponent(id) +
-          '" class="ai-movie-link" onclick="openMovieFromAI(event,\'' +
-          encodeURIComponent(id) +
-          '\')">$1</a>&quot;'
+          '\')">$1</a>"'
       );
     });
   }
 
-  // ── QUOTED SEARCH LINKS (Handles &quot;...&quot;) ───────────────
+  // ── QUOTED SEARCH LINKS (Handles literal quotes, &quot;, smart quotes) ──
   safe = safe.replace(
-    /&quot;([^&]{1,80})&quot;/g,
+    /(?:&quot;|["“])([^&"“”]+?)(?:&quot;|["”])/g,
     function(match, name) {
-      if (match.indexOf('<a ') !== -1) {
+      if (match.indexOf('<a ') !== -1 || match.indexOf('ai-movie-search') !== -1) {
         return match;
       }
       name = name.trim();
       if (!name) return match;
-      return '&quot;<span class="ai-movie-search" ' +
+      return '"<span class="ai-movie-search" ' +
         'onclick="searchMovieFromAI(\'' +
         encodeURIComponent(name) +
         '\')" ' +
         'title="Search for this">' +
         name +
-        '</span>&quot;';
+        '</span>"';
     }
   );
 
