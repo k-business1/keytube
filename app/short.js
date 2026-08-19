@@ -46,15 +46,18 @@ function initShorts() {
 }
 
 function startShorts(movies, u) {
-  // Sort by ID sequence (n, n+1, n+2…)
-  _shorts = movies.slice().sort(function(a, b) {
-    return String(a.id).localeCompare(String(b.id));
-  });
+  // Fisher-Yates Shuffle algorithm to ensure randomized order for every user
+  var list = movies.slice();
+  for (var i = list.length - 1; i > 0; i--) {
+    var j = Math.floor(Math.random() * (i + 1));
+    var temp = list[i];
+    list[i] = list[j];
+    list[j] = temp;
+  }
+  _shorts = list;
 
-  // Start from a random position to avoid always same video
-  var savedIdx = 0;
-  try { savedIdx = parseInt(sessionStorage.getItem('ks_idx') || '0') || 0; } catch(e){}
-  _curIdx = savedIdx % _shorts.length;
+  // Start from a random position to avoid everyone starting at the same video
+  _curIdx = Math.floor(Math.random() * _shorts.length);
 
   loadVideoAt(_curIdx, 'none');
 }
@@ -63,7 +66,6 @@ function showEmpty() {
   document.getElementById('ksLoader').style.display = 'none';
   document.getElementById('ksEmpty').classList.remove('hidden');
 }
-
 // ── RENDER USER BUTTON ────────────────────────────────────────
 function renderUserBtn(u) {
   var btn = document.getElementById('ksUserBtn');
