@@ -19,13 +19,14 @@ function initGoogleAuth() {
   var container = document.getElementById('googleBtnContainer');
   if (container) {
     google.accounts.id.renderButton(container, {
-      theme:  'outline',
-      size:   'large',
-      width:  container.offsetWidth || 320,
-      text:   'continue_with',
-      shape:  'rectangular',
-      logo_alignment: 'left'
-    });
+  theme:  'outline',
+  size:   'large',
+  width:  container.offsetWidth || 320,
+  text:   'continue_with',
+  shape:  'rectangular',
+  logo_alignment: 'left',
+  locale: 'en' // Forces English language
+});
   }
 }
 
