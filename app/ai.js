@@ -314,9 +314,9 @@ function formatResponse(text, movieLinks) {
     });
   }
 
-  // ── QUOTED MOVIE SEARCH ─────────────────────────────────────
+  // ── QUOTED MOVIE SEARCH (e.g. "TikTok reels") ────────────────
   safe = safe.replace(
-    /&quot;([^&]{3,60})&quot;/g,
+    /&quot;([^&]{1,80})&quot;/g,
     function(match, name) {
       // Don't modify an already-created link
       if (match.indexOf('<a ') !== -1) {
