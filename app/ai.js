@@ -240,8 +240,8 @@ function sendSubmitQuestion() {
   var u = typeof getUser === 'function' ? getUser() : null;
   api('saveUnknownQuestion', {
     question: q,
-    gmail:     u ? u.gmail : 'guest',
-    email:     em
+    gmail:       u ? u.gmail : 'guest',
+    email:       em
   }, function(r) {
     if (btn) { btn.disabled = false; btn.textContent = '📩 Submit Question'; }
     closeSubmitQuestion();
@@ -274,8 +274,7 @@ function streamText(el, text, movieLinks, onDone) {
 }
 
 // ── FORMAT RESPONSE — links + newlines ───────────────────────
-
-  function formatResponse(text, movieLinks) {
+function formatResponse(text, movieLinks) {
   var safe = String(text || '')
     .replace(/&/g, '&amp;')
     .replace(/</g, '&lt;')
@@ -289,12 +288,8 @@ function streamText(el, text, movieLinks, onDone) {
 
   // ── MOVIE LINKS ─────────────────────────────────────────────
   if (movieLinks && Object.keys(movieLinks).length) {
-
     Object.keys(movieLinks).forEach(function(name) {
-
       var id = movieLinks[name];
-
-      // Escape movie name for RegExp
       var esc = name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 
       // "Movie Name"
@@ -323,12 +318,10 @@ function streamText(el, text, movieLinks, onDone) {
   safe = safe.replace(
     /&quot;([^&]{3,60})&quot;/g,
     function(match, name) {
-
       // Don't modify an already-created link
       if (match.indexOf('<a ') !== -1) {
         return match;
       }
-
       return '&quot;<span class="ai-movie-search" ' +
         'onclick="searchMovieFromAI(\'' +
         encodeURIComponent(name) +
@@ -339,21 +332,19 @@ function streamText(el, text, movieLinks, onDone) {
     }
   );
 
-  // ── NUMBER → SEARCH TEXT BEFORE "(X views)" ────────────────
+  // ── NUMBERED LIST ITEM TITLE SEARCH (n. Title (views)) ───────
   safe = safe.replace(
-    /(\d+)\.\s*([^<]*?)(?=\s*\(\d+\s*views?\))/g,
+    /(\d+)\.\s*([^<]+?)(?=\s*\(\d+\s*views?\))/g,
     function(match, number, title) {
-
       title = title.trim();
-
-      return '<span class="ai-num" ' +
+      if (!title) return match;
+      return number + '. <span class="ai-movie-search" ' +
         'onclick="searchMovieFromAI(\'' +
         encodeURIComponent(title) +
         '\')" ' +
         'title="Search for this">' +
-        number +
-        '.</span> ' +
-        title;
+        title +
+        '</span>';
     }
   );
 
@@ -364,7 +355,7 @@ function streamText(el, text, movieLinks, onDone) {
   );
 
   return safe;
-}    
+}
 
 // ── OPEN MOVIE FROM AI LINK ───────────────────────────────────
 function openMovieFromAI(event, movieId) {
