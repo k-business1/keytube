@@ -44,6 +44,35 @@ if (document.readyState === 'loading') {
   initAIChat();
 }
 
+// ── GLOBAL EVENT DELEGATION (Bypasses inline onclick & CSP blocks) ──
+document.addEventListener('click', function(e) {
+  var target = e.target;
+
+  // 1. Direct Movie Playback Link
+  var movieLink = target.closest('.ai-movie-link');
+  if (movieLink) {
+    e.preventDefault();
+    var movieId = decodeURIComponent(movieLink.getAttribute('data-movie-id') || '');
+    if (movieId) {
+      var base = window.location.pathname.indexOf('../pages/') !== -1 ? '' : '../pages/';
+      window.location.href = base + 'watch.html?id=' + encodeURIComponent(movieId);
+    }
+    return;
+  }
+
+  // 2. Quoted Search Term Link
+  var searchSpan = target.closest('.ai-movie-search');
+  if (searchSpan) {
+    e.preventDefault();
+    var query = decodeURIComponent(searchSpan.getAttribute('data-search-query') || '');
+    if (query) {
+      var base = window.location.pathname.indexOf('../pages/') !== -1 ? '' : '../pages/';
+      window.location.href = base + 'search.html?q=' + encodeURIComponent(query);
+    }
+    return;
+  }
+});
+
 // ── RENDER SUGGESTIONS ────────────────────────────────────────
 function renderSuggestions() {
   var wrap = document.getElementById('aiSuggestions');
@@ -191,7 +220,6 @@ function openSubmitQuestion(encodedQ) {
   var q = decodeURIComponent(encodedQ || '');
   var modal = document.getElementById('aiSubmitModal');
   if (!modal) {
-    // Fallback if modal HTML is missing from page
     var manualQ = prompt("Submit your question to our team:", q);
     if (manualQ) {
       var u = typeof getUser === 'function' ? getUser() : null;
@@ -292,15 +320,12 @@ function formatResponse(text, movieLinks) {
       var id = movieLinks[name];
       var esc = name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 
-      // Match literal quotes, &quot;, or smart quotes around the movie name
       var reg = new RegExp('(?:&quot;|["“])(' + esc + ')(?:&quot;|["”])', 'gi');
       safe = safe.replace(
         reg,
-        '"<a href="../pages/watch.html?id=' +
+        '"<a href="#" class="ai-movie-link" data-movie-id="' +
           encodeURIComponent(id) +
-          '" class="ai-movie-link" onclick="openMovieFromAI(event,\'' +
-          encodeURIComponent(id) +
-          '\')">$1</a>"'
+          '">$1</a>"'
       );
     });
   }
@@ -309,16 +334,14 @@ function formatResponse(text, movieLinks) {
   safe = safe.replace(
     /(?:&quot;|["“])([^&"“”]+?)(?:&quot;|["”])/g,
     function(match, name) {
-      if (match.indexOf('<a ') !== -1 || match.indexOf('ai-movie-search') !== -1) {
+      if (match.indexOf('data-movie-id') !== -1 || match.indexOf('ai-movie-search') !== -1) {
         return match;
       }
       name = name.trim();
       if (!name) return match;
-      return '"<span class="ai-movie-search" ' +
-        'onclick="searchMovieFromAI(\'' +
+      return '"<span class="ai-movie-search" data-search-query="' +
         encodeURIComponent(name) +
-        '\')" ' +
-        'title="Search for this">' +
+        '" title="Search for this">' +
         name +
         '</span>"';
     }
@@ -330,11 +353,9 @@ function formatResponse(text, movieLinks) {
     function(match, number, title) {
       title = title.trim();
       if (!title) return match;
-      return number + '. <span class="ai-movie-search" ' +
-        'onclick="searchMovieFromAI(\'' +
+      return number + '. <span class="ai-movie-search" data-search-query="' +
         encodeURIComponent(title) +
-        '\')" ' +
-        'title="Search for this">' +
+        '" title="Search for this">' +
         title +
         '</span>';
     }
@@ -347,20 +368,6 @@ function formatResponse(text, movieLinks) {
   );
 
   return safe;
-}
-
-// ── OPEN MOVIE FROM AI LINK ───────────────────────────────────
-function openMovieFromAI(event, movieId) {
-  event.preventDefault();
-  var base = window.location.pathname.indexOf('../pages/') !== -1 ? '' : '../pages/';
-  window.location.href = base + 'watch.html?id=' + encodeURIComponent(movieId);
-}
-
-// ── SEARCH MOVIE BY NAME ──────────────────────────────────────
-function searchMovieFromAI(encodedName) {
-  var name = decodeURIComponent(encodedName);
-  var base = window.location.pathname.indexOf('../pages/') !== -1 ? '' : '../pages/';
-  window.location.href = base + 'search.html?q=' + encodeURIComponent(name);
 }
 
 // ── TYPING INDICATOR ─────────────────────────────────────────
