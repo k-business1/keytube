@@ -286,7 +286,7 @@ function formatResponse(text, movieLinks) {
   // **bold**
   safe = safe.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
 
-  // ── MOVIE LINKS ─────────────────────────────────────────────
+  // ── MOVIE LINKS (Direct Playback Links if ID exists) ─────────
   if (movieLinks && Object.keys(movieLinks).length) {
     Object.keys(movieLinks).forEach(function(name) {
       var id = movieLinks[name];
@@ -314,11 +314,11 @@ function formatResponse(text, movieLinks) {
     });
   }
 
-  // ── QUOTED MOVIE SEARCH (e.g. "TikTok reels") ────────────────
+  // ── QUOTED SEARCH LINKS (Guarantees ALL "..." become clickable searches) ──
   safe = safe.replace(
     /&quot;([^&]{1,80})&quot;/g,
     function(match, name) {
-      // Don't modify an already-created link
+      // Don't modify if it was already converted to a direct playback link
       if (match.indexOf('<a ') !== -1) {
         return match;
       }
