@@ -314,11 +314,10 @@ function formatResponse(text, movieLinks) {
     });
   }
 
-  // ── QUOTED SEARCH LINKS (Handles raw quotes & HTML entities &quot;) ──
+  // ── QUOTED SEARCH LINKS (Handles &quot;...&quot;) ───────────────
   safe = safe.replace(
-    /(?:&quot;|"|“)([^&"]{1,80})(?:&quot;|"|”)/g,
+    /&quot;([^&]{1,80})&quot;/g,
     function(match, name) {
-      // Don't modify if it was already converted to a direct playback link
       if (match.indexOf('<a ') !== -1) {
         return match;
       }
