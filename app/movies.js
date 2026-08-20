@@ -1,6 +1,45 @@
+// ── movies.js — Movie listing, cards, watch page & smart preferences ───────────
+var _movies=[],_heroMovies=[],_heroIdx=0,_heroTimer=null,_watchTimer=null;
 
-// ── movies.js — Movie listing, cards, watch page ───────────
-var _movies=[],_heroMovies=[],_heroIdx=0,_heroTimer=null;
+// 1. Category intelligence & smart movie arrangement
+function recordWatchTime(category, seconds) {
+  if (!category) return;
+  try {
+    let stats = JSON.parse(localStorage.getItem('movie_category_stats') || '{}');
+    stats[category] = (stats[category] || 0) + seconds;
+    localStorage.setItem('movie_category_stats', JSON.stringify(stats));
+  } catch (e) {}
+}
+
+function getSmartArrangedMovies(movies) {
+  if (!movies || !Array.isArray(movies)) return [];
+  function shuffle(array) {
+    let arr = [...array];
+    for (let i = arr.length - 1; i > 0; i--) {
+      let j = Math.floor(Math.random() * (i + 1));
+      [arr[i], arr[j]] = [arr[j], arr[i]];
+    }
+    return arr;
+  }
+  let stats = {};
+  try {
+    stats = JSON.parse(localStorage.getItem('movie_category_stats') || '{}');
+  } catch (e) {}
+  
+  let topCategory = Object.keys(stats).reduce((a, b) => stats[a] > stats[b] ? a : b, null);
+  let catMovies = topCategory ? movies.filter(m => m.category === topCategory) : [];
+  let otherMovies = topCategory ? movies.filter(m => m.category !== topCategory) : movies;
+
+  let shuffledCat = shuffle(catMovies);
+  let shuffledOthers = shuffle(otherMovies);
+
+  let firstFive = shuffledCat.slice(0, 5);
+  let remainingCat = shuffledCat.slice(5);
+  let remainingPool = shuffle([...remainingCat, ...shuffledOthers]);
+
+  if (firstFive.length === 0) return remainingPool;
+  return [...firstFive, ...remainingPool];
+}
 
 function renderRow(id,movies){var c=document.getElementById(id);if(!c)return;c.innerHTML='';if(!movies.length){c.innerHTML='<p style="color:var(--t2);font-size:.79rem;padding:8px 0">Nothing here yet.</p>';return;}movies.forEach(function(m){c.appendChild(makeCard(m,'row'));});}
 function renderGrid(movies,gridId,emptyId,emptyMsg){
@@ -40,9 +79,19 @@ function initWatchPage(){
     renderWatchMovie(m,u);
     api('logView',{movieId:m.id,gmail:u?u.gmail:'guest'});
     api('logTraffic',{user:u?u.gmail:'guest',action:'view',country:u?u.country:'',details:m.name});
-    // Load related
+    
+    // Start tracking watch time for smart category sorting
+    clearInterval(_watchTimer);
+    _watchTimer = setInterval(function(){
+      recordWatchTime(m.category, 5);
+    }, 5000);
+
+    // Load related (smart sorted or filtered)
     api('getMovies',{isLoggedIn:!!u,category:m.category,type:'all'},function(r2){
-      if(r2.ok){var related=r2.movies.filter(function(x){return x.id!==m.id;}).slice(0,10);renderRow('relatedRow',related);}
+      if(r2.ok){
+        var related=r2.movies.filter(function(x){return x.id!==m.id;});
+        renderRow('relatedRow',getSmartArrangedMovies(related).slice(0,10));
+      }
     });
     // Comments
     if(typeof loadComments==='function')loadComments(m.id);
@@ -147,7 +196,20 @@ function buildPlayer(url){
   if(dm)return'<iframe src="https://www.dailymotion.com/embed/video/'+dm[1]+'?autoplay=1" allowfullscreen allow="autoplay" style="width:100%;height:100%;border:none"></iframe>';
   var gd=url.match(/drive\.google\.com\/file\/d\/([^/]+)/);
   if(gd)return'<iframe src="https://drive.google.com/file/d/'+gd[1]+'/preview" allowfullscreen allow="autoplay" style="width:100%;height:100%;border:none"></iframe>';
-  if(/\.(mp4|webm|ogg|mkv|mov)(\?.*)?$/i.test(url))return '<div style="position:relative;width:100%;height:100%;background:#000"><video autoplay controlsList="nodownload" src="'+h(url)+'" style="width:100%;height:100%"></video><div style="position:absolute;top:0;left:0;width:100%;height:100%;z-index:1" oncontextmenu="return false;" onclick="var v=this.previousSibling;v.paused?v.play():v.pause()"></div></div>';
+  
+  if(/\.(mp4|webm|ogg|mkv|mov)(\?.*)?$/i.test(url)) return `
+    <div style="position:relative;width:100%;height:100%;background:#000;overflow:hidden">
+      <video autoplay controlsList="nodownload" src="${h(url)}" style="width:100%;height:100%"></video>
+      <div id="vTime" style="position:absolute;top:10px;left:50%;transform:translateX(-50%);color:#fff;background:rgba(0,0,0,0.6);padding:5px 10px;border-radius:15px;display:none;z-index:10;pointer-events:none;font-size:12px;font-family:sans-serif;"></div>
+      <div style="position:absolute;top:0;left:0;width:100%;height:100%;z-index:5" 
+           oncontextmenu="return false;"
+           ontouchstart="this._sx=event.touches[0].clientX; this._st=this.previousElementSibling.previousElementSibling.currentTime;"
+           ontouchmove="var v=this.previousElementSibling.previousElementSibling; var d=event.touches[0].clientX-this._sx; var t=this._st+(d/5); v.currentTime=Math.max(0,Math.min(v.duration||0,t)); var p=document.getElementById('vTime'); if(p){p.style.display='block'; p.innerText='Skip: '+Math.floor(t)+'s';}"
+           ontouchend="var p=document.getElementById('vTime'); if(p)p.style.display='none'; if(Math.abs(event.changedTouches[0].clientX-this._sx)<10){ var v=this.previousElementSibling.previousElementSibling; v.paused?v.play():v.pause(); }"
+           onclick="var v=this.previousElementSibling.previousElementSibling; v.paused?v.play():v.pause()">
+      </div>
+    </div>`;
+
   return'<iframe src="'+h(url)+'" allowfullscreen allow="autoplay;encrypted-media" style="width:100%;height:100%;border:none"></iframe>';
 }
 
