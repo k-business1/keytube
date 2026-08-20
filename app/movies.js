@@ -147,7 +147,7 @@ function buildPlayer(url){
   if(dm)return'<iframe src="https://www.dailymotion.com/embed/video/'+dm[1]+'?autoplay=1" allowfullscreen allow="autoplay" style="width:100%;height:100%;border:none"></iframe>';
   var gd=url.match(/drive\.google\.com\/file\/d\/([^/]+)/);
   if(gd)return'<iframe src="https://drive.google.com/file/d/'+gd[1]+'/preview" allowfullscreen allow="autoplay" style="width:100%;height:100%;border:none"></iframe>';
-  if(/\.(mp4|webm|ogg|mkv|mov)(\?.*)?$/i.test(url))return'<video controls autoplay src="'+h(url)+'" style="width:100%;height:100%;background:#000">Not supported.</video>';
+  if(/\.(mp4|webm|ogg|mkv|mov)(\?.*)?$/i.test(url))return '<div style="position:relative;width:100%;height:100%;background:#000"><video autoplay controlsList="nodownload" src="'+h(url)+'" style="width:100%;height:100%"></video><div style="position:absolute;top:0;left:0;width:100%;height:100%;z-index:1" oncontextmenu="return false;" onclick="var v=this.previousSibling;v.paused?v.play():v.pause()"></div></div>';
   return'<iframe src="'+h(url)+'" allowfullscreen allow="autoplay;encrypted-media" style="width:100%;height:100%;border:none"></iframe>';
 }
 
