@@ -13,15 +13,14 @@ function recordWatchTime(category, seconds) {
 
 function getSmartArrangedMovies(movies) {
   if (!movies || !Array.isArray(movies)) return [];
-  
-  // Force a complete random shuffle of all movies every time
-  let arr = [...movies];
-  for (let i = arr.length - 1; i > 0; i--) {
-    let j = Math.floor(Math.random() * (i + 1));
-    [arr[i], arr[j]] = [arr[j], arr[i]];
+  function shuffle(array) {
+    let arr = [...array];
+    for (let i = arr.length - 1; i > 0; i--) {
+      let j = Math.floor(Math.random() * (i + 1));
+      [arr[i], arr[j]] = [arr[j], arr[i]];
+    }
+    return arr;
   }
-  return arr;
-}
   let stats = {};
   try {
     stats = JSON.parse(localStorage.getItem('movie_category_stats') || '{}');
