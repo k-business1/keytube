@@ -30,36 +30,78 @@ function applyHomeSettings(s){
 
 function downloadApp(){var url=document.getElementById('appDlBtn').dataset.url||'';if(url)window.open(url,'_blank');}
 
-function loadHomeMovies(cat,type,year,minRating,country){
-  var u=getUser();
-  api('getMovies',{isLoggedIn:!!u,category:cat||_activeCat,type:type||_activeType,year:year||'',minRating:minRating||'',country:country||''},function(r){
-    document.getElementById('pgLoad').style.display='none';
-    if(!r.ok){toastErr(r.msg);return;}
-    var movies=r.movies||[];_movies=movies;
+function loadHomeMovies(cat, type, year, minRating, country) {
+  var u = getUser();
+  api('getMovies', {
+    isLoggedIn: !!u, 
+    category: cat || _activeCat, 
+    type: type || _activeType, 
+    year: year || '', 
+    minRating: minRating || '', 
+    country: country || ''
+  }, function(r) {
+    var pgLoad = document.getElementById('pgLoad');
+    if (pgLoad) pgLoad.style.display = 'none';
     
-    // Hero
-    var feat=movies.filter(function(m){return m.featured;});
-    if(!feat.length)feat=movies.slice(0,Math.min(5,movies.length));
-    _heroMovies=feat;_heroIdx=0;
-    if(feat.length){document.getElementById('hero').style.display='block';buildHeroDots();renderHero(0);startHeroTimer();}
-    
-    // Trending row
-    renderRow('tRow',movies.filter(function(m){return !m.isNew;}).slice(0,20));
-    
-    // New releases
-    if(u){
-      var nw=movies.filter(function(m){return m.isNew;});
-      var ns=document.getElementById('newSec');
-      if(nw.length){ns.classList.remove('hidden');renderRow('nRow',nw.slice(0,20));}
-      else ns.classList.add('hidden');
-      document.getElementById('guestBanner').style.display='none';
-    } else {
-      document.getElementById('newSec').classList.add('hidden');
-      document.getElementById('guestBanner').style.display='block';
+    if (!r.ok) { 
+      if (typeof toastErr === 'function') toastErr(r.msg); 
+      return; 
     }
     
-    // Grid (Fixed by wrapping movies inside getSmartArrangedMovies so it changes on refresh)
-    renderGrid(getSmartArrangedMovies(movies), 'mGrid', 'emptySt', u ? 'No movies found.' : 'Sign in to see more.');
+    var movies = r.movies || [];
+    _movies = movies;
+    
+    // Hero Section
+    var feat = movies.filter(function(m){ return m.featured; });
+    if (!feat.length) feat = movies.slice(0, Math.min(5, movies.length));
+    _heroMovies = feat;
+    _heroIdx = 0;
+    
+    var heroEl = document.getElementById('hero');
+    if (feat.length && heroEl) {
+      heroEl.style.display = 'block';
+      if (typeof buildHeroDots === 'function') buildHeroDots();
+      if (typeof renderHero === 'function') renderHero(0);
+      if (typeof startHeroTimer === 'function') startHeroTimer();
+    }
+    
+    // Trending row
+    var tRow = document.getElementById('tRow');
+    if (tRow) {
+      renderRow('tRow', movies.filter(function(m){ return !m.isNew; }).slice(0, 20));
+    }
+    
+    // New releases
+    var newSec = document.getElementById('newSec');
+    var guestBanner = document.getElementById('guestBanner');
+    if (u) {
+      var nw = movies.filter(function(m){ return m.isNew; });
+      if (newSec) {
+        if (nw.length) {
+          newSec.classList.remove('hidden');
+          renderRow('nRow', nw.slice(0, 20));
+        } else {
+          newSec.classList.add('hidden');
+        }
+      }
+      if (guestBanner) guestBanner.style.display = 'none';
+    } else {
+      if (newSec) newSec.classList.add('hidden');
+      if (guestBanner) guestBanner.style.display = 'block';
+    }
+    
+    // Grid (Safely randomized inline so it never crashes if helper functions are missing)
+    var gridMovies = movies.slice();
+    for (var i = gridMovies.length - 1; i > 0; i--) {
+      var j = Math.floor(Math.random() * (i + 1));
+      var temp = gridMovies[i];
+      gridMovies[i] = gridMovies[j];
+      gridMovies[j] = temp;
+    }
+    
+    if (document.getElementById('mGrid')) {
+      renderGrid(gridMovies, 'mGrid', 'emptySt', u ? 'No movies found.' : 'Sign in to see more.');
+    }
   });
 }
 
