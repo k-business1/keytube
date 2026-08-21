@@ -1,4 +1,5 @@
 // ── auth.js — Auth, session, nav UI ────────────────────────
+(function(){try{if(localStorage.getItem('kt_theme')==='dark')document.body.classList.add('dark');}catch(e){}})();
 var _S={user:null,adminToken:null,settings:{},pages:{}};
 
 // Session
