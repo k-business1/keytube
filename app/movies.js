@@ -25,10 +25,16 @@ function getSmartArrangedMovies(movies) {
   try {
     stats = JSON.parse(localStorage.getItem('movie_category_stats') || '{}');
   } catch (e) {}
-  
+
   let topCategory = Object.keys(stats).reduce((a, b) => stats[a] > stats[b] ? a : b, null);
-  let catMovies = topCategory ? movies.filter(m => m.category === topCategory) : [];
-  let otherMovies = topCategory ? movies.filter(m => m.category !== topCategory) : movies;
+  
+  // If no watch history exists yet, completely randomize everything so it's fresh every time!
+  if (!topCategory) {
+    return shuffle(movies);
+  }
+
+  let catMovies = movies.filter(m => m.category === topCategory);
+  let otherMovies = movies.filter(m => m.category !== topCategory);
 
   let shuffledCat = shuffle(catMovies);
   let shuffledOthers = shuffle(otherMovies);
@@ -41,7 +47,12 @@ function getSmartArrangedMovies(movies) {
   return [...firstFive, ...remainingPool];
 }
 
-function renderRow(id,movies){var c=document.getElementById(id);if(!c)return;c.innerHTML='';if(!movies.length){c.innerHTML='<p style="color:var(--t2);font-size:.79rem;padding:8px 0">Nothing here yet.</p>';return;}movies.forEach(function(m){c.appendChild(makeCard(m,'row'));});}
+function renderRow(id,movies){
+  var c=document.getElementById(id);if(!c)return;c.innerHTML='';
+  if(!movies.length){c.innerHTML='<p style="color:var(--t2);font-size:.79rem;padding:8px 0">Nothing here yet.</p>';return;}
+  movies.forEach(function(m){c.appendChild(makeCard(m,'row'));});
+}
+
 function renderGrid(movies,gridId,emptyId,emptyMsg){
   var g=document.getElementById(gridId||'mGrid'),e=document.getElementById(emptyId||'emptySt');
   if(!g)return;g.innerHTML='';
