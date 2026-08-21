@@ -196,7 +196,7 @@ function buildPlayer(url){
   if(dm)return'<iframe src="https://www.dailymotion.com/embed/video/'+dm[1]+'?autoplay=1" allowfullscreen allow="autoplay" style="width:100%;height:100%;border:none"></iframe>';
   var gd=url.match(/drive\.google\.com\/file\/d\/([^/]+)/);
   if(gd)return'<iframe src="https://drive.google.com/file/d/'+gd[1]+'/preview" allowfullscreen allow="autoplay" style="width:100%;height:100%;border:none"></iframe>';
-  
+
   if(/\.(mp4|webm|ogg|mkv|mov)(\?.*)?$/i.test(url)) return `
     <div style="position:relative;width:100%;height:100%;background:#000;overflow:hidden">
       <!-- Video Element -->
@@ -219,19 +219,18 @@ function buildPlayer(url){
         <div class="v-prog-fill" style="width:0%;height:100%;background:#ff0000;transition:width 0.1s linear;"></div>
       </div>
 
-      <!-- Interaction Shield (Gestures & Play/Pause) -->
+      <!-- Interaction Shield (Gestures, Play/Pause & Double-Tap Fullscreen) -->
       <div style="position:absolute;top:0;left:0;width:100%;height:100%;z-index:5" 
            oncontextmenu="return false;"
            ontouchstart="this._sx=event.touches[0].clientX; var v=this.parentNode.querySelector('video'); this._st=v.currentTime;"
            ontouchmove="var wrapper=this.parentNode; var v=wrapper.querySelector('video'); var d=event.touches[0].clientX-this._sx; var t=this._st+(d/5); v.currentTime=Math.max(0,Math.min(v.duration||0,t)); var dur=v.duration||0; var fmt=function(sec){var m=Math.floor(sec/60); var s=Math.floor(sec%60); return m+':'+(s<10?'0':'')+s;}; var badge=wrapper.querySelector('.v-time-badge'); if(badge){badge.style.display='block'; badge.innerHTML=fmt(v.currentTime)+' / '+fmt(dur);}"
-           ontouchend="var wrapper=this.parentNode; var badge=wrapper.querySelector('.v-time-badge'); if(badge) badge.style.display='none'; var dx=event.changedTouches[0].clientX-this._sx; if(Math.abs(dx)<10){ var v=wrapper.querySelector('video'); v.paused?v.play():v.pause(); }"
-           onclick="var wrapper=this.parentNode; var v=wrapper.querySelector('video'); v.paused?v.play():v.pause()">
+           ontouchend="var wrapper=this.parentNode; var badge=wrapper.querySelector('.v-time-badge'); if(badge) badge.style.display='none'; var dx=event.changedTouches[0].clientX-this._sx; if(Math.abs(dx)<10){ var now=Date.now(); if(window._lastTap && (now - window._lastTap < 300)){ var box=wrapper; if(!document.fullscreenElement){ if(box.requestFullscreen) box.requestFullscreen(); else if(box.webkitRequestFullscreen) box.webkitRequestFullscreen(); } else { if(document.exitFullscreen) document.exitFullscreen(); } window._lastTap=0; } else { window._lastTap=now; setTimeout(function(){ if(window._lastTap && Date.now() - window._lastTap >= 300){ var v=wrapper.querySelector('video'); v.paused?v.play():v.pause(); window._lastTap=0; } }, 300); } }"
+           onclick="var wrapper=this.parentNode; var now=Date.now(); if(window._lastTap && (now - window._lastTap < 300)){ var box=wrapper; if(!document.fullscreenElement){ if(box.requestFullscreen) box.requestFullscreen(); else if(box.webkitRequestFullscreen) box.webkitRequestFullscreen(); } else { if(document.exitFullscreen) document.exitFullscreen(); } window._lastTap=0; } else { window._lastTap=now; setTimeout(function(){ if(window._lastTap && Date.now() - window._lastTap >= 300){ var v=wrapper.querySelector('video'); v.paused?v.play():v.pause(); window._lastTap=0; } }, 300); }">
       </div>
     </div>`;
 
   return'<iframe src="'+h(url)+'" allowfullscreen allow="autoplay;encrypted-media" style="width:100%;height:100%;border:none"></iframe>';
 }
-
 // Like toggle
 function toggleLike(){
   var m=window._currentMovie;if(!m)return;
