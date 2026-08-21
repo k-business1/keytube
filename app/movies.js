@@ -199,14 +199,33 @@ function buildPlayer(url){
   
   if(/\.(mp4|webm|ogg|mkv|mov)(\?.*)?$/i.test(url)) return `
     <div style="position:relative;width:100%;height:100%;background:#000;overflow:hidden">
-      <video autoplay controlsList="nodownload" src="${h(url)}" style="width:100%;height:100%"></video>
-      <div id="vTime" style="position:absolute;top:10px;left:50%;transform:translateX(-50%);color:#fff;background:rgba(0,0,0,0.6);padding:5px 10px;border-radius:15px;display:none;z-index:10;pointer-events:none;font-size:12px;font-family:sans-serif;"></div>
+      <!-- Video Element -->
+      <video autoplay controlsList="nodownload" src="${h(url)}" style="width:100%;height:100%;display:block" 
+             ontimeupdate="var p=this.parentNode.querySelector('.v-prog-fill'); if(p && this.duration) p.style.width = (this.currentTime / this.duration) * 100 + '%';"
+             onwaiting="var l=this.parentNode.querySelector('.v-loader'); if(l) l.style.display='block';"
+             onplaying="var l=this.parentNode.querySelector('.v-loader'); if(l) l.style.display='none';"
+             oncanplay="var l=this.parentNode.querySelector('.v-loader'); if(l) l.style.display='none';">
+      </video>
+
+      <!-- Red Loading Spinner -->
+      <div class="v-loader" style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:40px;height:40px;border:4px solid rgba(255,255,255,0.2);border-top:4px solid #ff0000;border-radius:50%;animation:vSpin 0.8s linear infinite;z-index:8;pointer-events:none;display:none;"></div>
+      <style>@keyframes vSpin { 0% { transform: translate(-50%,-50%) rotate(0deg); } 100% { transform: translate(-50%,-50%) rotate(360deg); } }</style>
+
+      <!-- Floating Badge: Shows Duration and Left Time -->
+      <div id="vTime" style="position:absolute;top:15px;left:50%;transform:translateX(-50%);color:#fff;background:rgba(0,0,0,0.75);padding:6px 14px;border-radius:20px;display:none;z-index:10;pointer-events:none;font-size:13px;font-family:sans-serif;font-weight:500;letter-spacing:0.5px;"></div>
+
+      <!-- Red Progress Bar at Bottom -->
+      <div style="position:absolute;bottom:0;left:0;width:100%;height:4px;background:rgba(255,255,255,0.2);z-index:9;pointer-events:none;">
+        <div class="v-prog-fill" style="width:0%;height:100%;background:#ff0000;transition:width 0.1s linear;"></div>
+      </div>
+
+      <!-- Interaction Shield (Gestures & Play/Pause) -->
       <div style="position:absolute;top:0;left:0;width:100%;height:100%;z-index:5" 
            oncontextmenu="return false;"
-           ontouchstart="this._sx=event.touches[0].clientX; this._st=this.previousElementSibling.previousElementSibling.currentTime;"
-           ontouchmove="var v=this.previousElementSibling.previousElementSibling; var d=event.touches[0].clientX-this._sx; var t=this._st+(d/5); v.currentTime=Math.max(0,Math.min(v.duration||0,t)); var p=document.getElementById('vTime'); if(p){p.style.display='block'; p.innerText='Skip: '+Math.floor(t)+'s';}"
-           ontouchend="var p=document.getElementById('vTime'); if(p)p.style.display='none'; if(Math.abs(event.changedTouches[0].clientX-this._sx)<10){ var v=this.previousElementSibling.previousElementSibling; v.paused?v.play():v.pause(); }"
-           onclick="var v=this.previousElementSibling.previousElementSibling; v.paused?v.play():v.pause()">
+           ontouchstart="this._sx=event.touches[0].clientX; this._st=this.previousElementSibling.previousElementSibling.previousElementSibling.previousElementSibling.currentTime;"
+           ontouchmove="var v=this.previousElementSibling.previousElementSibling.previousElementSibling.previousElementSibling; var d=event.touches[0].clientX-this._sx; var t=this._st+(d/5); v.currentTime=Math.max(0,Math.min(v.duration||0,t)); var dur=v.duration||0; var left=dur-t; var fmt=function(sec){var m=Math.floor(sec/60); var s=Math.floor(sec%60); return m+':'+(s<10?'0':'')+s;}; var p=document.getElementById('vTime'); if(p){p.style.display='block'; p.innerHTML='Duration: <b>'+fmt(dur)+'</b> | Left: <b>-'+fmt(left)+'</b>';}"
+           ontouchend="var p=document.getElementById('vTime'); if(p)p.style.display='none'; if(Math.abs(event.changedTouches[0].clientX-this._sx)<10){ var v=this.previousElementSibling.previousElementSibling.previousElementSibling.previousElementSibling; v.paused?v.play():v.pause(); }"
+           onclick="var v=this.previousElementSibling.previousElementSibling.previousElementSibling.previousElementSibling; v.paused?v.play():v.pause()">
       </div>
     </div>`;
 
