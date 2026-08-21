@@ -211,8 +211,8 @@ function buildPlayer(url){
       <div class="v-loader" style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:40px;height:40px;border:4px solid rgba(255,255,255,0.2);border-top:4px solid #ff0000;border-radius:50%;animation:vSpin 0.8s linear infinite;z-index:8;pointer-events:none;display:none;"></div>
       <style>@keyframes vSpin { 0% { transform: translate(-50%,-50%) rotate(0deg); } 100% { transform: translate(-50%,-50%) rotate(360deg); } }</style>
 
-      <!-- Floating Badge: Shows Duration and Left Time -->
-      <div class="v-time-badge" style="position:absolute;top:15px;left:50%;transform:translateX(-50%);color:#fff;background:rgba(0,0,0,0.75);padding:6px 14px;border-radius:20px;display:none;z-index:10;pointer-events:none;font-size:13px;font-family:sans-serif;font-weight:500;letter-spacing:0.5px;white-space:nowrap;"></div>
+      <!-- Floating Badge: Shows Played Time / Total Duration -->
+      <div class="v-time-badge" style="position:absolute;top:15px;left:50%;transform:translateX(-50%);color:#fff;background:rgba(0,0,0,0.75);padding:6px 14px;border-radius:20px;display:none;z-index:10;pointer-events:none;font-size:13px;font-family:sans-serif;font-weight:500;letter-spacing:0.5px;white-space:nowrap;">0:00 / 0:00</div>
 
       <!-- Red Progress Bar at Bottom -->
       <div style="position:absolute;bottom:0;left:0;width:100%;height:4px;background:rgba(255,255,255,0.2);z-index:9;pointer-events:none;">
@@ -223,9 +223,9 @@ function buildPlayer(url){
       <div style="position:absolute;top:0;left:0;width:100%;height:100%;z-index:5" 
            oncontextmenu="return false;"
            ontouchstart="this._sx=event.touches[0].clientX; var v=this.parentNode.querySelector('video'); this._st=v.currentTime;"
-           ontouchmove="var wrapper=this.parentNode; var v=wrapper.querySelector('video'); var d=event.touches[0].clientX-this._sx; var t=this._st+(d/5); v.currentTime=Math.max(0,Math.min(v.duration||0,t)); var dur=v.duration||0; var left=dur-t; var fmt=function(sec){var m=Math.floor(sec/60); var s=Math.floor(sec%60); return m+':'+(s<10?'0':'')+s;}; var badge=wrapper.querySelector('.v-time-badge'); if(badge){badge.style.display='block'; badge.innerHTML=fmt(t)+' / Left: -'+fmt(left);}"
+           ontouchmove="var wrapper=this.parentNode; var v=wrapper.querySelector('video'); var d=event.touches[0].clientX-this._sx; var t=this._st+(d/5); v.currentTime=Math.max(0,Math.min(v.duration||0,t)); var dur=v.duration||0; var fmt=function(sec){var m=Math.floor(sec/60); var s=Math.floor(sec%60); return m+':'+(s<10?'0':'')+s;}; var badge=wrapper.querySelector('.v-time-badge'); if(badge){badge.style.display='block'; badge.innerHTML=fmt(v.currentTime)+' / '+fmt(dur);}"
            ontouchend="var wrapper=this.parentNode; var badge=wrapper.querySelector('.v-time-badge'); if(badge) badge.style.display='none'; var dx=event.changedTouches[0].clientX-this._sx; if(Math.abs(dx)<10){ var v=wrapper.querySelector('video'); v.paused?v.play():v.pause(); }"
-           onclick="var v=this.parentNode.querySelector('video'); v.paused?v.play():v.pause()">
+           onclick="var wrapper=this.parentNode; var v=wrapper.querySelector('video'); v.paused?v.play():v.pause()">
       </div>
     </div>`;
 
