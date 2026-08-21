@@ -36,18 +36,30 @@ function loadHomeMovies(cat,type,year,minRating,country){
     document.getElementById('pgLoad').style.display='none';
     if(!r.ok){toastErr(r.msg);return;}
     var movies=r.movies||[];_movies=movies;
+    
     // Hero
     var feat=movies.filter(function(m){return m.featured;});
     if(!feat.length)feat=movies.slice(0,Math.min(5,movies.length));
     _heroMovies=feat;_heroIdx=0;
     if(feat.length){document.getElementById('hero').style.display='block';buildHeroDots();renderHero(0);startHeroTimer();}
+    
     // Trending row
     renderRow('tRow',movies.filter(function(m){return !m.isNew;}).slice(0,20));
+    
     // New releases
-    if(u){var nw=movies.filter(function(m){return m.isNew;});var ns=document.getElementById('newSec');if(nw.length){ns.classList.remove('hidden');renderRow('nRow',nw.slice(0,20));}else ns.classList.add('hidden');document.getElementById('guestBanner').style.display='none';}
-    else{document.getElementById('newSec').classList.add('hidden');document.getElementById('guestBanner').style.display='block';}
-    // Grid
-    renderGrid(movies,'mGrid','emptySt',u?'No movies found.':'Sign in to see more.');
+    if(u){
+      var nw=movies.filter(function(m){return m.isNew;});
+      var ns=document.getElementById('newSec');
+      if(nw.length){ns.classList.remove('hidden');renderRow('nRow',nw.slice(0,20));}
+      else ns.classList.add('hidden');
+      document.getElementById('guestBanner').style.display='none';
+    } else {
+      document.getElementById('newSec').classList.add('hidden');
+      document.getElementById('guestBanner').style.display='block';
+    }
+    
+    // Grid (Fixed by wrapping movies inside getSmartArrangedMovies so it changes on refresh)
+    renderGrid(getSmartArrangedMovies(movies), 'mGrid', 'emptySt', u ? 'No movies found.' : 'Sign in to see more.');
   });
 }
 
