@@ -1,4 +1,3 @@
-
 /* ── admin.css ── Admin panel styles ── */
 *{margin:0;padding:0;box-sizing:border-box}
 :root{--w:#fff;--bg:#f9f9f9;--bg2:#f2f2f2;--brd:#e5e5e5;--txt:#0f0f0f;--t2:#606060;--t3:#aaa;--red:#ff0000;--r2:#cc0000;--gold:#f5c518;--blue:#065fd4;--green:#2ba640;--r:8px;--r2px:4px;--shadow:0 1px 4px rgba(0,0,0,.1);--shadow-md:0 4px 16px rgba(0,0,0,.12);}
@@ -41,18 +40,27 @@ body{background:var(--bg);color:var(--txt);font-family:'Roboto',sans-serif;min-h
   display: flex;
   align-items: center;
   padding: 0 14px;
-  gap: 6px;
-  overflow-x: auto;
+  gap: 8px;
   flex-shrink: 0;
-  scrollbar-width: none;
   position: relative;
+  z-index: 1000;
 }
-.abar::-webkit-scrollbar { display: none; }
 .abar-logo { display: flex; align-items: center; gap: 7px; flex-shrink: 0; margin-right: 6px; }
 .abar-kb { width: 28px; height: 24px; border-radius: 4px; display: grid; place-items: center; overflow: hidden; }
 .abar-kb img { width: 100%; height: 100%; object-fit: contain; }
 .abar-kb span { font-family: 'Bebas Neue', sans-serif; font-size: 14px; color: #fff; }
 .abar-title { font-family: 'Bebas Neue', sans-serif; font-size: 1rem; letter-spacing: 1px; color: var(--red); white-space: nowrap; }
+
+.abar-links-container {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex: 1;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+.abar-links-container::-webkit-scrollbar { display: none; }
+
 .atb { padding: 5px 11px; border-radius: var(--r); font-size: .77rem; font-weight: 500; color: var(--t2); cursor: pointer; white-space: nowrap; transition: all .15s; border: none; background: none; }
 .atb:hover, .atb.act { background: rgba(255,0,0,.08); color: var(--red); font-weight: 700; }
 .atb-logout { color: var(--red)!important; margin-left: 4px; }
@@ -66,34 +74,49 @@ body{background:var(--bg);color:var(--txt);font-family:'Roboto',sans-serif;min-h
   display: none;
   background: none;
   border: none;
-  font-size: 1.2rem;
+  font-size: 1.3rem;
   cursor: pointer;
   color: var(--txt);
   padding: 5px;
+  margin-left: auto;
 }
 
-/* Responsive igihe screen ari nto cyangwa yicanwe */
+/* Responsive Mobile Styles */
 @media (max-width: 768px) {
   .abar {
-    flex-wrap: wrap;
-    height: auto;
-    max-height: 52px;
-    overflow: hidden;
-    transition: max-height 0.3s ease;
-  }
-  .abar.open {
-    max-height: 300px; /* Uburebure buhagije ngo zose zigaragare ziri munsi y'indi */
+    height: 52px;
+    flex-wrap: nowrap;
+    overflow: visible;
   }
   .abar-toggle {
     display: block;
-    margin-left: auto;
   }
   .abar-links-container {
-    display: flex;
-    flex-direction: column;
+    display: none;
+    position: absolute;
+    top: 52px;
+    left: 0;
     width: 100%;
-    gap: 4px;
-    padding-bottom: 10px;
+    background: var(--w);
+    flex-direction: column;
+    align-items: stretch;
+    padding: 12px 16px;
+    box-shadow: var(--shadow-md);
+    border-bottom: 1px solid var(--brd);
+    gap: 8px;
+    max-height: calc(100vh - 52px);
+    overflow-y: auto;
+  }
+  .abar-links-container.open {
+    display: flex;
+  }
+  .atb, .upload-btn {
+    text-align: left;
+    padding: 10px 12px;
+    width: 100%;
+  }
+  .abar-sp {
+    display: none;
   }
 }
 /* BODY */
@@ -152,8 +175,6 @@ table.dt tr:hover td{background:var(--bg)}
 /* RESPONSIVE */
 @media(max-width:640px){
   .fgrid{grid-template-columns:1fr}
-  .abar{gap:3px;padding:0 8px}
-  .atb{padding:4px 7px;font-size:.72rem}
 }
 /* ai */
 .ai-floating-btn {
@@ -177,18 +198,15 @@ table.dt tr:hover td{background:var(--bg)}
     transition: all 0.3s ease;
     animation: aiWigglePulse 2.5s infinite ease-in-out;
   }
-
   .ai-floating-btn img {
     width: 28px;
     height: 28px;
     object-fit: contain;
   }
-
   .ai-floating-btn:hover {
     transform: scale(1.08);
     box-shadow: none;
   }
-
   @keyframes aiWigglePulse {
     0% {
       transform: translateY(0) rotate(0deg);
