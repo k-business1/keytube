@@ -1,5 +1,5 @@
 // ── admanagement.js ──────────────────────────────────────────
-var API='https://script.google.com/macros/s/AKfycbxbYUKZYwYRssm80AnP8kDj-8_ymsaFczKmecbchEntyhhr5-zqAIDYov-Nt7Ko0pDOMA/exec';
+var API='https://script.google.com/macros/s/AKfycbwsM0DUa_ndCzMtqrkxnAxZYwhMUXF5_iXz9xKAYTx-8MWBQf4vqGU4f8uGBIqu8_5o/exec';
 var TOKEN='';
 var _allAds=[];
 var _curTab='pending';
