@@ -18,33 +18,12 @@ function pStart(){pW=0;var e=document.getElementById('pbar');e.className='';e.st
 function pDone(){clearInterval(pT);var e=document.getElementById('pbar');e.style.width='100%';setTimeout(function(){e.className='done';setTimeout(function(){e.style.width='0%';e.className='';},500);},280);}
 
 // ── REVISED API HELPER ────────────────────────────────────────
-function api(action, data, cb) {
+function api(action,data,cb){
   pStart();
-  fetch(API, {
-    method: 'POST',
-    headers: { 'Content-Type': 'text/plain' },
-    body: JSON.stringify(Object.assign({}, data || {}, { action: action })),
-    redirect: 'follow'
-  })
-  .then(function(r) {
-    return r.text().then(function(text) {
-      try {
-        return JSON.parse(text);
-      } catch (e) {
-        console.error("Non-JSON response received:", text);
-        throw new Error("Server returned an invalid response (not JSON). Check Apps Script deployment.");
-      }
-    });
-  })
-  .then(function(res) {
-    pDone();
-    if (cb) cb(res);
-  })
-  .catch(function(e) {
-    pDone();
-    toast(e.message || 'Connection error', 'terr');
-    console.error(e);
-  });
+  fetch(API,{method:'POST',headers:{'Content-Type':'text/plain'},body:JSON.stringify(Object.assign({},data||{},{action:action})),redirect:'follow'})
+  .then(function(r){return r.json();})
+  .then(function(res){pDone();if(cb)cb(res);})
+  .catch(function(e){pDone();toast('Connection error','terr');console.error(e);});
 }
 
 // ── INIT ──────────────────────────────────────────────────────
