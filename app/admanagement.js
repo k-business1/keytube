@@ -18,12 +18,34 @@ function pStart(){pW=0;var e=document.getElementById('pbar');e.className='';e.st
 function pDone(){clearInterval(pT);var e=document.getElementById('pbar');e.style.width='100%';setTimeout(function(){e.className='done';setTimeout(function(){e.style.width='0%';e.className='';},500);},280);}
 
 // ── REVISED API HELPER ────────────────────────────────────────
-function api(action,data,cb){
+// ── FIXED API HELPER ──────────────────────────────────────────
+function api(action, data, cb) {
   pStart();
-  fetch(API,{method:'POST',headers:{'Content-Type':'text/plain'},body:JSON.stringify(Object.assign({},data||{},{action:action})),redirect:'follow'})
-  .then(function(r){return r.json();})
-  .then(function(res){pDone();if(cb)cb(res);})
-  .catch(function(e){pDone();toast('Connection error','terr');console.error(e);});
+  fetch(API, {
+    method: 'POST',
+    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+    body: JSON.stringify(Object.assign({}, data || {}, { action: action })),
+    redirect: 'follow'
+  })
+  .then(function(response) {
+    return response.text().then(function(rawText) {
+      try {
+        return JSON.parse(rawText);
+      } catch (err) {
+        console.error("Server raw response:", rawText);
+        throw new Error("Invalid JSON response from server. Check Apps Script deployment settings.");
+      }
+    });
+  })
+  .then(function(res) {
+    pDone();
+    if (cb) cb(res);
+  })
+  .catch(function(e) {
+    pDone();
+    toast(e.message || 'Connection error', 'terr');
+    console.error("API Error:", e);
+  });
 }
 
 // ── INIT ──────────────────────────────────────────────────────
