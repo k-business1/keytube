@@ -1,4 +1,3 @@
-
 // ── api.js — Central API layer ──────────────────────────────
 var API_URL = 'https://script.google.com/macros/s/AKfycbwsM0DUa_ndCzMtqrkxnAxZYwhMUXF5_iXz9xKAYTx-8MWBQf4vqGU4f8uGBIqu8_5o/exec';
 // Cloudinary configs
@@ -18,10 +17,23 @@ function toastOK(m){toast(m,'tok');}function toastErr(m){toast(m,'terr');}functi
 function api(action,data,cb){
   pStart();
   var body=Object.assign({},data||{},{action:action});
-  fetch(API_URL,{method:'POST',headers:{'Content-Type':'text/plain'},body:JSON.stringify(body),redirect:'follow'})
-    .then(function(r){return r.json();})
+  var controller=new AbortController();
+  var timeoutId=setTimeout(function(){controller.abort();},20000);
+  fetch(API_URL,{method:'POST',headers:{'Content-Type':'text/plain'},body:JSON.stringify(body),redirect:'follow',signal:controller.signal})
+    .then(function(r){clearTimeout(timeoutId);return r.json();})
     .then(function(res){pDone();if(cb)cb(res);})
-    .catch(function(e){pDone();toastErr('Connection error. Please try again.');console.error('[API]',e);var pgL=document.getElementById('pgLoad');if(pgL)pgL.style.display='none';});
+    .catch(function(e){
+      clearTimeout(timeoutId);
+      pDone();
+      if(e.name==='AbortError'){
+        toastErr('Request timed out. Please try again.');
+      }else{
+        toastErr('Connection error. Please try again.');
+      }
+      console.error('[API]',e);
+      var pgL=document.getElementById('pgLoad');
+      if(pgL)pgL.style.display='none';
+    });
 }
 
 // Upload file to Cloudinary — returns {url,publicId}
