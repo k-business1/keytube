@@ -556,6 +556,7 @@ function changePasswordStudio(){
 }
 
 // ── SETTINGS ─────────────────────────────────────────────────
+// DELETE THIS from studio.js — now handled by auth.js
 function setTheme(theme){
   document.body.classList.toggle('dark',theme==='dark');
   try{localStorage.setItem('kt_theme',theme);}catch(e){}
