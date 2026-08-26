@@ -1,5 +1,11 @@
 // ── auth.js — Auth, session, nav UI ────────────────────────
-(function(){try{if(localStorage.getItem('kt_theme')==='dark')document.body.classList.add('dark');}catch(e){}})();
+// ── Apply saved theme on EVERY page immediately ───────────────
+(function(){
+  try{
+    var t = localStorage.getItem('kt_theme');
+    if(t === 'dark') document.body.classList.add('dark');
+  } catch(e){}
+})();
 var _S={user:null,adminToken:null,settings:{},pages:{}};
 
 // Session
@@ -51,6 +57,33 @@ function doLogout(){
   if(window._pingTimer)clearInterval(window._pingTimer);
   window.location.href=window.location.pathname.includes('/pages/')?'../index.html':'index.html';
 }
+// ── THEME — works on every page ───────────────────────────────
+function setTheme(theme){
+  document.body.classList.toggle('dark', theme === 'dark');
+  try{ localStorage.setItem('kt_theme', theme); }catch(e){}
+  // Update all toggle buttons on the page
+  document.querySelectorAll('.theme-toggle-btn').forEach(function(btn){
+    btn.textContent = theme === 'dark' ? '☀️' : '🌙';
+    btn.title = theme === 'dark' ? 'Switch to Light' : 'Switch to Dark';
+  });
+}
+
+function toggleTheme(){
+  var isDark = document.body.classList.contains('dark');
+  setTheme(isDark ? 'light' : 'dark');
+}
+
+function initThemeBtn(){
+  // Set correct icon on all toggle buttons based on current theme
+  var isDark = document.body.classList.contains('dark');
+  document.querySelectorAll('.theme-toggle-btn').forEach(function(btn){
+    btn.textContent = isDark ? '☀️' : '🌙';
+    btn.title = isDark ? 'Switch to Light' : 'Switch to Dark';
+  });
+}
+
+// Auto-init theme buttons when DOM is ready
+document.addEventListener('DOMContentLoaded', initThemeBtn);
 
 // Ping online
 function startPing(){
