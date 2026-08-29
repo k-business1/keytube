@@ -289,3 +289,18 @@ input:checked + .ts-slider:before{transform:translateX(20px)}
   background: var(--brd);
   transform: rotate(20deg);
 }
+/* ── SKELETON LOADING ── */
+.skel {
+  background: linear-gradient(90deg, var(--bg2) 25%, var(--brd) 50%, var(--bg2) 75%);
+  background-size: 200% 100%;
+  animation: skel-wave 1.4s infinite;
+  border-radius: var(--r2px);
+}
+@keyframes skel-wave {
+  0%   { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+.mc.loading .ct  { background: var(--bg2); }
+.mc.loading .ci  { padding: 8px; }
+.mc.loading .ctit{ height: 12px; margin-bottom: 6px; }
+.mc.loading .csub{ height: 10px; width: 60%; }
