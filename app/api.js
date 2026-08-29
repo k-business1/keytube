@@ -4,6 +4,18 @@ var API_URL = 'https://script.google.com/macros/s/AKfycbwsM0DUa_ndCzMtqrkxnAxZYw
 var CDN_USER={cloud:'dxm2dqdfi',preset:'Keytube',folder:'Keytube/profiles'};
 var CDN_ADMIN={cloud:'dajgyzx3c',preset:'Keytube',folder:'Keytube'};
 
+// Client-side response cache (sessionStorage)
+var _apiCache = {};
+var _CACHE_TTL = {
+  getSettings:    600000,  // 10 min
+  getMovies:      180000,  // 3 min
+  getActiveAds:   300000,  // 5 min
+  getEarningRates:600000,  // 10 min
+  getAIKeyTerms:  300000   // 5 min
+};
+// Read-only actions that can be cached
+var _CACHEABLE = ['getSettings','getMovies','getActiveAds','getEarningRates','getAIKeyTerms','getChannelStats'];
+
 // Progress bar helpers
 var _pbarT,_pbarW=0;
 function pStart(){_pbarW=0;var el=document.getElementById('pbar');if(!el)return;el.className='';el.style.width='0%';clearInterval(_pbarT);_pbarT=setInterval(function(){_pbarW=Math.min(_pbarW+Math.random()*8,88);el.style.width=_pbarW+'%';},120);}
@@ -15,13 +27,31 @@ function toastOK(m){toast(m,'tok');}function toastErr(m){toast(m,'terr');}functi
 
 // Core API call
 function api(action,data,cb){
+  // Check client cache for cacheable actions
+  if (_CACHEABLE.indexOf(action) !== -1) {
+    var ckey = action + '_' + JSON.stringify(data||{});
+    var hit  = _apiCache[ckey];
+    var ttl  = _CACHE_TTL[action] || 120000;
+    if (hit && (Date.now() - hit.ts) < ttl) {
+      if (cb) setTimeout(function(){ cb(hit.data); }, 0);
+      return;
+    }
+  }
   pStart();
   var body=Object.assign({},data||{},{action:action});
   var controller=new AbortController();
   var timeoutId=setTimeout(function(){controller.abort();},20000);
   fetch(API_URL,{method:'POST',headers:{'Content-Type':'text/plain'},body:JSON.stringify(body),redirect:'follow',signal:controller.signal})
     .then(function(r){clearTimeout(timeoutId);return r.json();})
-    .then(function(res){pDone();if(cb)cb(res);})
+    .then(function(res){
+      pDone();
+      // Store in client cache
+      if (_CACHEABLE.indexOf(action) !== -1) {
+        var ckey = action + '_' + JSON.stringify(data||{});
+        _apiCache[ckey] = {data: res, ts: Date.now()};
+      }
+      if(cb)cb(res);
+    })
     .catch(function(e){
       clearTimeout(timeoutId);
       pDone();
@@ -34,6 +64,15 @@ function api(action,data,cb){
       var pgL=document.getElementById('pgLoad');
       if(pgL)pgL.style.display='none';
     });
+}
+
+// Call this after write operations to clear stale cache
+function clearApiCache(actions) {
+  if (!actions) { _apiCache = {}; return; }
+  Object.keys(_apiCache).forEach(function(k){
+    if (actions.some(function(a){ return k.indexOf(a) === 0; }))
+      delete _apiCache[k];
+  });
 }
 
 // Upload file to Cloudinary — returns {url,publicId}
