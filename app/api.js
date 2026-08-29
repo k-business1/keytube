@@ -106,7 +106,7 @@ function togglePw(id,btn){var i=document.getElementById(id);if(!i)return;var sho
 function makeCard(m,mode){
   var d=document.createElement('div');d.className='mc';if(mode==='grid')d.style.width='100%';
   var ph='data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="160" height="240"><rect fill="%23f2f2f2" width="160" height="240"/><text x="80" y="135" text-anchor="middle" fill="%23ccc" font-size="44">🎬</text></svg>';
-  d.innerHTML='<div class="ct"><img src="'+(m.cover||ph)+'" alt="'+h(m.name)+'" loading="lazy" onerror="this.src=\''+ph+'\'"><div class="cbadges">'+
+  d.innerHTML='<div class="ct"><img src="'+(m.cover||ph)+'" alt="'+h(m.name)+'" loading="lazy" decoding="async" onerror="this.src=\''+ph+'\'"><div class="cbadges">'+
     '<span class="cbg cb-c">'+cap(m.category||m.language||'')+'</span>'+
     (m.isNew?'<span class="cbg cb-n">NEW</span>':'')+
     (m.season?'<span class="cbg cb-e">S'+h(m.season)+'</span>':'')+
