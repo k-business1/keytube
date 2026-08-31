@@ -368,15 +368,12 @@ function buildSliderHTML(ads,placement,interval){
       }).join('')+'</div>'
     :'';
 
-  var nav=ads.length>1
-    ?'<button class="ks-prev" onclick="slidePrev(\''+placement+'\')" aria-label="Previous">&#8249;</button>'+
-      '<button class="ks-next" onclick="slideNext(\''+placement+'\')" aria-label="Next">&#8250;</button>'
-    :'';
+  // Next and Previous navigation buttons removed entirely
 
   return '<div class="ks-slider" id="slider-'+placement+'" data-current="0" '+
     'onmouseenter="pauseSlider(\''+placement+'\')" '+
     'onmouseleave="resumeSlider(\''+placement+'\','+interval+')">'+
-    '<div class="ks-track">'+slides+'</div>'+nav+dots+
+    '<div class="ks-track">'+slides+'</div>'+dots+
   '</div>';
 }
 
@@ -395,9 +392,6 @@ function adsCSS(){
   '.ks-slide-cta{display:inline-block;padding:5px 14px;background:#ff0000;color:#fff;border-radius:20px;font-size:.75rem;font-weight:700}'+
   '.ks-slide:hover .ks-slide-cta{opacity:.85}'+
   '.ks-ad-badge{position:absolute;top:5px;right:8px;font-size:.61rem;color:#aaa;background:rgba(255,255,255,.92);padding:1px 6px;border-radius:3px;border:1px solid #e5e5e5;pointer-events:none}'+
-  '.ks-prev,.ks-next{position:absolute;top:50%;transform:translateY(-50%);width:28px;height:28px;border-radius:50%;background:rgba(255,255,255,.9);border:1px solid #e5e5e5;cursor:pointer;font-size:1.1rem;display:grid;place-items:center;z-index:10;line-height:1}'+
-  '.ks-prev{left:5px}.ks-next{right:5px}'+
-  '.ks-prev:hover,.ks-next:hover{background:#fff;box-shadow:0 1px 4px rgba(0,0,0,.12)}'+
   '.ks-dots{position:absolute;bottom:5px;left:50%;transform:translateX(-50%);display:flex;gap:4px;z-index:5}'+
   '.ks-dot{width:6px;height:6px;border-radius:50%;background:#ddd;cursor:pointer;transition:background .2s}'+
   '.ks-dot.active{background:#ff0000}'+
@@ -431,8 +425,6 @@ function adsJS(interval){
     '}'+
     'window.pauseSlider=pause;'+
     'window.resumeSlider=resume;'+
-    'window.slideNext=function(p){go(p,1);};'+
-    'window.slidePrev=function(p){go(p,-1);};'+
     'window.goDot=function(p,idx){'+
       'var sl=document.getElementById("slider-"+p);if(!sl)return;'+
       'var slides=sl.querySelectorAll(".ks-slide"),dots=sl.querySelectorAll(".ks-dot");'+
