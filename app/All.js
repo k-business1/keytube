@@ -22,9 +22,21 @@ function applyHomeSettings(s){
   var ldn=document.getElementById('ld-site-name');if(ldn)ldn.textContent=sn;
   if(s['favicon_url']){var lk=document.getElementById('favicon')||document.createElement('link');lk.id='favicon';lk.rel='icon';lk.href=s['favicon_url'];document.head.appendChild(lk);}
   if(s['background_url']){document.body.style.backgroundImage='url('+s['background_url']+')';document.body.style.backgroundSize='cover';document.body.style.backgroundAttachment='fixed';}
-  if(s['ads_top'])document.getElementById('adTop').innerHTML=s['ads_top'];
-  if(s['ads_middle'])document.getElementById('adMid').innerHTML=s['ads_middle'];
-  if(s['ads_bottom'])document.getElementById('adBot').innerHTML=s['ads_bottom'];
+  function injectAd(id, html){
+  if(!html) return;
+  var el = document.getElementById(id);
+  if(!el) return;
+  el.innerHTML = html;
+  el.querySelectorAll('script').forEach(function(old){
+    var s = document.createElement('script');
+    s.textContent = old.textContent;
+    old.parentNode.replaceChild(s, old);
+  });
+}
+
+if(s['ads_top'])    injectAd('adTop', s['ads_top']);
+if(s['ads_middle']) injectAd('adMid', s['ads_middle']);
+if(s['ads_bottom']) injectAd('adBot', s['ads_bottom']);
   if(s['app_download_url']&&s['app_download_url'].trim()){var ab=document.getElementById('appBanner');if(ab)ab.style.display='flex';var adb=document.getElementById('appDlBtn');if(adb)adb.dataset.url=s['app_download_url'];}
 }
 
