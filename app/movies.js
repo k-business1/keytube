@@ -361,13 +361,17 @@ async function addCanvasWatermark(videoBlob, wmLogo, onProgress) {
     video.play().catch(reject);
   });
 }
+
 // ── Watermark helpers (Internal) ──────────────────────────────
 function loadImg(src) {
   return new Promise(function(resolve) {
     var img = new Image();
     img.crossOrigin = 'anonymous';
     img.onload  = function(){ resolve(img); };
-    img.onerror = function(){ resolve(null); };
+    img.onerror = function(){ 
+      console.warn('Logo failed to load from:', src);
+      resolve(null); 
+    };
     img.src = src;
   });
 }
@@ -375,8 +379,8 @@ function loadImg(src) {
 function drawWatermarks(ctx, canvasW, canvasH, wmLogo) {
   if (wmLogo) {
     ctx.save();
-    ctx.globalAlpha = 0.75;
-    var logoH = 44, logoW = Math.round(wmLogo.naturalWidth * (logoH / wmLogo.naturalHeight));
+    ctx.globalAlpha = 0.85;
+    var logoH = 50, logoW = Math.round(wmLogo.naturalWidth * (logoH / wmLogo.naturalHeight));
     ctx.drawImage(wmLogo, 14, 14, logoW, logoH);
     ctx.restore();
   }
@@ -412,16 +416,36 @@ async function addCanvasWatermark(videoBlob, wmLogo, onProgress) {
     canvas.width = W; canvas.height = H;
     var ctx = canvas.getContext('2d');
 
-    var stream   = canvas.captureStream(24);
+    var canvasStream = canvas.captureStream(24);
+    var combinedStream = new MediaStream();
+
+    canvasStream.getVideoTracks().forEach(function(track) {
+      combinedStream.addTrack(track);
+    });
+
+    try {
+      var audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      var source = audioCtx.createMediaElementSource(video);
+      var destination = audioCtx.createMediaStreamDestination();
+      source.connect(destination);
+      source.connect(audioCtx.destination);
+      
+      destination.stream.getAudioTracks().forEach(function(track) {
+        combinedStream.addTrack(track);
+      });
+    } catch(audioErr) {
+      console.warn('Audio capture warning:', audioErr);
+    }
+
     var mimeType = MediaRecorder.isTypeSupported('video/webm;codecs=vp8,opus')
       ? 'video/webm;codecs=vp8,opus' : 'video/webm';
 
     var chunks   = [];
     var recorder;
     try {
-      recorder = new MediaRecorder(stream, { mimeType: mimeType, videoBitsPerSecond: 1500000 });
+      recorder = new MediaRecorder(combinedStream, { mimeType: mimeType, videoBitsPerSecond: 1500000 });
     } catch(e) {
-      recorder = new MediaRecorder(stream);
+      recorder = new MediaRecorder(combinedStream);
     }
 
     var isStopped = false;
@@ -492,8 +516,10 @@ async function segDownload(url,filename,movieId,movieName){
     if (/\.(mp4|webm|mov)(\?.*)?$|video\//i.test(url) || blob.type.indexOf('video/') !== -1) {
       if(spd) spd.textContent = '🎨 Adding watermark…';
       try {
-        // Using your live site logo URL
-        var wmLogo = await loadImg('https://www.keytube.work.gd/imagelib/logo.png');
+        // Using a relative path to avoid CORS domain blocking
+        var isInPages = window.location.pathname.indexOf('/pages/') !== -1;
+        var logoSrc = (isInPages ? '../' : '') + 'imagelib/logo.png';
+        var wmLogo = await loadImg(logoSrc);
         
         if (blob.size < 30 * 1024 * 1024) {
           blob = await addCanvasWatermark(blob, wmLogo, function(p){
@@ -520,6 +546,5 @@ async function segDownload(url,filename,movieId,movieName){
     setTimeout(function(){if(prog)prog.classList.remove('show');},3000);window.open(url,'_blank');
   }
 }
-
 function scrollToComments(){var el=document.getElementById('commentsAnchor');if(el)el.scrollIntoView({behavior:'smooth'});}
 function shareMovie(){var m=window._currentMovie;if(navigator.share&&m){navigator.share({title:m.name,text:'Watch '+m.name+' on KEYTUBE',url:window.location.href}).catch(function(){});} else{navigator.clipboard&&navigator.clipboard.writeText(window.location.href).then(function(){toastOK('Link copied!');});}}
