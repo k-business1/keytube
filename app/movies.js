@@ -269,26 +269,6 @@ function onDownloadTap(){
 }
 // ── Watermark helpers ─────────────────────────────────────────
 
-// For Cloudinary videos — add watermark via URL transformation
-function getWatermarkedUrl(url) {
-  if (!url) return url;
-  if (url.indexOf('cloudinary.com/') === -1) return url;
-  var idx = url.indexOf('/upload/');
-  if (idx === -1) return url;
-  var base = url.substring(0, idx + 8);
-  var path = url.substring(idx + 8);
-  
-  // Encode your live watermark PNG URL for Cloudinary's remote image overlay layer (l_fetch:)
-  var wmImgUrl = btoa('https://www.keytube.work.gd/imagelib/watermark.png').replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
-  
-  // Text watermark bottom-left + shadow for readability + Remote logo image layer overlay
-  var tf =
-    'l_fetch:' + wmImgUrl + ',w_120,c_scale,g_south_west,x_14,y_50,o_85/'.replace(/\/$/, '') + '/fl_layer_apply/' +
-    'l_text:Arial_22_bold:Downloaded%20from%20KEYTUBE,co_white,g_south_west,x_14,y_14,o_90/' +
-    'l_text:Arial_22_bold:Downloaded%20from%20KEYTUBE,co_black,g_south_west,x_16,y_12,o_40';
-  return base + tf + '/' + path;
-}
-
 // Load an image and return an HTMLImageElement (promise)
 function loadImg(src) {
   return new Promise(function(resolve) {
@@ -326,7 +306,7 @@ function drawWatermarks(ctx, canvasW, canvasH, wmLogo) {
   ctx.restore();
 }
 
-// ── Canvas + MediaRecorder watermark (for non-Cloudinary MP4) ─
+// ── Canvas + MediaRecorder watermark (for video files) ────────
 async function addCanvasWatermark(videoBlob, wmLogo, onProgress) {
   return new Promise(async function(resolve, reject) {
     var objUrl = URL.createObjectURL(videoBlob);
@@ -382,7 +362,7 @@ async function addCanvasWatermark(videoBlob, wmLogo, onProgress) {
   });
 }
 
-// ── Main download with watermark ──────────────────────────────
+// ── Segmented download with watermark ─────────────────────────
 async function segDownload(url, filename, movieId, movieName) {
   var prog = document.getElementById('dlProg');
   var bar  = document.getElementById('dlBar');
@@ -395,13 +375,7 @@ async function segDownload(url, filename, movieId, movieName) {
   if(spd)  spd.textContent = 'Connecting…';
 
   try {
-    // ── CLOUDINARY: watermark via URL transformation (fast) ──
-    var isCloudinary = url.indexOf('cloudinary.com/') !== -1;
-    var fetchUrl     = isCloudinary ? getWatermarkedUrl(url) : url;
-
-    if(spd) spd.textContent = 'Downloading…';
-
-    var resp = await fetch(fetchUrl, { redirect: 'follow' });
+    var resp = await fetch(url, { redirect: 'follow' });
     if(!resp.ok) throw new Error('HTTP ' + resp.status);
 
     var total    = parseInt(resp.headers.get('Content-Length') || '0');
@@ -426,15 +400,14 @@ async function segDownload(url, filename, movieId, movieName) {
 
     var blob = new Blob(chunks);
 
-    // ── NON-CLOUDINARY MP4: add watermark via canvas ──
-    if (!isCloudinary && /\.(mp4|webm|mov)(\?.*)?$/i.test(url)) {
+    // ── Apply watermark for video files ───────────────────────
+    if (/\.(mp4|webm|mov)(\?.*)?$/i.test(url) || blob.type.indexOf('video/') !== -1) {
       if(spd) spd.textContent = '🎨 Adding watermark…';
 
-      // Determine correct path to watermark image
       var wmSrc  = 'https://www.keytube.work.gd/imagelib/watermark.png';
       var wmLogo = await loadImg(wmSrc);
 
-      // Only use canvas watermark for files under 80MB (larger files take too long)
+      // Only process files under 80MB to prevent browser freezing on huge files
       if (blob.size < 80 * 1024 * 1024) {
         try {
           blob = await addCanvasWatermark(blob, wmLogo, function(p){
@@ -448,7 +421,6 @@ async function segDownload(url, filename, movieId, movieName) {
           if(spd) spd.textContent = 'Saving…';
         }
       } else {
-        // Too large — skip canvas, just download
         if(spd) spd.textContent = 'Saving (file too large to watermark)…';
       }
     } else {
@@ -460,7 +432,7 @@ async function segDownload(url, filename, movieId, movieName) {
       try {
         var cache = await caches.open('kkkkk');
         await cache.put('/downloads/' + filename, new Response(blob, {
-          headers: { 'Content-Type': blob.type || 'video/mp4' }
+          headers: { 'Content-Type': blob.type || 'video/webm' }
         }));
       } catch(ce) {}
     }
@@ -475,7 +447,7 @@ async function segDownload(url, filename, movieId, movieName) {
     document.body.removeChild(a);
     setTimeout(function(){ URL.revokeObjectURL(bUrl); }, 5000);
 
-    if(spd) spd.textContent = '✅ Downloaded with watermark!';
+    if(spd) spd.textContent = '✅ Downloaded & saved with watermark!';
 
     var u = getUser();
     api('logDownload', { gmail: u ? u.gmail : 'guest', movieId: movieId, movieName: movieName, status: 'completed' });
@@ -484,7 +456,7 @@ async function segDownload(url, filename, movieId, movieName) {
 
   } catch(err) {
     if(spd) spd.textContent = 'Error: ' + err.message;
-    toastErr('Download failed — opening in new tab');
+    toastErr('Download failed');
     setTimeout(function(){ if(prog) prog.classList.remove('show'); }, 3000);
     window.open(url, '_blank');
   }
