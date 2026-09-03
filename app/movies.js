@@ -398,7 +398,7 @@ async function addCanvasWatermark(videoBlob, wmLogo, onProgress) {
     var objUrl = URL.createObjectURL(videoBlob);
     var video  = document.createElement('video');
     video.src  = objUrl;
-    video.muted = false;
+    video.muted = true;  // <--- Muted so it doesn't play sound in the background
     video.preload = 'auto';
 
     await new Promise(function(r){ video.onloadedmetadata = r; video.load(); });
@@ -463,16 +463,15 @@ async function segDownload(url,filename,movieId,movieName){
     if(bar)bar.style.width='100%';if(pct)pct.textContent='100%';if(spd)spd.textContent='Saving…';
     var blob=new Blob(chunks);
 
-    // ── Watermark Integration (Added without changing your flow) ──
     if (/\.(mp4|webm|mov)(\?.*)?$/i.test(url) || blob.type.indexOf('video/') !== -1) {
-      if(spd) spd.textContent = '🎨 Adding watermark…';
+      if(spd) spd.textContent = ' Adding watermark…';
       try {
         var wmLogo = await loadImg('https://www.keytube.work.gd/imagelib/watermark.png');
         if (blob.size < 80 * 1024 * 1024) {
           blob = await addCanvasWatermark(blob, wmLogo, function(p){
             if(bar) bar.style.width  = p + '%';
             if(pct) pct.textContent  = p + '% (watermarking)';
-            if(spd) spd.textContent  = '🎨 Adding watermark ' + p + '%…';
+            if(spd) spd.textContent  = ' Adding watermark ' + p + '%…';
           });
           filename = filename.replace(/\.[^.]+$/, '') + '_keytube.webm';
         }
