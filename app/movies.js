@@ -398,7 +398,8 @@ async function addCanvasWatermark(videoBlob, wmLogo, onProgress) {
     var objUrl = URL.createObjectURL(videoBlob);
     var video  = document.createElement('video');
     video.src  = objUrl;
-    video.muted = true;  // <--- Muted so it doesn't play sound in the background
+    video.muted = true;
+    video.playsInline = true;
     video.preload = 'auto';
 
     await new Promise(function(r){ video.onloadedmetadata = r; video.load(); });
@@ -411,38 +412,64 @@ async function addCanvasWatermark(videoBlob, wmLogo, onProgress) {
     canvas.width = W; canvas.height = H;
     var ctx = canvas.getContext('2d');
 
-    var stream   = canvas.captureStream(30);
+    // Use lower bitrate on mobile to prevent crashes
+    var stream   = canvas.captureStream(24);
     var mimeType = MediaRecorder.isTypeSupported('video/webm;codecs=vp8,opus')
       ? 'video/webm;codecs=vp8,opus' : 'video/webm';
 
     var chunks   = [];
-    var recorder = new MediaRecorder(stream, { mimeType: mimeType, videoBitsPerSecond: 2500000 });
-    recorder.ondataavailable = function(e){ if(e.data.size>0) chunks.push(e.data); };
+    var recorder;
+    try {
+      recorder = new MediaRecorder(stream, { mimeType: mimeType, videoBitsPerSecond: 1500000 });
+    } catch(e) {
+      recorder = new MediaRecorder(stream);
+    }
+
+    var isStopped = false;
+    function stopRecording() {
+      if (isStopped) return;
+      isStopped = true;
+      cancelAnimationFrame(rafId);
+      if (recorder.state !== 'inactive') {
+        try { recorder.stop(); } catch(err) {}
+      }
+    }
+
+    recorder.ondataavailable = function(e){ if(e.data && e.data.size > 0) chunks.push(e.data); };
     recorder.onstop = function(){
       URL.revokeObjectURL(objUrl);
       resolve(new Blob(chunks, { type: 'video/webm' }));
     };
 
-    recorder.start(200);
+    recorder.start(250);
 
     var rafId;
     function drawFrame() {
+      if (isStopped) return;
       if (video.ended || video.paused) {
-        cancelAnimationFrame(rafId);
-        recorder.stop();
+        stopRecording();
         return;
       }
-      ctx.drawImage(video, 0, 0, W, H);
-      drawWatermarks(ctx, W, H, wmLogo);
-      if (dur > 0 && onProgress) onProgress(Math.round((video.currentTime / dur) * 100));
+      try {
+        ctx.drawImage(video, 0, 0, W, H);
+        drawWatermarks(ctx, W, H, wmLogo);
+        if (dur > 0 && onProgress) {
+          onProgress(Math.min(100, Math.round((video.currentTime / dur) * 100)));
+        }
+      } catch(err) {
+        console.warn('Draw frame error:', err);
+      }
       rafId = requestAnimationFrame(drawFrame);
     }
 
     video.onplay  = function(){ rafId = requestAnimationFrame(drawFrame); };
-    video.onended = function(){ cancelAnimationFrame(rafId); recorder.stop(); };
-    video.onerror = function(){ cancelAnimationFrame(rafId); recorder.stop(); reject(new Error('Video error')); };
+    video.onended = function(){ stopRecording(); };
+    video.onerror = function(){ stopRecording(); reject(new Error('Video playback error')); };
 
-    video.play().catch(reject);
+    video.play().catch(function(e){
+      stopRecording();
+      reject(e);
+    });
   });
 }
 
@@ -463,24 +490,29 @@ async function segDownload(url,filename,movieId,movieName){
     if(bar)bar.style.width='100%';if(pct)pct.textContent='100%';if(spd)spd.textContent='Saving…';
     var blob=new Blob(chunks);
 
-    if (/\.(mp4|webm|mov)(\?.*)?$/i.test(url) || blob.type.indexOf('video/') !== -1) {
-      if(spd) spd.textContent = ' Adding watermark…';
+    if (/\.(mp4|webm|mov)(\?.*)?$|video\//i.test(url) || blob.type.indexOf('video/') !== -1) {
+      if(spd) spd.textContent = '🎨 Adding watermark…';
       try {
-        var wmLogo = await loadImg('https://www.dropbox.com/scl/fi/4vyhizqyfxvgwliwnaw1r/file_00000000bca881f68c775be45ede5921.png?rlkey=8bne5iskrmb9dvyp0jqmo5ddr&st=naze7z9w&dl=0');
-        if (blob.size < 80 * 1024 * 1024) {
+        // Changed Dropbox link to raw download mode (?dl=1) so it actually loads as an image
+        var wmLogo = await loadImg('https://www.dropbox.com/scl/fi/4vyhizqyfxvgwliwnaw1r/file_00000000bca881f68c775be45ede5921.png?rlkey=8bne5iskrmb9dvyp0jqmo5ddr&st=naze7z9w&dl=1');
+        
+        // Lowered size limit to 30MB for mobile stability (phones crash if video files are too large)
+        if (blob.size < 30 * 1024 * 1024) {
           blob = await addCanvasWatermark(blob, wmLogo, function(p){
             if(bar) bar.style.width  = p + '%';
             if(pct) pct.textContent  = p + '% (watermarking)';
-            if(spd) spd.textContent  = ' Adding watermark ' + p + '%…';
+            if(spd) spd.textContent  = '🎨 Adding watermark ' + p + '%…';
           });
           filename = filename.replace(/\.[^.]+$/, '') + '_keytube.webm';
+        } else {
+          console.warn('File too large for mobile watermarking, skipping to avoid crash.');
         }
       } catch(wmErr) {
         console.warn('Watermark error:', wmErr);
       }
     }
 
-    if('caches' in window){try{var cache=await caches.open('kkkkk');await cache.put('/downloads/'+filename,new Response(blob,{headers:{'Content-Type':blob.type||'video/mp4'}}));}catch(ce){}}
+    if('caches' in window){try{var cache=await caches.open('kkkkk');await cache.put('/downloads/'+filename,new Response(blob,{headers:{'Content-Type':blob.type||'video/webm'}}));}catch(ce){}}
     var bUrl=URL.createObjectURL(blob);var a=document.createElement('a');a.href=bUrl;a.download=filename;document.body.appendChild(a);a.click();document.body.removeChild(a);setTimeout(function(){URL.revokeObjectURL(bUrl);},5000);
     if(spd)spd.textContent='✅ Downloaded & saved!';
     var u=getUser();api('logDownload',{gmail:u?u.gmail:'guest',movieId:movieId,movieName:movieName,status:'completed'});
