@@ -377,23 +377,46 @@ function loadImg(src) {
 }
 
 function drawWatermarks(ctx, canvasW, canvasH, wmLogo) {
-  if (wmLogo) {
-    ctx.save();
-    ctx.globalAlpha = 0.85;
-    var logoH = 50, logoW = Math.round(wmLogo.naturalWidth * (logoH / wmLogo.naturalHeight));
-    ctx.drawImage(wmLogo, 14, 14, logoW, logoH);
-    ctx.restore();
-  }
+  var padding = 14;
+  var txt = 'Downloaded from KEYTUBE';
+  
   ctx.save();
   ctx.font = 'bold 15px Arial, sans-serif';
-  var txt  = 'Downloaded from KEYTUBE';
-  var tw   = ctx.measureText(txt).width;
-  ctx.globalAlpha = 0.55;
+  var tw = ctx.measureText(txt).width;
+  
+  var logoH = 20;
+  var logoW = wmLogo ? Math.round(wmLogo.naturalWidth * (logoH / wmLogo.naturalHeight)) : 0;
+  var spacing = wmLogo ? 8 : 0;
+  
+  var boxPaddingX = 10;
+  var boxHeight = 32;
+  var boxWidth = boxPaddingX + logoW + spacing + tw + boxPaddingX;
+  
+  var boxX = padding;
+  var boxY = canvasH - padding - boxHeight;
+
+  // ── Draw unified background strip at bottom-left ──
+  ctx.globalAlpha = 0.65;
   ctx.fillStyle   = '#000';
-  ctx.fillRect(10, canvasH - 36, tw + 18, 26);
-  ctx.globalAlpha = 0.92;
+  ctx.fillRect(boxX, boxY, boxWidth, boxHeight);
+
+  // ── Draw Logo inside the strip (on the left) ──
+  if (wmLogo) {
+    ctx.save();
+    ctx.globalAlpha = 0.95;
+    var logoX = boxX + boxPaddingX;
+    var logoY = boxY + (boxHeight - logoH) / 2;
+    ctx.drawImage(wmLogo, logoX, logoY, logoW, logoH);
+    ctx.restore();
+  }
+
+  // ── Draw Text right next to the logo ──
+  ctx.globalAlpha = 0.95;
   ctx.fillStyle   = '#fff';
-  ctx.fillText(txt, 18, canvasH - 18);
+  var textX = boxX + boxPaddingX + logoW + spacing;
+  var textY = boxY + 21;
+  ctx.fillText(txt, textX, textY);
+  
   ctx.restore();
 }
 
@@ -402,7 +425,7 @@ async function addCanvasWatermark(videoBlob, wmLogo, onProgress) {
     var objUrl = URL.createObjectURL(videoBlob);
     var video  = document.createElement('video');
     video.src  = objUrl;
-    video.muted = true;
+    video.muted = false;
     video.playsInline = true;
     video.preload = 'auto';
 
@@ -423,10 +446,15 @@ async function addCanvasWatermark(videoBlob, wmLogo, onProgress) {
       combinedStream.addTrack(track);
     });
 
+    // ── Audio Routing Setup ──
     try {
       var audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      if (audioCtx.state === 'suspended') {
+        audioCtx.resume();
+      }
       var source = audioCtx.createMediaElementSource(video);
       var destination = audioCtx.createMediaStreamDestination();
+      
       source.connect(destination);
       source.connect(audioCtx.destination);
       
@@ -490,8 +518,11 @@ async function addCanvasWatermark(videoBlob, wmLogo, onProgress) {
     video.onerror = function(){ stopRecording(); reject(new Error('Video playback error')); };
 
     video.play().catch(function(e){
-      stopRecording();
-      reject(e);
+      video.muted = true;
+      video.play().catch(function(err){
+        stopRecording();
+        reject(err);
+      });
     });
   });
 }
@@ -516,7 +547,6 @@ async function segDownload(url,filename,movieId,movieName){
     if (/\.(mp4|webm|mov)(\?.*)?$|video\//i.test(url) || blob.type.indexOf('video/') !== -1) {
       if(spd) spd.textContent = '🎨 Adding watermark…';
       try {
-        // Using a relative path to avoid CORS domain blocking
         var isInPages = window.location.pathname.indexOf('/pages/') !== -1;
         var logoSrc = (isInPages ? '../' : '') + 'imagelib/logo.png';
         var wmLogo = await loadImg(logoSrc);
