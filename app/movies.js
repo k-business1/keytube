@@ -361,104 +361,134 @@ async function addCanvasWatermark(videoBlob, wmLogo, onProgress) {
     video.play().catch(reject);
   });
 }
+// ── Watermark helpers (Internal) ──────────────────────────────
+function loadImg(src) {
+  return new Promise(function(resolve) {
+    var img = new Image();
+    img.crossOrigin = 'anonymous';
+    img.onload  = function(){ resolve(img); };
+    img.onerror = function(){ resolve(null); };
+    img.src = src;
+  });
+}
 
-// ── Segmented download with watermark ─────────────────────────
-async function segDownload(url, filename, movieId, movieName) {
-  var prog = document.getElementById('dlProg');
-  var bar  = document.getElementById('dlBar');
-  var pct  = document.getElementById('dlPct');
-  var spd  = document.getElementById('dlSpd');
+function drawWatermarks(ctx, canvasW, canvasH, wmLogo) {
+  if (wmLogo) {
+    ctx.save();
+    ctx.globalAlpha = 0.75;
+    var logoH = 44, logoW = Math.round(wmLogo.naturalWidth * (logoH / wmLogo.naturalHeight));
+    ctx.drawImage(wmLogo, 14, 14, logoW, logoH);
+    ctx.restore();
+  }
+  ctx.save();
+  ctx.font = 'bold 15px Arial, sans-serif';
+  var txt  = 'Downloaded from KEYTUBE';
+  var tw   = ctx.measureText(txt).width;
+  ctx.globalAlpha = 0.55;
+  ctx.fillStyle   = '#000';
+  ctx.fillRect(10, canvasH - 36, tw + 18, 26);
+  ctx.globalAlpha = 0.92;
+  ctx.fillStyle   = '#fff';
+  ctx.fillText(txt, 18, canvasH - 18);
+  ctx.restore();
+}
 
-  if(prog) prog.classList.add('show');
-  if(bar)  bar.style.width = '0%';
-  if(pct)  pct.textContent = '0%';
-  if(spd)  spd.textContent = 'Connecting…';
+async function addCanvasWatermark(videoBlob, wmLogo, onProgress) {
+  return new Promise(async function(resolve, reject) {
+    var objUrl = URL.createObjectURL(videoBlob);
+    var video  = document.createElement('video');
+    video.src  = objUrl;
+    video.muted = false;
+    video.preload = 'auto';
 
-  try {
-    var resp = await fetch(url, { redirect: 'follow' });
-    if(!resp.ok) throw new Error('HTTP ' + resp.status);
+    await new Promise(function(r){ video.onloadedmetadata = r; video.load(); });
 
-    var total    = parseInt(resp.headers.get('Content-Length') || '0');
-    var reader   = resp.body.getReader();
-    var chunks   = [], received = 0, start = Date.now();
+    var W = video.videoWidth  || 1280;
+    var H = video.videoHeight || 720;
+    var dur = video.duration  || 0;
 
-    while(true) {
-      var res = await reader.read();
-      if(res.done) break;
-      chunks.push(res.value);
-      received += res.value.length;
-      var p = total ? Math.round(received / total * 100) : Math.min(Math.round(received/1024/100), 90);
-      if(bar) bar.style.width = p + '%';
-      if(pct) pct.textContent = p + '%';
-      var elapsed = (Date.now() - start) / 1000;
-      var kbps    = elapsed > 0 ? Math.round(received / elapsed / 1024) : 0;
-      if(spd) spd.textContent = kbps + ' KB/s — ' + Math.round(received/1024) + ' KB';
+    var canvas = document.createElement('canvas');
+    canvas.width = W; canvas.height = H;
+    var ctx = canvas.getContext('2d');
+
+    var stream   = canvas.captureStream(30);
+    var mimeType = MediaRecorder.isTypeSupported('video/webm;codecs=vp8,opus')
+      ? 'video/webm;codecs=vp8,opus' : 'video/webm';
+
+    var chunks   = [];
+    var recorder = new MediaRecorder(stream, { mimeType: mimeType, videoBitsPerSecond: 2500000 });
+    recorder.ondataavailable = function(e){ if(e.data.size>0) chunks.push(e.data); };
+    recorder.onstop = function(){
+      URL.revokeObjectURL(objUrl);
+      resolve(new Blob(chunks, { type: 'video/webm' }));
+    };
+
+    recorder.start(200);
+
+    var rafId;
+    function drawFrame() {
+      if (video.ended || video.paused) {
+        cancelAnimationFrame(rafId);
+        recorder.stop();
+        return;
+      }
+      ctx.drawImage(video, 0, 0, W, H);
+      drawWatermarks(ctx, W, H, wmLogo);
+      if (dur > 0 && onProgress) onProgress(Math.round((video.currentTime / dur) * 100));
+      rafId = requestAnimationFrame(drawFrame);
     }
 
-    if(bar) bar.style.width  = '100%';
-    if(pct) pct.textContent  = '100%';
+    video.onplay  = function(){ rafId = requestAnimationFrame(drawFrame); };
+    video.onended = function(){ cancelAnimationFrame(rafId); recorder.stop(); };
+    video.onerror = function(){ cancelAnimationFrame(rafId); recorder.stop(); reject(new Error('Video error')); };
 
-    var blob = new Blob(chunks);
+    video.play().catch(reject);
+  });
+}
 
-    // ── Apply watermark for video files ───────────────────────
+// Segmented download
+async function segDownload(url,filename,movieId,movieName){
+  var prog=document.getElementById('dlProg'),bar=document.getElementById('dlBar'),pct=document.getElementById('dlPct'),spd=document.getElementById('dlSpd');
+  if(prog)prog.classList.add('show');if(bar)bar.style.width='0%';if(pct)pct.textContent='0%';if(spd)spd.textContent='Connecting…';
+  try{
+    var resp=await fetch(url,{redirect:'follow'});
+    if(!resp.ok)throw new Error('HTTP '+resp.status);
+    var total=parseInt(resp.headers.get('Content-Length')||'0');
+    var reader=resp.body.getReader(),chunks=[],received=0,start=Date.now();
+    while(true){var res=await reader.read();if(res.done)break;chunks.push(res.value);received+=res.value.length;
+      var p=total?Math.round(received/total*100):Math.min(Math.round(received/1024/100),90);
+      if(bar)bar.style.width=p+'%';if(pct)pct.textContent=p+'%';
+      var elapsed=(Date.now()-start)/1000;var kbps=elapsed>0?Math.round(received/elapsed/1024):0;
+      if(spd)spd.textContent=kbps+' KB/s — '+Math.round(received/1024)+' KB';}
+    if(bar)bar.style.width='100%';if(pct)pct.textContent='100%';if(spd)spd.textContent='Saving…';
+    var blob=new Blob(chunks);
+
+    // ── Watermark Integration (Added without changing your flow) ──
     if (/\.(mp4|webm|mov)(\?.*)?$/i.test(url) || blob.type.indexOf('video/') !== -1) {
       if(spd) spd.textContent = '🎨 Adding watermark…';
-
-      var wmSrc  = 'https://www.keytube.work.gd/imagelib/watermark.png';
-      var wmLogo = await loadImg(wmSrc);
-
-      // Only process files under 80MB to prevent browser freezing on huge files
-      if (blob.size < 80 * 1024 * 1024) {
-        try {
+      try {
+        var wmLogo = await loadImg('https://www.keytube.work.gd/imagelib/watermark.png');
+        if (blob.size < 80 * 1024 * 1024) {
           blob = await addCanvasWatermark(blob, wmLogo, function(p){
             if(bar) bar.style.width  = p + '%';
             if(pct) pct.textContent  = p + '% (watermarking)';
             if(spd) spd.textContent  = '🎨 Adding watermark ' + p + '%…';
           });
           filename = filename.replace(/\.[^.]+$/, '') + '_keytube.webm';
-        } catch(wmErr) {
-          console.warn('Canvas watermark failed, saving without:', wmErr);
-          if(spd) spd.textContent = 'Saving…';
         }
-      } else {
-        if(spd) spd.textContent = 'Saving (file too large to watermark)…';
+      } catch(wmErr) {
+        console.warn('Watermark error:', wmErr);
       }
-    } else {
-      if(spd) spd.textContent = 'Saving…';
     }
 
-    // ── Save to cache (offline) ──
-    if('caches' in window) {
-      try {
-        var cache = await caches.open('kkkkk');
-        await cache.put('/downloads/' + filename, new Response(blob, {
-          headers: { 'Content-Type': blob.type || 'video/webm' }
-        }));
-      } catch(ce) {}
-    }
-
-    // ── Trigger browser download ──
-    var bUrl = URL.createObjectURL(blob);
-    var a    = document.createElement('a');
-    a.href   = bUrl;
-    a.download = filename;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    setTimeout(function(){ URL.revokeObjectURL(bUrl); }, 5000);
-
-    if(spd) spd.textContent = '✅ Downloaded & saved with watermark!';
-
-    var u = getUser();
-    api('logDownload', { gmail: u ? u.gmail : 'guest', movieId: movieId, movieName: movieName, status: 'completed' });
-    toastOK('Download complete ✓');
-    setTimeout(function(){ if(prog) prog.classList.remove('show'); }, 3000);
-
-  } catch(err) {
-    if(spd) spd.textContent = 'Error: ' + err.message;
-    toastErr('Download failed');
-    setTimeout(function(){ if(prog) prog.classList.remove('show'); }, 3000);
-    window.open(url, '_blank');
+    if('caches' in window){try{var cache=await caches.open('kkkkk');await cache.put('/downloads/'+filename,new Response(blob,{headers:{'Content-Type':blob.type||'video/mp4'}}));}catch(ce){}}
+    var bUrl=URL.createObjectURL(blob);var a=document.createElement('a');a.href=bUrl;a.download=filename;document.body.appendChild(a);a.click();document.body.removeChild(a);setTimeout(function(){URL.revokeObjectURL(bUrl);},5000);
+    if(spd)spd.textContent='✅ Downloaded & saved!';
+    var u=getUser();api('logDownload',{gmail:u?u.gmail:'guest',movieId:movieId,movieName:movieName,status:'completed'});
+    toastOK('Download complete ✓');setTimeout(function(){if(prog)prog.classList.remove('show');},3000);
+  }catch(err){
+    if(spd)spd.textContent='Error: '+err.message;toastErr('Download failed');
+    setTimeout(function(){if(prog)prog.classList.remove('show');},3000);window.open(url,'_blank');
   }
 }
 
