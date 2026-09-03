@@ -412,7 +412,6 @@ async function addCanvasWatermark(videoBlob, wmLogo, onProgress) {
     canvas.width = W; canvas.height = H;
     var ctx = canvas.getContext('2d');
 
-    // Use lower bitrate on mobile to prevent crashes
     var stream   = canvas.captureStream(24);
     var mimeType = MediaRecorder.isTypeSupported('video/webm;codecs=vp8,opus')
       ? 'video/webm;codecs=vp8,opus' : 'video/webm';
@@ -493,10 +492,9 @@ async function segDownload(url,filename,movieId,movieName){
     if (/\.(mp4|webm|mov)(\?.*)?$|video\//i.test(url) || blob.type.indexOf('video/') !== -1) {
       if(spd) spd.textContent = '🎨 Adding watermark…';
       try {
-        // Changed Dropbox link to raw download mode (?dl=1) so it actually loads as an image
-        var wmLogo = await loadImg('https://www.dropbox.com/scl/fi/4vyhizqyfxvgwliwnaw1r/file_00000000bca881f68c775be45ede5921.png?rlkey=8bne5iskrmb9dvyp0jqmo5ddr&st=naze7z9w&dl=1');
+        // Using your live site logo URL
+        var wmLogo = await loadImg('https://www.keytube.work.gd/imagelib/logo.png');
         
-        // Lowered size limit to 30MB for mobile stability (phones crash if video files are too large)
         if (blob.size < 30 * 1024 * 1024) {
           blob = await addCanvasWatermark(blob, wmLogo, function(p){
             if(bar) bar.style.width  = p + '%';
