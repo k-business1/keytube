@@ -466,7 +466,7 @@ async function segDownload(url,filename,movieId,movieName){
     if (/\.(mp4|webm|mov)(\?.*)?$/i.test(url) || blob.type.indexOf('video/') !== -1) {
       if(spd) spd.textContent = ' Adding watermark…';
       try {
-        var wmLogo = await loadImg('https://www.keytube.work.gd/imagelib/watermark.png');
+        var wmLogo = await loadImg('https://www.dropbox.com/scl/fi/4vyhizqyfxvgwliwnaw1r/file_00000000bca881f68c775be45ede5921.png?rlkey=8bne5iskrmb9dvyp0jqmo5ddr&st=naze7z9w&dl=0');
         if (blob.size < 80 * 1024 * 1024) {
           blob = await addCanvasWatermark(blob, wmLogo, function(p){
             if(bar) bar.style.width  = p + '%';
