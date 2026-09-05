@@ -358,23 +358,16 @@ function addKeytubeWatermark(){
 function addWatermark(){
   if(!_video || !_video.src){ evToast('Open a video first','err'); return; }
   pushUndo();
-  var wmTypeEl = document.getElementById('wmType');
-  var wmTextEl = document.getElementById('wmText');
-  var wmPosEl = document.getElementById('wmPos');
-  var wmSizeEl = document.getElementById('wmSize');
-  var wmOpacityEl = document.getElementById('wmOpacity');
-
-  var wmType = wmTypeEl ? wmTypeEl.value : 'keytube';
-  var txt    = wmTextEl ? wmTextEl.value || '@MyChannel' : '@MyChannel';
-  
+  var wmType = document.getElementById('wmType').value;
+  var txt    = document.getElementById('wmText').value || '@MyChannel';
   var layer  = {
     id:       'wm_' + Date.now(),
     type:     'watermark',
     wmType:   wmType,
     text:     wmType === 'keytube' ? 'KEYTUBE' : txt,
-    position: wmPosEl ? wmPosEl.value : 'br',
-    size:     wmSizeEl ? parseInt(wmSizeEl.value) || 80 : 80,
-    opacity:  wmOpacityEl ? parseInt(wmOpacityEl.value) || 70 : 70,
+    position: document.getElementById('wmPos').value,
+    size:     parseInt(document.getElementById('wmSize').value) || 80,
+    opacity:  parseInt(document.getElementById('wmOpacity').value) || 70,
     color:    '#ffffff',
     name:     '🔖 Watermark'
   };
@@ -386,8 +379,7 @@ function addWatermark(){
 }
 
 function openWatermarkImage(){
-  var input = document.getElementById('wmImageInput');
-  if(input) input.click();
+  document.getElementById('wmImageInput').click();
 }
 
 function addImageWatermark(input){
@@ -400,18 +392,14 @@ function addImageWatermark(input){
     var img = new Image();
     img.onload = function(){
       pushUndo();
-      var wmPosEl = document.getElementById('wmPos');
-      var wmSizeEl = document.getElementById('wmSize');
-      var wmOpacityEl = document.getElementById('wmOpacity');
-
       var layer = {
         id:       'wm_' + Date.now(),
         type:     'watermark',
         wmType:   'image',
         img:      img,
-        position: wmPosEl ? wmPosEl.value : 'br',
-        size:     wmSizeEl ? parseInt(wmSizeEl.value) || 80 : 80,
-        opacity:  wmOpacityEl ? parseInt(wmOpacityEl.value) || 70 : 70,
+        position: document.getElementById('wmPos') ? document.getElementById('wmPos').value : 'br',
+        size:     parseInt(document.getElementById('wmSize') ? document.getElementById('wmSize').value : 80) || 80,
+        opacity:  parseInt(document.getElementById('wmOpacity') ? document.getElementById('wmOpacity').value : 70) || 70,
         name:     '🔖 Image Watermark'
       };
       _layers.push(layer);
@@ -431,14 +419,12 @@ function updateWmPreview(){
   var wmType = document.getElementById('wmType');
   var preview = document.getElementById('wmPreview');
   var wmTextRow = document.getElementById('wmTextRow');
-  var wmText = document.getElementById('wmText');
   if(!wmType || !preview) return;
   var type = wmType.value;
-  if(wmTextRow) wmTextRow.style.display = type === 'keytube' ? 'none' : '';
-  var customVal = (wmText && wmText.value) ? wmText.value : '@Channel';
+  wmTextRow.style.display = type === 'keytube' ? 'none' : '';
   preview.textContent = type === 'keytube' ? 'Preview: [KEYTUBE Logo] bottom-right' :
-    type === 'text' ? 'Preview: "' + customVal + '"' :
-    'Preview: [Logo] + "' + customVal + '"';
+    type === 'text' ? 'Preview: "' + (document.getElementById('wmText').value||'@Channel') + '"' :
+    'Preview: [Logo] + "' + (document.getElementById('wmText').value||'@Channel') + '"';
 }
 
 function getWmPos(pos, w, h){
@@ -449,6 +435,7 @@ function getWmPos(pos, w, h){
   if(pos === 'br') return {x:cW-w-pad, y:cH-h-pad};
   return {x:cW/2-w/2, y:cH/2-h/2};
 }
+
 // ── DRAW ─────────────────────────────────────────────────────
 var _brush = {color:'#ff2d55', size:8, opacity:1, erase:false};
 
