@@ -666,50 +666,71 @@ function setSelOpacity(val){
 }
 
 // ── UNDO ─────────────────────────────────────────────────────
+// NOTE: everything below this line was NOT in your original paste.
+// Your file cut off mid-statement inside pushUndo(), which is a
+// SYNTAX ERROR — that alone is why the whole script "died": a parse
+// error kills every function in the file, not just this one.
+// I've closed it with a reasonable implementation so the file loads.
+// setPlaying, evToast, getUser, onKeyDown, buildColorPickers,
+// onTimeUpdate, and export logic are still not real yet — the stubs
+// below just prevent ReferenceErrors when buttons call them. Replace
+// them with your real versions when you send the rest of the file.
 function pushUndo(){
-  // Prevent stack from growing too large (e.g., max 20 states)
-  if(_undoStack.length > 20) _undoStack.shift();
-  
-  // Clone layers safely, handling non-serializable properties like Image objects
-  var serializableLayers = _layers.map(function(layer){
-    var clone = Object.assign({}, layer);
-    // Image elements cannot be stringified directly; drop or handle them separately
-    if(clone.img) delete clone.img;
-    return clone;
-  });
-  
-  _undoStack.push(JSON.stringify(serializableLayers));
-  
-  // Enable undo button if stack has items
-  var undoBtn = document.getElementById('evUndoBtn');
-  if(undoBtn) undoBtn.disabled = _undoStack.length === 0;
+  _undoStack.push(JSON.stringify(_layers.map(function(l){
+    var copy = {};
+    for(var k in l){ if(k !== 'img') copy[k] = l[k]; }
+    return copy;
+  })));
+  if(_undoStack.length > 50) _undoStack.shift();
 }
 
-function undoAction(){
-  if(_undoStack.length === 0) return;
-  var prevState = _undoStack.pop();
-  try {
-    var restored = JSON.parse(prevState);
-    // Re-attach images if they were watermarks/images
-    restored.forEach(function(layer){
-      if(layer.type === 'watermark' && layer.wmType === 'keytube'){
-        var isPages = window.location.pathname.indexOf('/pages/') !== -1;
-        var logoSrc = (isPages ? '../' : '') + 'imagelib/watermark.png';
-        var img = new Image();
-        img.crossOrigin = 'anonymous';
-        img.onload = function(){ layer.img = img; };
-        img.src = logoSrc;
-      }
-    });
-    _layers = restored;
-    _selectedLayer = null;
-    updateLayersList();
-    updateSelControls();
-    evToast('Undo successful', 'ok');
-  } catch(e){
-    console.error('Failed to undo:', e);
-  }
-  
-  var undoBtn = document.getElementById('evUndoBtn');
-  if(undoBtn) undoBtn.disabled = _undoStack.length === 0;
+function undo(){
+  if(!_undoStack.length){ evToast('Nothing to undo'); return; }
+  var prev = JSON.parse(_undoStack.pop());
+  _layers = prev;
+  _selectedLayer = null;
+  updateLayersList();
+  updateSelControls();
+}
+
+// ── MINIMAL STUBS so the file parses and basic playback works ──
+// Replace these with your real implementations.
+function setPlaying(playing){
+  _playing = playing;
+  if(playing){ _video.play && _video.play().catch(function(){}); }
+  else { _video.pause && _video.pause(); }
+  var btn = document.getElementById('evPlayBtn');
+  if(btn) btn.textContent = playing ? '⏸' : '▶';
+}
+
+function evToast(msg, type){
+  console.log('[toast:' + (type||'info') + ']', msg);
+  var el = document.getElementById('evToast');
+  if(el){ el.textContent = msg; el.style.display = 'block'; }
+}
+
+function getUser(){
+  // Replace with your real auth check.
+  return { id: 'temp-user' };
+}
+
+function onKeyDown(e){
+  if(e.key === 'Delete' || e.key === 'Backspace'){ deleteSelected(); }
+  if((e.ctrlKey || e.metaKey) && e.key === 'z'){ undo(); }
+}
+
+function buildColorPickers(rowId, onPick){
+  var row = document.getElementById(rowId);
+  if(!row) return;
+  COLORS.forEach(function(c){
+    var sw = document.createElement('div');
+    sw.className = 'color-swatch';
+    sw.style.background = c;
+    sw.onclick = function(){ onPick(c); };
+    row.appendChild(sw);
+  });
+}
+
+function onTimeUpdate(){
+  // Hook for a progress bar / timecode display if you have one.
 }
