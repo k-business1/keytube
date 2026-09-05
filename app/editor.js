@@ -666,11 +666,50 @@ function setSelOpacity(val){
 }
 
 // ── UNDO ─────────────────────────────────────────────────────
-// NOTE: original source you pasted was truncated exactly here —
-// pushUndo() body is incomplete (cuts off at "funct"), and everything
-// after it (setPlaying, evToast, getUser, onKeyDown, buildColorPickers,
-// onTimeUpdate, export logic, etc.) was never included in what you sent.
-// I have not invented these to avoid guessing wrong and breaking things
-// silently. Paste the rest of the file and I'll merge it in cleanly.
 function pushUndo(){
-  _undoStack.push(JSON.stringify(_layers.map(funct
+  // Prevent stack from growing too large (e.g., max 20 states)
+  if(_undoStack.length > 20) _undoStack.shift();
+  
+  // Clone layers safely, handling non-serializable properties like Image objects
+  var serializableLayers = _layers.map(function(layer){
+    var clone = Object.assign({}, layer);
+    // Image elements cannot be stringified directly; drop or handle them separately
+    if(clone.img) delete clone.img;
+    return clone;
+  });
+  
+  _undoStack.push(JSON.stringify(serializableLayers));
+  
+  // Enable undo button if stack has items
+  var undoBtn = document.getElementById('evUndoBtn');
+  if(undoBtn) undoBtn.disabled = _undoStack.length === 0;
+}
+
+function undoAction(){
+  if(_undoStack.length === 0) return;
+  var prevState = _undoStack.pop();
+  try {
+    var restored = JSON.parse(prevState);
+    // Re-attach images if they were watermarks/images
+    restored.forEach(function(layer){
+      if(layer.type === 'watermark' && layer.wmType === 'keytube'){
+        var isPages = window.location.pathname.indexOf('/pages/') !== -1;
+        var logoSrc = (isPages ? '../' : '') + 'imagelib/watermark.png';
+        var img = new Image();
+        img.crossOrigin = 'anonymous';
+        img.onload = function(){ layer.img = img; };
+        img.src = logoSrc;
+      }
+    });
+    _layers = restored;
+    _selectedLayer = null;
+    updateLayersList();
+    updateSelControls();
+    evToast('Undo successful', 'ok');
+  } catch(e){
+    console.error('Failed to undo:', e);
+  }
+  
+  var undoBtn = document.getElementById('evUndoBtn');
+  if(undoBtn) undoBtn.disabled = _undoStack.length === 0;
+}
