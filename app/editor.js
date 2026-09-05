@@ -213,12 +213,21 @@ function drawLayer(layer, selected){
     _ctx.textBaseline = 'top';
     var txt  = layer.text || 'KEYTUBE';
     var tw2  = _ctx.measureText(txt).width;
-    var pos  = getWmPos(layer.position, tw2, fs2);
+    
+    // Initialize x and y coordinates using getWmPos if they haven't been set yet,
+    // allowing them to be freely repositioned and dragged afterwards.
+    if(layer.x === undefined || layer.y === undefined){
+      var pos = getWmPos(layer.position, tw2, fs2);
+      layer.x = pos.x;
+      layer.y = pos.y;
+    }
+
     if(layer.img){
-      _ctx.drawImage(layer.img, pos.x, pos.y, fs2, fs2 * (layer.img.naturalHeight/layer.img.naturalWidth||1));
+      var imgH = fs2 * (layer.img.naturalHeight / layer.img.naturalWidth || 1);
+      _ctx.drawImage(layer.img, layer.x, layer.y, fs2, imgH);
     } else {
       _ctx.fillStyle = layer.color || '#ffffff';
-      _ctx.fillText(txt, pos.x, pos.y);
+      _ctx.fillText(txt, layer.x, layer.y);
     }
   }
   else if(layer.type === 'image' && layer.img){
@@ -244,17 +253,19 @@ function drawLayer(layer, selected){
 function getLayerBounds(layer){
   if(layer.type === 'sticker'){
     var size = layer.size || 48;
-    return {x:layer.x, y:layer.y, w:size, h:size};
+    return {x: layer.x || 0, y: layer.y || 0, w: size, h: size};
   }
   if(layer.type === 'text'){
     _ctx.font = (layer.fontSize||36)+'px '+(layer.font||'bold Arial');
     var tw = _ctx.measureText(layer.text||'').width;
-    return {x:layer.x, y:layer.y, w:tw, h:layer.fontSize||36};
+    return {x: layer.x || 0, y: layer.y || 0, w: tw, h: layer.fontSize||36};
   }
   if(layer.type === 'watermark'){
-    return {x:layer.x||0, y:layer.y||0, w:layer.size||80, h:layer.size||80};
+    var s = layer.size || 80;
+    var h = layer.img ? s * (layer.img.naturalHeight / layer.img.naturalWidth || 1) : s;
+    return {x: layer.x || 0, y: layer.y || 0, w: s, h: h};
   }
-  return {x:layer.x||0, y:layer.y||0, w:layer.w||100, h:layer.h||100};
+  return {x: layer.x || 0, y: layer.y || 0, w: layer.w || 100, h: layer.h || 100};
 }
 
 // ── STICKERS ─────────────────────────────────────────────────
