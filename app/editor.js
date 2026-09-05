@@ -378,6 +378,42 @@ function addWatermark(){
   evToast('Watermark added ✓', 'ok');
 }
 
+function openWatermarkImage(){
+  document.getElementById('wmImageInput').click();
+}
+
+function addImageWatermark(input){
+  var file = input.files[0];
+  if(!file) return;
+  if(!_video || !_video.src){ evToast('Open a video first','err'); input.value=''; return; }
+
+  var reader = new FileReader();
+  reader.onload = function(e){
+    var img = new Image();
+    img.onload = function(){
+      pushUndo();
+      var layer = {
+        id:       'wm_' + Date.now(),
+        type:     'watermark',
+        wmType:   'image',
+        img:      img,
+        position: document.getElementById('wmPos') ? document.getElementById('wmPos').value : 'br',
+        size:     parseInt(document.getElementById('wmSize') ? document.getElementById('wmSize').value : 80) || 80,
+        opacity:  parseInt(document.getElementById('wmOpacity') ? document.getElementById('wmOpacity').value : 70) || 70,
+        name:     '🔖 Image Watermark'
+      };
+      _layers.push(layer);
+      _selectedLayer = layer;
+      updateLayersList();
+      updateSelControls();
+      evToast('Image watermark added ✓', 'ok');
+    };
+    img.onerror = function(){ evToast('Could not load image','err'); };
+    img.src = e.target.result;
+  };
+  reader.readAsDataURL(file);
+  input.value = '';
+}
 function updateWmPreview(){
   var wmType = document.getElementById('wmType');
   var preview = document.getElementById('wmPreview');
