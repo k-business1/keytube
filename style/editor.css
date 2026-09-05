@@ -26,12 +26,16 @@ html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--txt);}
 .ev-btn:disabled{opacity:.4;cursor:not-allowed}
 .ev-project-name{font-size:.8rem;color:var(--t2);padding:4px 8px;background:var(--bg3);border-radius:var(--r2);border:1px solid var(--brd);cursor:text;min-width:100px;text-align:center}
 
+/* Mobile Toggle Buttons (Hidden by default on desktop) */
+.ev-mob-toggle{display:none;background:var(--bg3);color:#fff;border:1px solid var(--brd);padding:6px 10px;border-radius:var(--r2);font-size:.75rem;font-weight:700;cursor:pointer;align-items:center;gap:4px}
+.ev-mob-toggle:hover{background:var(--brd)}
+
 /* ── MAIN LAYOUT ── */
-.ev-main{display:flex;height:calc(100vh - 48px - 80px);overflow:hidden}
+.ev-main{display:flex;height:calc(100vh - 48px - 80px);overflow:hidden;position:relative}
 
 /* ── LEFT PANEL (tools) ── */
 .ev-left{width:72px;background:var(--bg2);border-right:1px solid var(--brd);
-  display:flex;flex-direction:column;align-items:center;padding:8px 0;gap:2px;flex-shrink:0;overflow-y:auto}
+  display:flex;flex-direction:column;align-items:center;padding:8px 0;gap:2px;flex-shrink:0;overflow-y:auto;z-index:40}
 .ev-tool-btn{width:56px;height:56px;border-radius:var(--r);background:transparent;
   border:none;cursor:pointer;display:flex;flex-direction:column;align-items:center;
   justify-content:center;gap:3px;transition:all .15s;color:var(--t2)}
@@ -58,7 +62,7 @@ html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--txt);}
 
 /* ── RIGHT PANEL (layers/stickers/text) ── */
 .ev-right{width:240px;background:var(--bg2);border-left:1px solid var(--brd);
-  display:flex;flex-direction:column;flex-shrink:0;overflow:hidden}
+  display:flex;flex-direction:column;flex-shrink:0;overflow:hidden;z-index:40}
 .ev-panel{display:none;flex-direction:column;height:100%;overflow-y:auto}
 .ev-panel.active{display:flex}
 .ev-panel-title{padding:10px 12px;font-size:.75rem;font-weight:700;text-transform:uppercase;
@@ -184,15 +188,54 @@ html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--txt);}
 /* ── SCROLLBAR ── */
 ::-webkit-scrollbar{width:4px}::-webkit-scrollbar-thumb{background:var(--brd);border-radius:2px}
 
-/* ── RESPONSIVE ── */
-@media(max-width:700px){
-  .ev-right{width:200px}
-  .ev-left{width:60px}
-  .ev-tool-btn{width:48px;height:48px}
-  .ev-tool-label{display:none}
-  .sticker-grid{grid-template-columns:repeat(4,1fr)}
+/* ── RESPONSIVE MOBILE ADJUSTMENTS (All Features Accessible) ── */
+@media(max-width:768px){
+  /* Allow vertical/scroll adjustments on body for small screens */
+  html,body{overflow:auto;}
+  .ev-main{height:auto;min-height:calc(100vh - 48px - 80px);flex-direction:column;position:relative;}
+
+  /* Topbar adjustments */
+  .ev-topbar{padding:0 8px;gap:6px;}
+  .ev-logo span{display:none;} /* Save space on small headers */
+  .ev-project-name{max-width:90px;font-size:.7rem;padding:2px 4px;}
+  .ev-btn{padding:5px 10px;font-size:.72rem;}
+
+  /* Show mobile toggles for sidebar / tools drawer */
+  .ev-mob-toggle{display:flex;}
+
+  /* Left tools panel becomes a horizontal scrollable ribbon or floating/toggled bar on mobile */
+  .ev-left{width:100%;height:56px;flex-direction:row;overflow-x:auto;overflow-y:hidden;border-right:none;border-bottom:1px solid var(--brd);padding:0 4px;gap:6px;flex-shrink:0;}
+  .ev-tool-btn{width:44px;height:44px;flex-shrink:0;}
+  .ev-tool-label{display:none;}
+
+  /* Center canvas takes fixed portrait/landscape viewable area */
+  .ev-center{min-height:280px;width:100%;flex:none;height:45vh;}
+
+  /* Right panel becomes a full-width overlay drawer/card on mobile so features aren't hidden */
+  .ev-right{
+    position:absolute;
+    top:0;
+    right:0;
+    bottom:0;
+    width:280px;
+    background:var(--bg2);
+    box-shadow:-5px 0 25px rgba(0,0,0,0.7);
+    transform:translateX(100%);
+    transition:transform 0.25s ease-in-out;
+    z-index:200;
+  }
+  .ev-right.mobile-open{
+    transform:translateX(0);
+  }
+
+  /* Timeline adjustments */
+  .ev-timeline{height:70px;padding:0 10px;}
+  .ev-vol-wrap{display:none;} /* Hide volume slider on super small screens to save space */
+  .ev-time{min-width:60px;font-size:.7rem;}
 }
-@media(max-width:520px){
-  .ev-right{display:none}
-  .ev-topbar .ev-project-name{display:none}
+
+@media(max-width:480px){
+  .ev-topbar-r{gap:4px;}
+  .ev-btn{padding:4px 8px;font-size:.7rem;}
+  .ev-right{width:100%;} /* Full screen drawer on very small phones */
 }
