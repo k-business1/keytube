@@ -179,10 +179,15 @@ function drawFrame(){
 }
 
 function drawLayer(layer, selected){
+  if(layer.type === 'audio') return; // audio has no visual representation
+
   _ctx.save();
   _ctx.globalAlpha = (layer.opacity || 100) / 100;
 
-  if(layer.type === 'sticker'){
+  if(layer.type === 'video' && layer.videoEl){
+    _ctx.drawImage(layer.videoEl, layer.x, layer.y, layer.w || 240, layer.h || 135);
+  }
+  else if(layer.type === 'sticker'){
     _ctx.font = layer.size + 'px serif';
     _ctx.textBaseline = 'top';
     _ctx.fillText(layer.emoji, layer.x, layer.y);
@@ -213,21 +218,12 @@ function drawLayer(layer, selected){
     _ctx.textBaseline = 'top';
     var txt  = layer.text || 'KEYTUBE';
     var tw2  = _ctx.measureText(txt).width;
-    
-    // Initialize x and y coordinates using getWmPos if they haven't been set yet,
-    // allowing them to be freely repositioned and dragged afterwards.
-    if(layer.x === undefined || layer.y === undefined){
-      var pos = getWmPos(layer.position, tw2, fs2);
-      layer.x = pos.x;
-      layer.y = pos.y;
-    }
-
+    var pos  = getWmPos(layer.position, tw2, fs2);
     if(layer.img){
-      var imgH = fs2 * (layer.img.naturalHeight / layer.img.naturalWidth || 1);
-      _ctx.drawImage(layer.img, layer.x, layer.y, fs2, imgH);
+      _ctx.drawImage(layer.img, pos.x, pos.y, fs2, fs2 * (layer.img.naturalHeight/layer.img.naturalWidth||1));
     } else {
       _ctx.fillStyle = layer.color || '#ffffff';
-      _ctx.fillText(txt, layer.x, layer.y);
+      _ctx.fillText(txt, pos.x, pos.y);
     }
   }
   else if(layer.type === 'image' && layer.img){
@@ -251,21 +247,22 @@ function drawLayer(layer, selected){
 }
 
 function getLayerBounds(layer){
+  if(layer.type === 'audio'){
+    return {x:-9999, y:-9999, w:0, h:0}; // not clickable/visible on canvas
+  }
   if(layer.type === 'sticker'){
     var size = layer.size || 48;
-    return {x: layer.x || 0, y: layer.y || 0, w: size, h: size};
+    return {x:layer.x, y:layer.y, w:size, h:size};
   }
   if(layer.type === 'text'){
     _ctx.font = (layer.fontSize||36)+'px '+(layer.font||'bold Arial');
     var tw = _ctx.measureText(layer.text||'').width;
-    return {x: layer.x || 0, y: layer.y || 0, w: tw, h: layer.fontSize||36};
+    return {x:layer.x, y:layer.y, w:tw, h:layer.fontSize||36};
   }
   if(layer.type === 'watermark'){
-    var s = layer.size || 80;
-    var h = layer.img ? s * (layer.img.naturalHeight / layer.img.naturalWidth || 1) : s;
-    return {x: layer.x || 0, y: layer.y || 0, w: s, h: h};
+    return {x:layer.x||0, y:layer.y||0, w:layer.size||80, h:layer.size||80};
   }
-  return {x: layer.x || 0, y: layer.y || 0, w: layer.w || 100, h: layer.h || 100};
+  return {x:layer.x||0, y:layer.y||0, w:layer.w||100, h:layer.h||100};
 }
 
 // ── STICKERS ─────────────────────────────────────────────────
@@ -463,6 +460,125 @@ function clearDrawing(){
   evToast('Drawing cleared');
 }
 
+// ── VIDEO LAYER (picture-in-picture overlay) ──────────────────
+function openVideoLayer(){
+  document.getElementById('vidLayerInput').click();
+}
+
+function addVideoLayer(input){
+  var file = input.files[0];
+  if(!file) return;
+  if(!_video || !_video.src){ evToast('Open a main video first','err'); input.value=''; return; }
+
+  var vid = document.createElement('video');
+  vid.src        = URL.createObjectURL(file);
+  vid.muted      = true;   // overlay clips are muted by default (avoids double audio)
+  vid.loop       = true;   // PIP clip loops independently of the main timeline
+  vid.playsInline = true;
+
+  vid.addEventListener('loadedmetadata', function(){
+    pushUndo();
+    var w = 240;
+    var h = Math.round(w * ((vid.videoHeight / vid.videoWidth) || 0.5625));
+    var layer = {
+      id:      'vid_' + Date.now(),
+      type:    'video',
+      videoEl: vid,
+      x:       20,
+      y:       20,
+      w:       w,
+      h:       h,
+      opacity: 100,
+      name:    '🎬 ' + file.name
+    };
+    _layers.push(layer);
+    _selectedLayer = layer;
+    updateLayersList();
+    updateSelControls();
+    if(_playing) vid.play().catch(function(){});
+    evToast('Video layer added ✓', 'ok');
+  });
+
+  vid.addEventListener('error', function(){
+    evToast('Could not load video layer','err');
+  });
+
+  input.value = '';
+}
+
+// ── AUDIO TRACK ────────────────────────────────────────────────
+function openAudioTrack(){
+  document.getElementById('audioTrackInput').click();
+}
+
+function addAudioTrack(input){
+  var file = input.files[0];
+  if(!file) return;
+  if(!_video || !_video.src){ evToast('Open a main video first','err'); input.value=''; return; }
+
+  var audio = document.createElement('audio');
+  audio.src = URL.createObjectURL(file);
+
+  audio.addEventListener('loadedmetadata', function(){
+    pushUndo();
+    var layer = {
+      id:      'audio_' + Date.now(),
+      type:    'audio',
+      audioEl: audio,
+      opacity: 100,
+      name:    '🎵 ' + file.name
+    };
+    _layers.push(layer);
+    _selectedLayer = layer;
+    updateLayersList();
+    updateSelControls();
+    audio.currentTime = _video.currentTime;
+    if(_playing) audio.play().catch(function(){});
+    evToast('Audio track added ✓', 'ok');
+  });
+
+  audio.addEventListener('error', function(){
+    evToast('Could not load audio track','err');
+  });
+
+  input.value = '';
+}
+
+// ── TRIM ─────────────────────────────────────────────────────
+var _trimStart = 0;
+var _trimEnd   = null; // null = end of video
+
+function setTrimStart(){
+  if(!_video || !_video.src){ evToast('Open a video first','err'); return; }
+  _trimStart = _video.currentTime;
+  if(_trimEnd !== null && _trimStart >= _trimEnd) _trimEnd = null;
+  updateTrimUI();
+  evToast('Trim start set: ' + _trimStart.toFixed(2) + 's', 'ok');
+}
+
+function setTrimEnd(){
+  if(!_video || !_video.src){ evToast('Open a video first','err'); return; }
+  _trimEnd = _video.currentTime;
+  if(_trimEnd <= _trimStart){ evToast('End must be after start','err'); _trimEnd = null; return; }
+  updateTrimUI();
+  evToast('Trim end set: ' + _trimEnd.toFixed(2) + 's', 'ok');
+}
+
+function clearTrim(){
+  _trimStart = 0;
+  _trimEnd   = null;
+  updateTrimUI();
+  evToast('Trim cleared');
+}
+
+function updateTrimUI(){
+  var el = document.getElementById('trimInfo');
+  if(el){
+    el.textContent = 'Trim: ' + _trimStart.toFixed(2) + 's \u2192 ' +
+      (_trimEnd !== null ? _trimEnd.toFixed(2) + 's' : 'end');
+  }
+}
+
 // ── CANVAS INTERACTION ────────────────────────────────────────
 function getCanvasPos(e){
   var rect  = _canvas.getBoundingClientRect();
@@ -587,7 +703,7 @@ function updateLayersList(){
   if(!_layers.length){ if(empty) empty.style.display='block'; return; }
   if(empty) empty.style.display = 'none';
 
-  var icons = {sticker:'😀', text:'T', watermark:'🔖', image:'🖼', draw:'✏️'};
+  var icons = {sticker:'😀', text:'T', watermark:'🔖', image:'🖼', draw:'✏️', video:'🎬', audio:'🎵'};
   _layers.slice().reverse().forEach(function(layer){
     var d = document.createElement('div');
     d.className = 'layer-item' + (layer === _selectedLayer ? ' selected' : '');
@@ -708,8 +824,19 @@ function undo(){
 // Replace these with your real implementations.
 function setPlaying(playing){
   _playing = playing;
-  if(playing){ _video.play && _video.play().catch(function(){}); }
-  else { _video.pause && _video.pause(); }
+  if(playing){
+    _video.play && _video.play().catch(function(){});
+    _layers.forEach(function(l){
+      if(l.type === 'video' && l.videoEl) l.videoEl.play().catch(function(){});
+      if(l.type === 'audio' && l.audioEl) l.audioEl.play().catch(function(){});
+    });
+  } else {
+    _video.pause && _video.pause();
+    _layers.forEach(function(l){
+      if(l.type === 'video' && l.videoEl) l.videoEl.pause();
+      if(l.type === 'audio' && l.audioEl) l.audioEl.pause();
+    });
+  }
   var btn = document.getElementById('evPlayBtn');
   if(btn) btn.textContent = playing ? '⏸' : '▶';
 }
@@ -743,5 +870,17 @@ function buildColorPickers(rowId, onPick){
 }
 
 function onTimeUpdate(){
-  // Hook for a progress bar / timecode display if you have one.
+  // Enforce trim range: loop back to start once past the trim-out point.
+  if(_trimEnd !== null && _video.currentTime >= _trimEnd){
+    _video.currentTime = _trimStart;
+  } else if(_video.currentTime < _trimStart){
+    _video.currentTime = _trimStart;
+  }
+
+  // Keep audio tracks from drifting out of sync with the main timeline.
+  _layers.forEach(function(l){
+    if(l.type === 'audio' && l.audioEl && Math.abs(l.audioEl.currentTime - _video.currentTime) > 0.3){
+      l.audioEl.currentTime = _video.currentTime;
+    }
+  });
 }
