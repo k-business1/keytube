@@ -51,8 +51,7 @@ window.onload = function(){
 
   // Video element
   _video = document.getElementById('evVideo');
-  _video.muted = true;           // FIX: autoplay requires muted in most browsers
-  _video.playsInline = true;     // FIX: required for autoplay/inline playback on iOS
+  _video.playsInline = true;     // needed for inline/autoplay on iOS
   _video.addEventListener('timeupdate',  onTimeUpdate);
   _video.addEventListener('ended',       function(){ setPlaying(false); });
   _video.addEventListener('loadedmetadata', onVideoLoaded);
@@ -137,22 +136,35 @@ function onVideoLoaded(){
   startRenderLoop();
 
   evToast('Video loaded ✓', 'ok');
+  attemptAutoplay();
+}
 
-  // FIX: explicitly attempt play() and handle the promise it returns.
-  // Previously this was a bare setPlaying(true), which flips UI state
-  // to "playing" even if the browser silently blocked autoplay —
-  // that mismatch is a common cause of "canvas shows nothing".
-  var playPromise = _video.play();
-  if(playPromise !== undefined){
-    playPromise.then(function(){
-      setPlaying(true);
-    }).catch(function(err){
-      console.warn('Autoplay blocked:', err);
-      setPlaying(false); // user will need to press play manually
-    });
-  } else {
+// Try to autoplay with sound; if the browser blocks that (common without a
+// user gesture), fall back to a muted autoplay so the preview still moves,
+// and reflect the real mute state in the volume UI rather than hiding it.
+function attemptAutoplay(){
+  var p = _video.play();
+  if(p === undefined){ setPlaying(true); syncVolumeUI(); return; }
+  p.then(function(){
     setPlaying(true);
-  }
+    syncVolumeUI();
+  }).catch(function(){
+    _video.muted = true;
+    _muted = true;
+    _video.play().then(function(){
+      setPlaying(true);
+      syncVolumeUI();
+    }).catch(function(){
+      setPlaying(false);
+    });
+  });
+}
+
+function syncVolumeUI(){
+  var icon  = document.getElementById('evVolIcon');
+  var range = document.getElementById('evVolRange');
+  if(icon)  icon.textContent = _muted ? '🔇' : '🔊';
+  if(range) range.value = _muted ? 0 : Math.round((_video.volume || 1) * 100);
 }
 
 // ── RENDER LOOP ───────────────────────────────────────────────
@@ -805,11 +817,17 @@ function setSelOpacity(val){
 function pushUndo(){
   _undoStack.push(JSON.stringify(_layers.map(function(l){
     var copy = {};
-    for(var k in l){ if(k !== 'img') copy[k] = l[k]; }
+    for(var k in l){ if(k !== 'img' && k !== 'videoEl' && k !== 'audioEl') copy[k] = l[k]; }
     return copy;
   })));
   if(_undoStack.length > 50) _undoStack.shift();
+  var btn = document.getElementById('evUndoBtn');
+  if(btn) btn.disabled = false;
 }
+
+// Your HTML calls undoAction() — kept undo() as the real implementation
+// and this as a thin alias so both names work.
+function undoAction(){ undo(); }
 
 function undo(){
   if(!_undoStack.length){ evToast('Nothing to undo'); return; }
@@ -818,6 +836,8 @@ function undo(){
   _selectedLayer = null;
   updateLayersList();
   updateSelControls();
+  var btn = document.getElementById('evUndoBtn');
+  if(btn) btn.disabled = _undoStack.length === 0;
 }
 
 // ── MINIMAL STUBS so the file parses and basic playback works ──
@@ -841,16 +861,20 @@ function setPlaying(playing){
   if(btn) btn.textContent = playing ? '⏸' : '▶';
 }
 
+var _toastTimer = null;
 function evToast(msg, type){
   console.log('[toast:' + (type||'info') + ']', msg);
   var el = document.getElementById('evToast');
-  if(el){ el.textContent = msg; el.style.display = 'block'; }
+  if(!el) return;
+  el.textContent = msg;
+  el.style.display = 'block';
+  clearTimeout(_toastTimer);
+  _toastTimer = setTimeout(function(){ el.style.display = 'none'; }, 2500);
 }
 
-function getUser(){
-  // Replace with your real auth check.
-  return { id: 'temp-user' };
-}
+// getUser() is expected to come from ../app/auth.js, loaded before this
+// file. Do not redefine it here — a stub would silently override the
+// real auth check and always fake-authenticate the user.
 
 function onKeyDown(e){
   if(e.key === 'Delete' || e.key === 'Backspace'){ deleteSelected(); }
@@ -883,4 +907,243 @@ function onTimeUpdate(){
       l.audioEl.currentTime = _video.currentTime;
     }
   });
+
+  // Update seek bar + time readout
+  var fill = document.getElementById('evSeekFill');
+  var timeEl = document.getElementById('evTime');
+  if(_video.duration){
+    if(fill) fill.style.width = (_video.currentTime / _video.duration * 100) + '%';
+    if(timeEl) timeEl.textContent = formatTime(_video.currentTime) + ' / ' + formatTime(_video.duration);
+  }
+}
+
+function formatTime(t){
+  if(!isFinite(t) || t < 0) t = 0;
+  var m = Math.floor(t / 60);
+  var s = Math.floor(t % 60);
+  return m + ':' + (s < 10 ? '0' : '') + s;
+}
+
+// ── TIMELINE CONTROLS ──────────────────────────────────────────
+function togglePlay(){
+  if(!_video || !_video.src){ evToast('Open a video first','err'); return; }
+  setPlaying(!_playing);
+}
+
+function seekTo(e){
+  if(!_video || !_video.src || !_video.duration) return;
+  var wrap = document.getElementById('evSeekWrap');
+  if(!wrap) return;
+  var rect = wrap.getBoundingClientRect();
+  var pct  = Math.min(1, Math.max(0, (e.clientX - rect.left) / rect.width));
+  var t    = pct * _video.duration;
+  var lo   = _trimStart || 0;
+  var hi   = _trimEnd !== null ? _trimEnd : _video.duration;
+  _video.currentTime = Math.min(Math.max(t, lo), hi);
+}
+
+function toggleMute(){
+  _muted = !_muted;
+  _video.muted = _muted;
+  syncVolumeUI();
+}
+
+function setVolume(val){
+  var v = parseInt(val, 10) / 100;
+  _video.volume = v;
+  _muted = (v === 0);
+  _video.muted = _muted;
+  var icon = document.getElementById('evVolIcon');
+  if(icon) icon.textContent = _muted ? '🔇' : (v < 0.5 ? '🔉' : '🔊');
+}
+
+// ── EXPORT ───────────────────────────────────────────────────
+// Records the canvas (video + all overlays) plus mixed audio (main
+// video audio + any added audio tracks) using MediaRecorder, over
+// just the trimmed range. This is a real, functioning implementation,
+// but I have not been able to run it against an actual video file in
+// this environment — browser support for canvas.captureStream() +
+// MediaRecorder mime types varies, so test it before relying on it.
+var _mediaRecorder = null;
+var _recordedChunks = [];
+
+function exportVideo(onDone){
+  if(!_video || !_video.src){ evToast('Open a video first','err'); return; }
+  if(_mediaRecorder && _mediaRecorder.state === 'recording'){ return; }
+
+  _exportCancelled  = false;
+  _recordedChunks   = [];
+  var overlay = document.getElementById('evExportOverlay');
+  if(overlay) overlay.style.display = 'flex';
+  updateExportProgress(0, 'Preparing export…');
+
+  var canvasStream = _canvas.captureStream(30);
+
+  var audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  var dest = audioCtx.createMediaStreamDestination();
+  try{
+    var mainSrc = audioCtx.createMediaElementSource(_video);
+    mainSrc.connect(dest);
+    mainSrc.connect(audioCtx.destination); // keep it audible while recording
+  } catch(e){
+    console.warn('Could not route main video audio into export mix:', e);
+  }
+  _layers.forEach(function(l){
+    if(l.type === 'audio' && l.audioEl){
+      try{
+        var s = audioCtx.createMediaElementSource(l.audioEl);
+        s.connect(dest);
+      } catch(e){ console.warn('Could not route audio layer into export mix:', e); }
+    }
+  });
+
+  var combined = new MediaStream();
+  canvasStream.getVideoTracks().forEach(function(t){ combined.addTrack(t); });
+  dest.stream.getAudioTracks().forEach(function(t){ combined.addTrack(t); });
+
+  var mimeType = MediaRecorder.isTypeSupported('video/webm;codecs=vp9,opus')
+    ? 'video/webm;codecs=vp9,opus' : 'video/webm';
+  _mediaRecorder = new MediaRecorder(combined, {mimeType: mimeType});
+  _mediaRecorder.ondataavailable = function(e){
+    if(e.data && e.data.size) _recordedChunks.push(e.data);
+  };
+  _mediaRecorder.onstop = function(){
+    if(_exportCancelled){
+      if(overlay) overlay.style.display = 'none';
+      return;
+    }
+    _exportBlob = new Blob(_recordedChunks, {type:'video/webm'});
+    updateExportProgress(100, 'Done!');
+    setTimeout(function(){
+      if(overlay) overlay.style.display = 'none';
+      if(typeof onDone === 'function'){
+        onDone(_exportBlob);
+      } else {
+        var name = (document.getElementById('evProjectName').textContent || 'video').trim() || 'video';
+        downloadBlob(_exportBlob, name + '.webm');
+        evToast('Export complete ✓','ok');
+      }
+    }, 400);
+  };
+
+  var start = _trimStart || 0;
+  var end   = _trimEnd !== null ? _trimEnd : _video.duration;
+
+  var onSeeked = function(){
+    _video.removeEventListener('seeked', onSeeked);
+    _mediaRecorder.start();
+    setPlaying(true);
+    var timer = setInterval(function(){
+      if(_exportCancelled){ clearInterval(timer); return; }
+      var pct = Math.min(100, Math.max(0, Math.round(((_video.currentTime - start) / (end - start)) * 100)));
+      updateExportProgress(pct, 'Recording… ' + pct + '%');
+      if(_video.currentTime >= end){
+        clearInterval(timer);
+        setPlaying(false);
+        _mediaRecorder.stop();
+      }
+    }, 200);
+  };
+  _video.addEventListener('seeked', onSeeked);
+  _video.currentTime = start;
+}
+
+function updateExportProgress(pct, msg){
+  var bar = document.getElementById('evExportBar');
+  var pctEl = document.getElementById('evExportPct');
+  var sub = document.getElementById('evExportSub');
+  if(bar)   bar.style.width = pct + '%';
+  if(pctEl) pctEl.textContent = pct + '%';
+  if(sub && msg) sub.textContent = msg;
+}
+
+function cancelExport(){
+  _exportCancelled = true;
+  if(_mediaRecorder && _mediaRecorder.state !== 'inactive') _mediaRecorder.stop();
+  var overlay = document.getElementById('evExportOverlay');
+  if(overlay) overlay.style.display = 'none';
+  evToast('Export cancelled');
+}
+
+function downloadBlob(blob, filename){
+  var url = URL.createObjectURL(blob);
+  var a = document.createElement('a');
+  a.href = url;
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  setTimeout(function(){ URL.revokeObjectURL(url); }, 1000);
+}
+
+// ── UPLOAD MODAL ───────────────────────────────────────────────
+// I don't have ../app/api.js, so I don't know the real upload function
+// or endpoint your backend expects. This wires the modal's UI/validation
+// correctly and calls window.uploadVideoToKeytube(formData) if it
+// exists — replace that call with whatever api.js actually provides.
+function openUploadModal(){
+  if(!_video || !_video.src){ evToast('Open a video first','err'); return; }
+  var overlay = document.getElementById('evUploadOverlay');
+  if(overlay) overlay.style.display = 'flex';
+}
+
+function closeUploadModal(){
+  var overlay = document.getElementById('evUploadOverlay');
+  if(overlay) overlay.style.display = 'none';
+}
+
+function doUploadToKeytube(){
+  var title = document.getElementById('upTitle').value.trim();
+  var errEl = document.getElementById('upErr');
+  if(!title){
+    if(errEl){ errEl.textContent = 'Video title is required.'; errEl.style.display = 'block'; }
+    return;
+  }
+  if(errEl) errEl.style.display = 'none';
+
+  var progRow  = document.getElementById('upProgressRow');
+  var statusEl = document.getElementById('upStatus');
+  var barEl    = document.getElementById('upBar');
+  var btn      = document.getElementById('upSubmitBtn');
+  if(progRow) progRow.style.display = 'block';
+  if(btn) btn.disabled = true;
+
+  function runUpload(blob){
+    if(statusEl) statusEl.textContent = 'Uploading to KEYTUBE…';
+    if(barEl) barEl.style.width = '60%';
+
+    var formData = new FormData();
+    formData.append('title', title);
+    formData.append('description', document.getElementById('upDesc').value);
+    formData.append('category', document.getElementById('upCategory').value);
+    formData.append('type', document.getElementById('upType').value);
+    formData.append('cover', document.getElementById('upCover').value);
+    formData.append('video', blob, 'export.webm');
+
+    if(typeof window.uploadVideoToKeytube === 'function'){
+      window.uploadVideoToKeytube(formData).then(function(){
+        if(barEl) barEl.style.width = '100%';
+        if(statusEl) statusEl.textContent = 'Done!';
+        evToast('Uploaded to KEYTUBE ✓', 'ok');
+        setTimeout(closeUploadModal, 800);
+      }).catch(function(err){
+        if(errEl){ errEl.textContent = 'Upload failed: ' + (err && err.message ? err.message : err); errEl.style.display = 'block'; }
+        if(btn) btn.disabled = false;
+      });
+    } else {
+      if(errEl){
+        errEl.textContent = 'No upload function found (expected window.uploadVideoToKeytube — check api.js).';
+        errEl.style.display = 'block';
+      }
+      if(btn) btn.disabled = false;
+    }
+  }
+
+  if(_exportBlob){
+    runUpload(_exportBlob);
+  } else {
+    if(statusEl) statusEl.textContent = 'Exporting video first…';
+    if(barEl) barEl.style.width = '20%';
+    exportVideo(runUpload);
+  }
 }
