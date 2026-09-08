@@ -768,48 +768,102 @@ function openUploadModal(){
   openModal('uploadModal');
 }
 
+// ── FIX 2: Upload — wrap toBlob in Promise so async/await works ──
+function canvasToBlob(canvas, type, quality){
+  return new Promise(function(resolve){
+    canvas.toBlob(resolve, type || 'image/jpeg', quality || 0.9);
+  });
+}
+
 async function doUpload(){
-  var title=(document.getElementById('upTitle').value||'').trim();
-  var err=document.getElementById('upErr');err.textContent='';
-  if(!title){err.textContent='Enter a title.';return;}
-  var btn=document.getElementById('upSubmitBtn');btn.disabled=true;
-  var prog=document.getElementById('upProgRow');prog.style.display='';
+  var title = (document.getElementById('upTitle').value || '').trim();
+  var err   = document.getElementById('upErr');
+  err.textContent = '';
+  if(!title){ err.textContent = 'Enter a title.'; return; }
 
-  setUpProg('Exporting video…',5);
-  var blob=window._lastExportBlob;
-  if(!blob){
-    try{blob=await exportProcess();}catch(e){btn.disabled=false;err.textContent='Export failed: '+e.message;return;}
-  }
-  window._lastExportBlob=blob;
+  var btn  = document.getElementById('upSubmitBtn');
+  var prog = document.getElementById('upProgRow');
+  btn.disabled = true;
+  prog.style.display = '';
 
-  setUpProg('Uploading banner…',35);
-  var coverURL='';
   try{
-    var bc=document.getElementById('evBannerCanvas');
-    bc.toBlob(async function(bannerBlob){
-      try{
-        var bannerFile=new File([bannerBlob],'banner.jpg',{type:'image/jpeg'});
-        var coverRes=await uploadToCloudinary(bannerFile,CDN_USER,null);
-        coverURL=coverRes.url;
-      }catch(e){}
 
-      setUpProg('Uploading video…',50);
-      var vidFile=new File([blob],(title.replace(/\s+/g,'_')||'keyvideo')+'_edited.webm',{type:'video/webm'});
-      var videoURL='';
-      try{
-        var vidRes=await uploadToCloudinary(vidFile,CDN_USER,function(p){setUpProg('Uploading video '+p+'%…',50+Math.round(p*.35));});
-        videoURL=vidRes.url;
-      }catch(e){btn.disabled=false;err.textContent='Video upload failed: '+e.message;return;}
+    // Step 1: Export video
+    setUpProg('Exporting video…', 5);
+    var blob = window._lastExportBlob;
+    if(!blob){
+      blob = await exportProcess();
+      window._lastExportBlob = blob;
+    }
 
-      setUpProg('Saving to KEYTUBE…',90);
-      api('addMovie',{gmail:_user.gmail,name:title,description:document.getElementById('upDesc').value.trim(),category:document.getElementById('upCat').value,type:document.getElementById('upType').value,cover:coverURL,videoURL:videoURL,downloadURL:videoURL,year:new Date().getFullYear(),isNew:true,featured:false},function(r){
-        btn.disabled=false;prog.style.display='none';
-        if(r.ok){closeModal('uploadModal');evToast('Uploaded to KEYTUBE! 🎉','ok');window._lastExportBlob=null;
-          setTimeout(function(){var base=window.location.pathname.indexOf('/pages/')!==-1?'':'pages/';window.location.href=base+'watch.html?id='+r.id;},1500);}
-        else{err.textContent=r.msg||'Save failed.';}
+    // Step 2: Upload banner (await properly using canvasToBlob)
+    setUpProg('Uploading banner…', 35);
+    var coverURL = '';
+    try{
+      var bc          = document.getElementById('evBannerCanvas');
+      var bannerBlob  = await canvasToBlob(bc, 'image/jpeg', 0.9);
+      var bannerFile  = new File([bannerBlob], 'banner.jpg', {type:'image/jpeg'});
+      var coverRes    = await uploadToCloudinary(bannerFile, CDN_USER, null);
+      coverURL        = coverRes.url;
+    } catch(e){
+      console.warn('Banner upload skipped:', e.message);
+      // Banner is optional — continue without it
+    }
+
+    // Step 3: Upload video
+    setUpProg('Uploading video…', 50);
+    var vidFile = new File(
+      [blob],
+      (title.replace(/\s+/g,'_') || 'keyvideo') + '_edited.webm',
+      {type:'video/webm'}
+    );
+    var videoURL = '';
+    try{
+      var vidRes = await uploadToCloudinary(vidFile, CDN_USER, function(p){
+        setUpProg('Uploading video ' + p + '%…', 50 + Math.round(p * 0.35));
       });
-    },'image/jpeg',0.9);
-  }catch(e){btn.disabled=false;err.textContent='Banner upload failed: '+e.message;}
+      videoURL = vidRes.url;
+    } catch(e){
+      throw new Error('Video upload failed: ' + e.message);
+    }
+
+    // Step 4: Save to KEYTUBE
+    setUpProg('Saving to KEYTUBE…', 92);
+    await new Promise(function(resolve, reject){
+      api('addMovie', {
+        gmail:       _user.gmail,
+        name:        title,
+        description: document.getElementById('upDesc').value.trim(),
+        category:    document.getElementById('upCat').value,
+        type:        document.getElementById('upType').value,
+        cover:       coverURL,
+        videoURL:    videoURL,
+        downloadURL: videoURL,
+        year:        new Date().getFullYear(),
+        isNew:       true,
+        featured:    false
+      }, function(r){
+        if(r.ok) resolve(r);
+        else     reject(new Error(r.msg || 'Save failed'));
+      });
+    }).then(function(r){
+      btn.disabled = false;
+      prog.style.display = 'none';
+      window._lastExportBlob = null;
+      closeModal('uploadModal');
+      evToast('Uploaded to KEYTUBE! 🎉', 'ok');
+      setTimeout(function(){
+        var base = window.location.pathname.indexOf('/pages/') !== -1 ? '' : 'pages/';
+        window.location.href = base + 'watch.html?id=' + r.id;
+      }, 1500);
+    });
+
+  } catch(e){
+    btn.disabled    = false;
+    prog.style.display = 'none';
+    err.textContent = e.message || 'Upload failed. Try again.';
+    evToast(e.message || 'Upload failed', 'err');
+  }
 }
 
 function setUpProg(msg,pct){
