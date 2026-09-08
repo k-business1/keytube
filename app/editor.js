@@ -1,3 +1,4 @@
+
 // ── editor.js — KeyVideo Editor Advanced ────────────────────
 'use strict';
 
@@ -645,44 +646,158 @@ function startExport(){
 }
 function cancelExp(){_exportCancelFlag=true;}
 
+// ── EXPORT — reliable real-time capture ──────────────────────
 function exportProcess(){
-  return new Promise(function(resolve,reject){
-    var start=_trimActive?_trimStart:0,end=_trimActive?_trimEnd:_video.duration;
-    var W=_canvas.width,H=_canvas.height,fps=24;
-    var off=document.createElement('canvas');off.width=W;off.height=H;
-    var oc=off.getContext('2d');
-    var stream=off.captureStream(fps);
-    if(_audioCtx&&_audioBuffer){
+  return new Promise(function(resolve, reject){
+    if(!_video || !_video.duration){
+      reject(new Error('No video loaded')); return;
+    }
+
+    var start = _trimActive ? _trimStart : 0;
+    var end   = _trimActive ? _trimEnd   : _video.duration;
+    var W = _canvas.width, H = _canvas.height;
+
+    // Check browser support
+    if(!window.MediaRecorder){
+      reject(new Error('Your browser does not support video export. Try Chrome or Edge.')); return;
+    }
+
+    // Pick best supported format
+    var mime = '';
+    var formats = ['video/webm;codecs=vp8','video/webm','video/mp4'];
+    for(var i=0;i<formats.length;i++){
+      if(MediaRecorder.isTypeSupported(formats[i])){ mime=formats[i]; break; }
+    }
+    if(!mime){ reject(new Error('No supported video format found in this browser')); return; }
+
+    // Offscreen canvas
+    var off = document.createElement('canvas');
+    off.width = W; off.height = H;
+    var oc = off.getContext('2d');
+
+    // Canvas stream
+    var stream;
+    try{ stream = off.captureStream(25); }
+    catch(e){ reject(new Error('Canvas capture not supported: ' + e.message)); return; }
+
+    // Attach audio if available
+    if(_audioCtx && _audioBuffer){
       try{
-        var dest=_audioCtx.createMediaStreamDestination();
-        var src=_audioCtx.createBufferSource();src.buffer=_audioBuffer;
-        var gain=_audioCtx.createGain();gain.gain.value=parseInt(document.getElementById('audioVol').value)/100;
-        src.connect(gain);gain.connect(dest);src.start(0,start);
-        dest.stream.getAudioTracks().forEach(function(t){stream.addTrack(t);});
-      }catch(e){}
+        var dest = _audioCtx.createMediaStreamDestination();
+        var src2 = _audioCtx.createBufferSource();
+        var gain = _audioCtx.createGain();
+        gain.gain.value = (parseInt((document.getElementById('audioVol')||{}).value)||80) / 100;
+        src2.buffer = _audioBuffer;
+        src2.connect(gain); gain.connect(dest);
+        src2.start(0, Math.max(0, start));
+        dest.stream.getAudioTracks().forEach(function(t){ stream.addTrack(t); });
+      }catch(e){ console.warn('Audio attach failed:', e); }
     }
-    var mime=MediaRecorder.isTypeSupported('video/webm;codecs=vp8,opus')?'video/webm;codecs=vp8,opus':'video/webm';
-    var rec=new MediaRecorder(stream,{mimeType:mime,videoBitsPerSecond:3500000});
-    var chunks=[];
-    rec.ondataavailable=function(e){if(e.data.size>0)chunks.push(e.data);};
-    rec.onstop=function(){resolve(new Blob(chunks,{type:'video/webm'}));};
-    rec.start(200);
-    var t=start,ft=1/fps,dur=end-start;
-    function nextF(){
-      if(_exportCancelFlag){rec.stop();reject(new Error('cancelled'));return;}
-      if(t>=end+ft){rec.stop();return;}
-      var pct=Math.round((t-start)/dur*100);
-      setExportProg(Math.min(pct,99),'Exporting '+Math.min(pct,99)+'%…');
-      _video.currentTime=Math.min(t,end);
-      _video.onseeked=function(){
-        oc.drawImage(_video,0,0,W,H);
-        _vidLayers.forEach(function(vl){if(vl.video&&vl.video.readyState>=2){oc.save();oc.globalAlpha=(vl.opacity||100)/100;oc.drawImage(vl.video,vl.x,vl.y,vl.w,vl.h);oc.restore();}});
-        oc.drawImage(_drawCanvas,0,0);
-        _layers.forEach(function(l){drawLayer(oc,l,false);});
-        t+=ft;setTimeout(nextF,1000/fps);
-      };
+
+    // Recorder — low bitrate to keep file small for Cloudinary
+    var rec;
+    try{
+      rec = new MediaRecorder(stream, {
+        mimeType: mime,
+        videoBitsPerSecond: 1500000   // 1.5 Mbps — keeps file under 100MB for most clips
+      });
+    }catch(e){ reject(new Error('MediaRecorder failed: ' + e.message)); return; }
+
+    var chunks  = [];
+    var stopped = false;
+
+    rec.ondataavailable = function(e){
+      if(e.data && e.data.size > 0) chunks.push(e.data);
+    };
+
+    rec.onstop = function(){
+      if(chunks.length === 0){
+        reject(new Error('Export produced no data — try a shorter clip'));
+        return;
+      }
+      var blob = new Blob(chunks, {type: mime});
+      if(blob.size < 1000){
+        reject(new Error('Export file is too small — something went wrong'));
+        return;
+      }
+      resolve(blob);
+    };
+
+    rec.onerror = function(e){
+      reject(new Error('Recorder error: ' + (e.error ? e.error.message : 'unknown')));
+    };
+
+    // Seek to start, then play + capture
+    _video.pause();
+    _video.currentTime = start;
+
+    function onSeekedForExport(){
+      _video.removeEventListener('seeked', onSeekedForExport);
+      rec.start(250);  // collect chunks every 250ms
+
+      _video.play().catch(function(e){
+        reject(new Error('Video play failed: ' + e.message));
+      });
+
+      var rafId;
+      var lastPct = 0;
+
+      function captureLoop(){
+        if(_exportCancelFlag){
+          _video.pause();
+          cancelAnimationFrame(rafId);
+          if(!stopped){ stopped=true; rec.stop(); }
+          reject(new Error('cancelled'));
+          return;
+        }
+
+        var cur = _video.currentTime;
+
+        // Draw frame
+        if(_video.readyState >= 2){
+          oc.clearRect(0, 0, W, H);
+          oc.drawImage(_video, 0, 0, W, H);
+          // Draw canvas
+          oc.drawImage(_drawCanvas, 0, 0);
+          // Draw overlay layers
+          _layers.forEach(function(l){ drawLayer(oc, l, false); });
+          // Draw PiP video layers
+          _vidLayers.forEach(function(vl){
+            if(vl.video && vl.video.readyState >= 2){
+              oc.save();
+              oc.globalAlpha = (vl.opacity || 100) / 100;
+              oc.drawImage(vl.video, vl.x, vl.y, vl.w, vl.h);
+              oc.restore();
+            }
+          });
+        }
+
+        // Progress
+        var dur = end - start;
+        var pct = dur > 0 ? Math.min(99, Math.round((cur - start) / dur * 100)) : 0;
+        if(pct !== lastPct){
+          lastPct = pct;
+          setExportProg(pct, 'Exporting ' + pct + '%  (' + fmtT(cur) + ' / ' + fmtT(end) + ')');
+        }
+
+        // Check end
+        if(cur >= end - 0.1 || _video.ended || _video.paused){
+          _video.pause();
+          cancelAnimationFrame(rafId);
+          setExportProg(99, 'Finalizing…');
+          setTimeout(function(){
+            if(!stopped){ stopped=true; rec.stop(); }
+          }, 600); // wait 600ms for last chunks to flush
+          return;
+        }
+
+        rafId = requestAnimationFrame(captureLoop);
+      }
+
+      rafId = requestAnimationFrame(captureLoop);
     }
-    nextF();
+
+    _video.addEventListener('seeked', onSeekedForExport);
   });
 }
 
@@ -775,67 +890,100 @@ function canvasToBlob(canvas, type, quality){
   });
 }
 
+// ── UPLOAD — proper async chain, no callback mixing ──────────
 async function doUpload(){
   var title = (document.getElementById('upTitle').value || '').trim();
   var err   = document.getElementById('upErr');
   err.textContent = '';
-  if(!title){ err.textContent = 'Enter a title.'; return; }
+
+  if(!title){ err.textContent = 'Enter a video title.'; return; }
+  if(!_user){ err.textContent = 'Not logged in.'; return; }
 
   var btn  = document.getElementById('upSubmitBtn');
   var prog = document.getElementById('upProgRow');
-  btn.disabled = true;
+  btn.disabled       = true;
   prog.style.display = '';
 
   try{
 
-    // Step 1: Export video
-    setUpProg('Exporting video…', 5);
-    var blob = window._lastExportBlob;
+    // ── STEP 1: Export ─────────────────────────────────────
+    var blob = window._lastExportBlob || null;
+
     if(!blob){
-      blob = await exportProcess();
-      window._lastExportBlob = blob;
+      // Close upload modal, show export overlay
+      closeModal('uploadModal');
+      _exportCancelFlag = false;
+      document.getElementById('evExportOv').classList.add('open');
+      setExportProg(0, 'Preparing…');
+
+      try{
+        blob = await exportProcess();
+        window._lastExportBlob = blob;
+      } catch(e){
+        document.getElementById('evExportOv').classList.remove('open');
+        if(e.message === 'cancelled'){ btn.disabled=false; prog.style.display='none'; return; }
+        throw new Error('Export failed: ' + e.message);
+      }
+
+      document.getElementById('evExportOv').classList.remove('open');
+      // Re-open upload modal
+      openModal('uploadModal');
     }
 
-    // Step 2: Upload banner (await properly using canvasToBlob)
-    setUpProg('Uploading banner…', 35);
+    setUpProg('Export complete (' + (blob.size/1024/1024).toFixed(1) + ' MB). Uploading banner…', 10);
+
+    // ── STEP 2: Upload banner (wrapped in Promise) ─────────
     var coverURL = '';
     try{
-      var bc          = document.getElementById('evBannerCanvas');
-      var bannerBlob  = await canvasToBlob(bc, 'image/jpeg', 0.9);
-      var bannerFile  = new File([bannerBlob], 'banner.jpg', {type:'image/jpeg'});
-      var coverRes    = await uploadToCloudinary(bannerFile, CDN_USER, null);
-      coverURL        = coverRes.url;
+      var bannerBlob = await new Promise(function(res, rej){
+        var bc = document.getElementById('evBannerCanvas');
+        if(!bc){ rej(new Error('No banner canvas')); return; }
+        bc.toBlob(function(b){ b ? res(b) : rej(new Error('Banner toBlob failed')); }, 'image/jpeg', 0.88);
+      });
+
+      setUpProg('Uploading banner…', 20);
+
+      var bannerFile = new File([bannerBlob], 'banner.jpg', {type:'image/jpeg'});
+      var cRes = await uploadToCloudinary(bannerFile, CDN_USER, null);
+      coverURL = cRes.url;
+
     } catch(e){
-      console.warn('Banner upload skipped:', e.message);
+      console.warn('Banner upload skipped (non-fatal):', e.message);
       // Banner is optional — continue without it
     }
 
-    // Step 3: Upload video
-    setUpProg('Uploading video…', 50);
-    var vidFile = new File(
-      [blob],
-      (title.replace(/\s+/g,'_') || 'keyvideo') + '_edited.webm',
-      {type:'video/webm'}
-    );
-    var videoURL = '';
-    try{
-      var vidRes = await uploadToCloudinary(vidFile, CDN_USER, function(p){
-        setUpProg('Uploading video ' + p + '%…', 50 + Math.round(p * 0.35));
-      });
-      videoURL = vidRes.url;
-    } catch(e){
-      throw new Error('Video upload failed: ' + e.message);
+    // ── STEP 3: Upload video ───────────────────────────────
+    setUpProg('Uploading video to Cloudinary…', 30);
+
+    // Warn if file is large
+    var sizeMB = blob.size / 1024 / 1024;
+    if(sizeMB > 95){
+      throw new Error('Video is ' + sizeMB.toFixed(0) + 'MB — too large for upload. Trim the video shorter (under 3 minutes) and try again.');
     }
 
-    // Step 4: Save to KEYTUBE
-    setUpProg('Saving to KEYTUBE…', 92);
-    await new Promise(function(resolve, reject){
+    var ext      = blob.type.indexOf('mp4') !== -1 ? '.mp4' : '.webm';
+    var vidFile  = new File([blob], (title.replace(/\s+/g,'_') || 'keyvideo') + '_edited' + ext, {type: blob.type});
+    var videoURL = '';
+
+    try{
+      var vRes = await uploadToCloudinary(vidFile, CDN_USER, function(p){
+        setUpProg('Uploading video ' + p + '% (' + sizeMB.toFixed(1) + 'MB)…', 30 + Math.round(p * 0.55));
+      });
+      videoURL = vRes.url;
+    } catch(e){
+      throw new Error('Video upload failed: ' + e.message + '. Check your internet connection and try again.');
+    }
+
+    // ── STEP 4: Save to KEYTUBE ────────────────────────────
+    setUpProg('Saving to your channel…', 90);
+
+    var saved = await new Promise(function(resolve, reject){
       api('addMovie', {
         gmail:       _user.gmail,
         name:        title,
-        description: document.getElementById('upDesc').value.trim(),
-        category:    document.getElementById('upCat').value,
-        type:        document.getElementById('upType').value,
+        description: (document.getElementById('upDesc').value || '').trim(),
+        category:    (document.getElementById('upCat') || {}).value || 'comedy',
+        type:        (document.getElementById('upType') || {}).value || 'movie',
         cover:       coverURL,
         videoURL:    videoURL,
         downloadURL: videoURL,
@@ -843,26 +991,32 @@ async function doUpload(){
         isNew:       true,
         featured:    false
       }, function(r){
-        if(r.ok) resolve(r);
-        else     reject(new Error(r.msg || 'Save failed'));
+        if(r && r.ok) resolve(r);
+        else          reject(new Error(r ? (r.msg || 'Save failed') : 'No response from server'));
       });
-    }).then(function(r){
-      btn.disabled = false;
+    });
+
+    // ── SUCCESS ────────────────────────────────────────────
+    setUpProg('Done! 🎉', 100);
+    window._lastExportBlob = null;
+
+    setTimeout(function(){
+      btn.disabled       = false;
       prog.style.display = 'none';
-      window._lastExportBlob = null;
       closeModal('uploadModal');
       evToast('Uploaded to KEYTUBE! 🎉', 'ok');
       setTimeout(function(){
         var base = window.location.pathname.indexOf('/pages/') !== -1 ? '' : 'pages/';
-        window.location.href = base + 'watch.html?id=' + r.id;
-      }, 1500);
-    });
+        window.location.href = base + 'watch.html?id=' + saved.id;
+      }, 1200);
+    }, 800);
 
   } catch(e){
-    btn.disabled    = false;
+    btn.disabled       = false;
     prog.style.display = 'none';
-    err.textContent = e.message || 'Upload failed. Try again.';
+    err.textContent    = e.message || 'Upload failed. Please try again.';
     evToast(e.message || 'Upload failed', 'err');
+    console.error('doUpload error:', e);
   }
 }
 
