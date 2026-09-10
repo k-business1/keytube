@@ -349,6 +349,14 @@ function startExport(){
 }
 function cancelExp(){_exportCancelFlag=true;}
 
+// FIXED: manual frame capture instead of a free-running captureStream timer.
+// Previously off.captureStream(25) sampled the offscreen canvas on its own
+// clock, independent of the rAF draw loop below. Whenever the draw loop
+// fell behind (extra layers, PiP video, a backgrounded tab), the recorder
+// kept re-encoding the same stale frame and then jumping — which is exactly
+// the "slow motion / image flow" slideshow effect. Now we capture at 0fps
+// (manual mode) and call track.requestFrame() right after each real draw,
+// so every encoded frame corresponds to an actual rendered frame.
 function exportProcess(){
   return new Promise(function(resolve,reject){
     if(!_video||!_video.duration){reject(new Error('No video'));return;}
@@ -359,29 +367,50 @@ function exportProcess(){
     ['video/webm;codecs=vp8','video/webm','video/mp4'].forEach(function(m){if(!mime&&MediaRecorder.isTypeSupported(m))mime=m;});
     if(!mime){reject(new Error('No supported export format — try Chrome'));return;}
     var off=document.createElement('canvas');off.width=W;off.height=H;var oc=off.getContext('2d');
-    var stream;try{stream=off.captureStream(25);}catch(e){reject(new Error('Canvas capture not supported'));return;}
+
+    // Manual frame mode: 0 = don't auto-sample, we push frames ourselves.
+    var stream,track,manual=true;
+    try{
+      stream=off.captureStream(0);
+      track=stream.getVideoTracks()[0];
+      if(!track||!track.requestFrame){manual=false;stream=off.captureStream(25);}
+    }catch(e){reject(new Error('Canvas capture not supported'));return;}
+
     // Attach audio
     if(_audioCtx&&_audioBuffer){try{var dest=_audioCtx.createMediaStreamDestination();var asrc=_audioCtx.createBufferSource();var agn=_audioCtx.createGain();agn.gain.value=parseInt((document.getElementById('audioVol')||{value:80}).value)/100;asrc.buffer=_audioBuffer;asrc.connect(agn);agn.connect(dest);asrc.start(0,Math.max(0,start));dest.stream.getAudioTracks().forEach(function(t){stream.addTrack(t);});}catch(e){console.warn('Audio attach failed:',e);}}
+
     var rec;try{rec=new MediaRecorder(stream,{mimeType:mime,videoBitsPerSecond:1500000});}catch(e){reject(new Error('Recorder init failed: '+e.message));return;}
     var chunks=[],stopped=false;
     rec.ondataavailable=function(e){if(e.data&&e.data.size>0)chunks.push(e.data);};
     rec.onstop=function(){if(!chunks.length){reject(new Error('No data captured — try again'));return;}var blob=new Blob(chunks,{type:mime});if(blob.size<500){reject(new Error('Export too small — try again'));return;}resolve(blob);};
     rec.onerror=function(){reject(new Error('Recorder error'));};
+
     _video.pause();_video.currentTime=start;
+
     function afterSeek(){
       _video.removeEventListener('seeked',afterSeek);
-      rec.start(200);
-      _video.play().catch(function(e){reject(new Error('Play failed: '+e.message));});
-      var rafId,lastPct=-1;
-      function frame(){
-        if(_exportCancelFlag){_video.pause();cancelAnimationFrame(rafId);if(!stopped){stopped=true;setTimeout(function(){rec.stop();},100);}reject(new Error('cancelled'));return;}
-        var cur=_video.currentTime,dur2=(end-start)||1,pct=Math.min(99,Math.round((cur-start)/dur2*100));
-        if(pct!==lastPct){lastPct=pct;setExportProg(pct,'Exporting '+pct+'%  ('+fmtT(cur)+' / '+fmtT(end)+')');}
-        if(_video.readyState>=2){oc.clearRect(0,0,W,H);oc.drawImage(_video,0,0,W,H);oc.drawImage(_drawCanvas,0,0);_layers.forEach(function(l){drawLayer(oc,l,false);});_vidLayers.forEach(function(vl){if(vl.video&&vl.video.readyState>=2){oc.save();oc.globalAlpha=(vl.opacity||100)/100;oc.drawImage(vl.video,vl.x,vl.y,vl.w,vl.h);oc.restore();}});}
-        if(cur>=end-0.08||_video.ended||_video.paused){_video.pause();cancelAnimationFrame(rafId);setExportProg(99,'Finalizing…');if(!stopped){stopped=true;setTimeout(function(){rec.stop();},700);}return;}
+      // FIXED: wait for play() to actually resolve before starting the
+      // recorder, so we never record a paused/stale first frame.
+      _video.play().then(function(){
+        rec.start(200);
+        var rafId,lastPct=-1;
+        function frame(){
+          if(_exportCancelFlag){_video.pause();cancelAnimationFrame(rafId);if(!stopped){stopped=true;setTimeout(function(){rec.stop();},100);}reject(new Error('cancelled'));return;}
+          var cur=_video.currentTime,dur2=(end-start)||1,pct=Math.min(99,Math.round((cur-start)/dur2*100));
+          if(pct!==lastPct){lastPct=pct;setExportProg(pct,'Exporting '+pct+'%  ('+fmtT(cur)+' / '+fmtT(end)+')');}
+          if(_video.readyState>=2){
+            oc.clearRect(0,0,W,H);
+            oc.drawImage(_video,0,0,W,H);
+            oc.drawImage(_drawCanvas,0,0);
+            _layers.forEach(function(l){drawLayer(oc,l,false);});
+            _vidLayers.forEach(function(vl){if(vl.video&&vl.video.readyState>=2){oc.save();oc.globalAlpha=(vl.opacity||100)/100;oc.drawImage(vl.video,vl.x,vl.y,vl.w,vl.h);oc.restore();}});
+            if(manual&&track.requestFrame)track.requestFrame(); // push exactly one real frame
+          }
+          if(cur>=end-0.08||_video.ended||_video.paused){_video.pause();cancelAnimationFrame(rafId);setExportProg(99,'Finalizing…');if(!stopped){stopped=true;setTimeout(function(){rec.stop();},700);}return;}
+          rafId=requestAnimationFrame(frame);
+        }
         rafId=requestAnimationFrame(frame);
-      }
-      rafId=requestAnimationFrame(frame);
+      }).catch(function(e){reject(new Error('Play failed: '+e.message));});
     }
     _video.addEventListener('seeked',afterSeek);
   });
