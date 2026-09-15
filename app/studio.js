@@ -157,6 +157,13 @@ function loadDashboard(){
     setText('ds-comments',fmtNum(s.totalComments));setText('ds-downloads',fmtNum(s.totalDownloads));
 
     setText('ds-recent',fmtNum(s.recentViews));
+    // Watch time on dashboard
+api('getWatchTimeStats', {gmail:u.gmail}, function(wr){
+  if(wr.ok){
+    setText('ds-watchtime', fmtWatchTime(wr.totalSeconds));
+    setText('ds-watchrecent', fmtWatchTime(wr.recentSeconds));
+  }
+});
 
     // Earnings
 
@@ -532,7 +539,19 @@ function setAnalyticsPeriod(days,btn){
 
     setText('aViews',fmtNum(days?s.recentViews:s.totalViews));
 
-    setText('aWatchTime','—');setText('aFollowers',fmtNum(s.followerCount));
+    api('getWatchTimeStats',{gmail:u.gmail},function(wr){
+  if(wr.ok){
+    setText('aWatchTime', fmtWatchTime(days ? wr.recentSeconds : wr.totalSeconds));
+    // Fill per-video watch time in analytics table rows
+    var rows2 = document.querySelectorAll('#analyticsTable tr');
+    (s.videoStats||[]).forEach(function(v,i){
+      if(rows2[i]){
+        var wtCell = rows2[i].querySelectorAll('td')[4]; // 5th column
+        if(wtCell) wtCell.textContent = fmtWatchTime(wr.perVideo[v.id]||0);
+      }
+    });
+  }
+});setText('aFollowers',fmtNum(s.followerCount));
 
     setText('aLikes',fmtNum(s.totalLikes));
 
@@ -1135,3 +1154,11 @@ function setTheme(theme){
 // ── HELPERS ──────────────────────────────────────────────────
 
 function setText(id,val){var el=document.getElementById(id);if(el)el.textContent=val;}
+// Format seconds → "2h 14m" or "45m" or "30s"
+function fmtWatchTime(sec){
+  sec = parseInt(sec)||0;
+  if(sec < 60)  return sec + 's';
+  if(sec < 3600) return Math.floor(sec/60) + 'm';
+  var h = Math.floor(sec/3600), m = Math.floor((sec%3600)/60);
+  return h + 'h' + (m>0?' '+m+'m':'');
+}
