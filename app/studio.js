@@ -517,8 +517,6 @@ function loadMyFollowers(){
 
 }
 
-
-
 // ── ANALYTICS ───────────────────────────────────────────────
 
 var _analyticsPeriod=30;
@@ -572,6 +570,7 @@ function setAnalyticsPeriod(days,btn){
   });
 
 }
+
 
 
 
