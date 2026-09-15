@@ -21,6 +21,19 @@ function clearCache(keys) {
   (keys || []).forEach(function(k){ _cache.remove(k); });
 }
 
+// ── Movies cache versioning — bump this to invalidate all getMovies() cache entries
+function getMoviesCacheVersion() {
+  var v = _cache.get('movies_ver');
+  return v ? v : '0';
+}
+
+function bumpMoviesCacheVersion() {
+  try {
+    var v = parseInt(getMoviesCacheVersion(), 10) + 1;
+    _cache.put('movies_ver', String(v), 21600);
+  } catch(e) {}
+}
+
 // ── Serve HTML ────────────────────────────────────────────────
 function doGet() {
   return HtmlService.createHtmlOutputFromFile('index')
@@ -198,15 +211,19 @@ function rowToMovie(r) {
 }
 
 function getMovies(d) {
-  var list = getRows('Movies').filter(function(r){return !!r[0];}).map(rowToMovie);
-  if (!d.isLoggedIn) list = list.filter(function(m){return !m.isNew;}).slice(0,10);
-  if (d.category&&d.category!=='all') list=list.filter(function(m){return m.category.toLowerCase()===d.category.toLowerCase();});
-  if (d.type&&d.type!=='all') list=list.filter(function(m){return m.type.toLowerCase()===d.type.toLowerCase();});
-  if (d.year) list=list.filter(function(m){return String(m.year)===String(d.year);});
-  if (d.country&&d.country!=='all') list=list.filter(function(m){return m.country.toLowerCase().indexOf(d.country.toLowerCase())!==-1;});
-  if (d.minRating) list=list.filter(function(m){return parseFloat(m.rating||0)>=parseFloat(d.minRating);});
-  if (d.uploaderGmail) list=list.filter(function(m){return m.uploaderGmail===d.uploaderGmail;});
-  return {ok:true, movies:list};
+  var ver = getMoviesCacheVersion();
+  var key = 'movies_v' + ver + '_' + JSON.stringify(d);
+  return cachedGet(key, 180, function() {
+    var list = getRows('Movies').filter(function(r){return !!r[0];}).map(rowToMovie);
+    if (!d.isLoggedIn) list = list.filter(function(m){return !m.isNew;}).slice(0,10);
+    if (d.category&&d.category!=='all') list=list.filter(function(m){return m.category.toLowerCase()===d.category.toLowerCase();});
+    if (d.type&&d.type!=='all') list=list.filter(function(m){return m.type.toLowerCase()===d.type.toLowerCase();});
+    if (d.year) list=list.filter(function(m){return String(m.year)===String(d.year);});
+    if (d.country&&d.country!=='all') list=list.filter(function(m){return m.country.toLowerCase().indexOf(d.country.toLowerCase())!==-1;});
+    if (d.minRating) list=list.filter(function(m){return parseFloat(m.rating||0)>=parseFloat(d.minRating);});
+    if (d.uploaderGmail) list=list.filter(function(m){return m.uploaderGmail===d.uploaderGmail;});
+    return {ok:true, movies:list};
+  });
 }
 
 function getMovie(d) {
@@ -231,10 +248,7 @@ function addMovie(d) {
     d.language||d.category||'',d.rating||'',
     d.gmail||''
   ]);
-  try {
-    var cache = CacheService.getScriptCache();
-    cache.removeAll(['movies_all_all_0','movies_all_all_1']);
-  } catch (e) {}
+  bumpMoviesCacheVersion();
   return {ok:true, id:id, msg:'Movie added!'};
 }
 
@@ -260,10 +274,7 @@ function updateMovie(d) {
       if(d.featured!==undefined)    sh.getRange(row,15).setValue(d.featured===true||d.featured==='true');
       if(d.language!==undefined)    sh.getRange(row,16).setValue(d.language);
       if(d.rating!==undefined)      sh.getRange(row,17).setValue(d.rating);
-      try {
-        var cache = CacheService.getScriptCache();
-        cache.removeAll(['movies_all_all_0','movies_all_all_1']);
-      } catch (e) {}
+      bumpMoviesCacheVersion();
       return {ok:true, msg:'Movie updated!'};
     }
   }
@@ -277,10 +288,7 @@ function deleteMovie(d) {
     if (String(data[i][0])===String(d.id)) {
       if (!isAdmin(d.token) && String(data[i][17])!==d.gmail) return {ok:false, msg:'Not your video.'};
       sh.deleteRow(i+1);
-      try {
-        var cache = CacheService.getScriptCache();
-        cache.removeAll(['movies_all_all_0','movies_all_all_1']);
-      } catch (e) {}
+      bumpMoviesCacheVersion();
       return {ok:true, msg:'Deleted.'};
     }
   }
@@ -795,7 +803,7 @@ function addComment(d) {
   ]);
   return {ok:true, id:id};
 }
- 
+
 function getComments(d) {
   var list=getRows('Comments')
     .filter(function(r){return String(r[3])===String(d.movieId)&&String(r[7])!=='deleted';})
@@ -806,7 +814,7 @@ function getComments(d) {
     };});
   return {ok:true, comments:list};
 }
- 
+
 function getMyVideoComments(d) {
   if (!d.gmail) return {ok:false, msg:'Not authenticated.'};
   var myIds=getRows('Movies').filter(function(r){return String(r[17])===d.gmail;}).map(function(r){return String(r[0]);});
@@ -819,7 +827,7 @@ function getMyVideoComments(d) {
     };});
   return {ok:true, comments:list};
 }
- 
+
 function deleteComment(d) {
   if (!isAdmin(d.token)&&!d.gmail) return {ok:false, msg:'Unauthorized.'};
   var sh=getSheet('Comments'), data=sh.getDataRange().getValues();
@@ -831,14 +839,14 @@ function deleteComment(d) {
   }
   return {ok:false};
 }
- 
+
 function getAllComments(d) {
   if (!isAdmin(d.token)) return {ok:false, msg:'Unauthorized.'};
   var list=getRows('Comments').filter(function(r){return !!r[0]&&String(r[7])!=='deleted';})
     .map(function(r){return {id:String(r[0]),gmail:String(r[1]),name:String(r[2]),movieId:String(r[3]),comment:String(r[4]),emoji:String(r[5]||'💬'),date:String(r[6]),avatar:String(r[8]||'')};});
   return {ok:true, comments:list};
 }
- 
+
 
 // ── Notifications ─────────────────────────────────────────────
 function addNotification(d) {
@@ -1014,77 +1022,77 @@ function initAIDefaults(d) {
   var sh = getSheet('AIKeyTerms',
     ['ID','Keywords','Response','DataFetch','Category','Active','Created']);
   if (sh.getLastRow() > 1) return {ok:true, msg:'AI already has key terms.'};
- 
+
   var defaults = [
     ['hello,hi,hey,greetings,good morning,good afternoon,bonjour',
      'Hello! 👋 Welcome to KEYTUBE! I am your AI assistant. I can help you find movies, channels, answer questions about the platform and more. What would you like to know?',
      '','greeting',true],
- 
+
     ['how many movies,total movies,movies available,movie count,number of movies',
      'KEYTUBE currently has {total_movies} movies and videos available across all categories. New content is added regularly! 🎬',
      'total_movies','movies',true],
- 
+
     ['most viewed,most popular movie,top movie,best movie,trending movie',
      'The most viewed movie on KEYTUBE right now is 🎬 "{most_viewed_movie}". Check it out on the home page!',
      'most_viewed_movie','movies',true],
- 
+
     ['new movies,latest movies,recent movies,newest content,new releases',
      'The latest addition to KEYTUBE is 🆕 "{recent_movie}". Head to the New Releases section to see all new content!',
      'recent_movie','movies',true],
- 
+
     ['top channel,best channel,popular channel,most followed channel',
      'The most followed channel on KEYTUBE is 📺 "{top_channel}" with {top_channel_followers} followers. Go follow them!',
      'top_channel,top_channel_followers','channels',true],
- 
+
     ['how many users,total users,user count,members',
      'KEYTUBE has {total_users} registered members and growing every day! 🌍 Join our community.',
      'total_users','general',true],
- 
+
     ['how to upload,upload video,upload movie,post video,add video',
      'To upload a video on KEYTUBE:\n1. Sign in to your account\n2. Go to My Studio 🎬\n3. Click "Upload Video"\n4. Fill in your video details\n5. Select your video file\n6. Click Upload & Publish ✅\n\nYour video will be live immediately!',
      '','help',true],
- 
+
     ['how to download,download video,save video,offline video',
      'To download a video:\n1. Open the video you want\n2. Tap the ⬇ Download button\n3. Wait for the download to complete\n4. Find it in your Downloads tab\n\nNote: You must be signed in to download. 🔒',
      '','help',true],
- 
+
     ['how to earn,make money,monetization,earnings,income,revenue',
      'To earn money on KEYTUBE 💰:\n1. Create your channel in Studio\n2. Upload quality content\n3. Grow your followers to {monetize_threshold}\n4. Monetization unlocks automatically ✅\n5. Earn from views, likes, comments and followers\n\nYou can withdraw your earnings from your Wallet!',
      'monetize_threshold','earnings',true],
- 
+
     ['how to create channel,create channel,start channel,my channel,setup channel',
      'To create your KEYTUBE channel:\n1. Sign in to your account\n2. Go to My Studio 🎬\n3. Click "Channel" in the sidebar\n4. Fill in your channel name and handle\n5. Add your bio and profile photo\n6. Click Create Channel ✅\n\nYour channel is live instantly!',
      '','channels',true],
- 
+
     ['how to follow,follow channel,subscribe,follow creator',
      'To follow a channel:\n1. Open the channel page\n2. Tap the Follow button 👥\n3. You will receive notifications for new content\n\nYou can also follow directly from search results or from the watch page!',
      '','help',true],
- 
+
     ['forgot password,reset password,change password,lost password',
      'To change your password:\n1. Go to your Profile ⚙️\n2. Click Settings\n3. Scroll to "Change Password"\n4. Enter your current password\n5. Enter and confirm your new password\n6. Click Update ✅\n\nIf you cannot log in, contact support at contact@keytube.com',
      '','help',true],
- 
+
     ['contact,support,help,problem,issue,report,bug',
      'Need help? Here is how to reach us:\n\n📧 Email: contact@keytube.com\n📱 WhatsApp: +250 700 000 000\n⏰ Support hours: Mon–Fri 8am–6pm CAT\n\nYou can also check our Help Center for answers to common questions.',
      '','support',true],
- 
+
     ['categories,types of content,what is on keytube,content types',
      'KEYTUBE has content in many categories:\n\n🇬🇧 English Movies\n🇫🇷 French Movies\n🎭 Drama\n🇨🇳 Chinese Series\n🇮🇳 Indian/Bollywood\n🎨 Cartoons\n📺 TV Series\n🎵 Music Videos\n📰 News\n😂 Comedy\n\nUse the category pills on the home page to browse!',
      '','movies',true],
- 
+
     ['what is keytube,about keytube,keytube platform,tell me about keytube',
      'KEYTUBE is your #1 streaming platform for movies, series, songs and news from around the world! 🌍\n\nFeatures:\n✅ Free to watch\n🎬 Upload your own content\n👥 Follow your favourite creators\n⬇ Download for offline viewing\n💰 Earn from your content\n\nBased in Kigali, Rwanda. Available worldwide!',
      '','general',true],
- 
+
     ['playlist,save movie,my list,watchlist,saved videos',
      'To save a movie to your playlist:\n1. Open any video\n2. Tap 📋 "My List"\n3. Find it later in My List tab\n\nYou can also Like ❤️ videos to find them in your Liked videos section in your Profile.',
      '','help',true],
- 
+
     ['bye,goodbye,thank you,thanks,see you',
      'You are welcome! 😊 Enjoy watching on KEYTUBE! If you have more questions, I am always here to help. Have a great day! 🌟',
      '','greeting',true]
   ];
- 
+
   defaults.forEach(function(row) {
     sh.appendRow([
       'AI'+Date.now()+Math.random().toString(36).slice(2,6),
@@ -1094,13 +1102,13 @@ function initAIDefaults(d) {
   });
   return {ok:true, msg:'AI defaults loaded! ('+defaults.length+' key terms)'};
 }
- 
+
 // ── Fetch live data placeholders ──────────────────────────────
 function resolveAIPlaceholders(text, dataFetch) {
   if (!dataFetch || !dataFetch.trim()) return text;
   var fetches = dataFetch.split(',').map(function(s){return s.trim();});
   var data = {};
- 
+
   fetches.forEach(function(fetch) {
     switch(fetch) {
       case 'total_movies':
@@ -1272,23 +1280,23 @@ function resolveAIPlaceholders(text, dataFetch) {
         var views = getRows('Views');
         var vMap = {};
         views.forEach(function(v){var id=String(v[1]);vMap[id]=(vMap[id]||0)+1;});
-        
+
         var now = new Date().getTime();
         var sevenDaysMs = 7 * 24 * 60 * 60 * 1000;
         var recentMatched = [];
-        
+
         movies.forEach(function(r) {
           if (!r[0]) return;
           var title = String(r[1] || '');
           var mId = String(r[0]);
           // Assuming upload timestamp or date is stored at index 5 (adjust column index as needed)
           var uploadDateVal = r[5] ? new Date(r[5]).getTime() : 0;
-          
+
           if (uploadDateVal && (now - uploadDateVal <= sevenDaysMs)) {
             recentMatched.push({title: title, id: mId, views: vMap[mId] || 0});
           }
         });
-        
+
         // Fallback if date field is not indexed at 5: take last added movies if dates aren't parsed
         if (recentMatched.length === 0) {
           var validMovies = movies.filter(function(r){return !!r[0];});
@@ -1298,11 +1306,11 @@ function resolveAIPlaceholders(text, dataFetch) {
             recentMatched.push({title: String(validMovies[k][1]), id: mId, views: vMap[mId] || 0});
           }
         }
-        
+
         // Rank by views descending
         recentMatched.sort(function(a, b) { return b.views - a.views; });
         var top10Recent = recentMatched.slice(0, 10);
-        
+
         var listRecent = '';
         top10Recent.forEach(function(item, idx) {
           listRecent += (idx + 1) + '. ' + item.title + ' (' + item.views + ' views)\n';
@@ -1318,21 +1326,21 @@ function resolveAIPlaceholders(text, dataFetch) {
           // Pick a random movie index
           var randomIndex = Math.floor(Math.random() * movies.length);
           var randMovie = movies[randomIndex];
-          
+
           var rTitle = String(randMovie[1] || 'Untitled');
           var rCategory = String(randMovie[3] || 'General');
           var rDesc = String(randMovie[4] || 'No description available.');
-         
+
           var randomMovieCard = '🎲 **Surprise Pick For You!**\n\n' +
             '🎬 **Title:** ' + rTitle + '\n' +
             '📁 **Category:** ' + rCategory + '\n' +
             '📝 **Description:** ' + rDesc;
-           
+
           data['random_movie'] = randomMovieCard;
           break;
     }
   });
- 
+
   // Replace placeholders in text
   Object.keys(data).forEach(function(key) {
     text = text.split('{'+key+'}').join(String(data[key]));
@@ -1343,7 +1351,7 @@ function resolveAIPlaceholders(text, dataFetch) {
 function saveUnknownQuestion(d) {
   var question = (d.question || d.query || '').trim();
   if (!question || question.length < 3) return {ok:false};
- 
+
   // Avoid duplicate questions in last 24 hours
   var cutoff = new Date(Date.now() - 24*60*60*1000);
   var existing = getRows('AIUnknown').filter(function(r){
@@ -1351,13 +1359,13 @@ function saveUnknownQuestion(d) {
       && new Date(String(r[3])) > cutoff;
   });
   if (existing.length) return {ok:true, msg:'Already logged.'};
- 
+
   var id = 'AQ' + Date.now();
   getSheet('AIUnknown', ['ID','Question','UserGmail','Date','Status','AdminNotes','UserEmail'])
     .appendRow([id, question, d.gmail||'guest', new Date().toISOString(), 'pending', '', d.email||'']);
   return {ok:true, id:id, msg:'Question saved for admin review.'};
 }
- 
+
 // ── Get all unknown questions (admin only) ────────────────────
 function getUnknownQuestions(d) {
   if (!isAdmin(d.token)) return {ok:false, msg:'Unauthorized.'};
@@ -1381,7 +1389,7 @@ function getUnknownQuestions(d) {
   var pendingCount = list.filter(function(q){return q.status==='pending';}).length;
   return {ok:true, questions:list, pendingCount:pendingCount};
 }
- 
+
 // ── Mark a question as answered / ignored ─────────────────────
 function markQuestionAnswered(d) {
   if (!isAdmin(d.token)) return {ok:false, msg:'Unauthorized.'};
@@ -1396,7 +1404,7 @@ function markQuestionAnswered(d) {
   }
   return {ok:false, msg:'Not found.'};
 }
- 
+
 // ── Delete an unknown question ─────────────────────────────────
 function deleteUnknownQuestion(d) {
   if (!isAdmin(d.token)) return {ok:false, msg:'Unauthorized.'};
@@ -1410,12 +1418,12 @@ function deleteUnknownQuestion(d) {
   }
   return {ok:false, msg:'Not found.'};
 }
- 
+
 // ── Convert unknown question to AI key term ───────────────────
 function convertToKeyTerm(d) {
   if (!isAdmin(d.token)) return {ok:false, msg:'Unauthorized.'};
   if (!d.keywords || !d.response) return {ok:false, msg:'Keywords and response required.'};
- 
+
   // Add the key term
   var result = addAIKeyTerm({
     token:     d.token,
@@ -1425,7 +1433,7 @@ function convertToKeyTerm(d) {
     category:  d.category  || 'general'
   });
   if (!result.ok) return result;
- 
+
   // Mark original question as answered
   if (d.questionId) {
     markQuestionAnswered({
@@ -1441,22 +1449,22 @@ function convertToKeyTerm(d) {
 function aiQuery(d) {
   var query = (d.query || '').toLowerCase().trim();
   if (!query) return {ok:false, msg:'Empty query.'};
- 
+
   // Clean query — remove punctuation
   var clean = query.replace(/[^\w\s]/g,' ').replace(/\s+/g,' ').trim();
   var words  = clean.split(' ').filter(function(w){return w.length > 1;});
- 
+
   var terms = getRows('AIKeyTerms').filter(function(r){
     return !!r[0] && String(r[5]).toLowerCase() === 'true';
   });
- 
+
   var bestMatch = null, bestScore = 0;
- 
+
   terms.forEach(function(term) {
     var keywords = String(term[1]||'').toLowerCase().split(',')
       .map(function(k){return k.trim();}).filter(Boolean);
     var score = 0;
- 
+
     keywords.forEach(function(kw) {
       // Exact phrase match — highest score
       if (clean.indexOf(kw) !== -1) {
@@ -1473,10 +1481,10 @@ function aiQuery(d) {
         });
       });
     });
- 
+
     if (score > bestScore) { bestScore = score; bestMatch = term; }
   });
- 
+
   // Minimum score threshold to avoid false matches
   if (!bestMatch || bestScore < 1) {
     // Auto-save unanswered question to sheet
@@ -1489,13 +1497,13 @@ function aiQuery(d) {
       response:"I'm not sure about that. 🤔\n\nTry asking about:\n• How to upload videos\n• How to earn money\n• Finding movies\n• Creating a channel\n\nOr tap 'Submit Question' to send this to our team.",
       category:'default'};
   }
- 
+
   var responseText = String(bestMatch[2]||'');
   var dataFetch    = String(bestMatch[3]||'');
- 
+
   // Resolve live data placeholders
   responseText = resolveAIPlaceholders(responseText, dataFetch);
- 
+
   return {
     ok:true,
     matched:true,
@@ -1528,7 +1536,7 @@ function addAIKeyTerm(d) {
     .appendRow([id,d.keywords,d.response,d.dataFetch||'',d.category||'general',true,new Date().toISOString()]);
   return {ok:true, id:id, msg:'Key term added!'};
 }
- 
+
 // ── Admin: Update key term ────────────────────────────────────
 function updateAIKeyTerm(d) {
   if (!isAdmin(d.token)) return {ok:false, msg:'Unauthorized.'};
@@ -1546,7 +1554,7 @@ function updateAIKeyTerm(d) {
   }
   return {ok:false, msg:'Not found.'};
 }
- 
+
 // ── Admin: Delete key term ────────────────────────────────────
 function deleteAIKeyTerm(d) {
   if (!isAdmin(d.token)) return {ok:false, msg:'Unauthorized.'};
@@ -1560,10 +1568,10 @@ function deleteAIKeyTerm(d) {
 // ── STEP 1: User requests reset — sends OTP to Gmail ──────────
 function requestPasswordReset(d) {
   if (!d.gmail) return {ok:false, msg:'Email address is required.'};
- 
+
   var gmail = d.gmail.toLowerCase().trim();
   if (gmail.indexOf('@gmail.com') === -1) return {ok:false, msg:'Only Gmail addresses are supported.'};
- 
+
   // Check account exists
   var users = getRows('Users');
   var userFound = false;
@@ -1577,13 +1585,13 @@ function requestPasswordReset(d) {
     }
   }
   if (!userFound) return {ok:false, msg:'No account found with this email address.'};
- 
+
   // Rate limit — block if a valid code was sent in last 5 minutes
   var sh   = getSheet('PasswordResets', ['ID','Gmail','Token','Expires','Status','Created']);
   var rows = sh.getDataRange().getValues();
   var now  = new Date();
   var fiveMinAgo = new Date(now.getTime() - 5*60*1000);
- 
+
   for (var j=1; j<rows.length; j++) {
     if (String(rows[j][1]).toLowerCase() === gmail &&
         String(rows[j][4]) === 'pending' &&
@@ -1591,21 +1599,21 @@ function requestPasswordReset(d) {
       return {ok:false, msg:'A code was already sent. Please wait a few minutes before requesting again.'};
     }
   }
- 
+
   // Expire any old pending codes for this email
   for (var k=1; k<rows.length; k++) {
     if (String(rows[k][1]).toLowerCase() === gmail && String(rows[k][4]) === 'pending') {
       sh.getRange(k+1, 5).setValue('expired');
     }
   }
- 
+
   // Generate 6-digit OTP
   var otp     = String(Math.floor(100000 + Math.random() * 900000));
   var id      = 'PR' + Date.now();
   var expires = new Date(now.getTime() + 15*60*1000).toISOString(); // 15 minutes
- 
+
   sh.appendRow([id, gmail, otp, expires, 'pending', now.toISOString()]);
- 
+
   // Send email via MailApp
   try {
     var siteName = getSettingsMap()['site_name'] || 'KEYTUBE';
@@ -1643,18 +1651,18 @@ function requestPasswordReset(d) {
     return {ok:false, msg:'Failed to send email: ' + e.message + '. Make sure the Gmail address is correct.'};
   }
 }
- 
+
 // ── STEP 2: Verify the OTP ────────────────────────────────────
 function verifyResetToken(d) {
   if (!d.gmail || !d.token) return {ok:false, msg:'Missing email or code.'};
- 
+
   var gmail = d.gmail.toLowerCase().trim();
   var token = String(d.token).trim();
   var now   = new Date();
- 
+
   var sh   = getSheet('PasswordResets');
   var data = sh.getDataRange().getValues();
- 
+
   for (var i=1; i<data.length; i++) {
     if (String(data[i][1]).toLowerCase() === gmail && String(data[i][2]) === token) {
       // Check status
@@ -1672,20 +1680,20 @@ function verifyResetToken(d) {
   }
   return {ok:false, msg:'Incorrect code. Please check and try again.'};
 }
- 
+
 // ── STEP 3: Set new password ──────────────────────────────────
 function resetPassword(d) {
   if (!d.gmail || !d.token || !d.newPassword) return {ok:false, msg:'Missing required fields.'};
   if (String(d.newPassword).length < 6) return {ok:false, msg:'Password must be at least 6 characters.'};
- 
+
   var gmail = d.gmail.toLowerCase().trim();
   var now   = new Date();
- 
+
   // Confirm token is verified and not expired
   var prSh   = getSheet('PasswordResets');
   var prData = prSh.getDataRange().getValues();
   var tokenRow = -1;
- 
+
   for (var i=1; i<prData.length; i++) {
     if (String(prData[i][1]).toLowerCase() === gmail && String(prData[i][2]) === String(d.token)) {
       if (String(prData[i][4]) !== 'verified') return {ok:false, msg:'Invalid or already used code. Please start over.'};
@@ -1695,7 +1703,7 @@ function resetPassword(d) {
     }
   }
   if (tokenRow === -1) return {ok:false, msg:'Reset code not found. Please request a new one.'};
- 
+
   // Update user password
   var uSh   = getSheet('Users');
   var uData = uSh.getDataRange().getValues();
@@ -1713,7 +1721,7 @@ function resetPassword(d) {
 }
 function googleAuth(d) {
   if (!d.email || !d.googleId) return {ok:false, msg:'Invalid Google credentials.'};
- 
+
   // Verify token with Google (secure server-side check)
   if (d.googleToken) {
     try {
@@ -1727,9 +1735,9 @@ function googleAuth(d) {
       logTraffic({user:d.email, action:'google_auth_unverified', country:d.country||'', details:e.message});
     }
   }
- 
+
   var gmail = String(d.email).toLowerCase().trim();
- 
+
   // ── Existing user → Login ──────────────────────────────────
   var sh   = getSheet('Users');
   var data = sh.getDataRange().getValues();
@@ -1758,13 +1766,13 @@ function googleAuth(d) {
       }};
     }
   }
- 
+
   // ── New user → Auto Register ───────────────────────────────
   var id = 'U' + Date.now();
   // Store a secure random password (they log in via Google, not password)
   var securePw = 'GOOGLE_' + Utilities.getUuid();
   var country  = d.country || '';
- 
+
   sh.appendRow([
     id, gmail, securePw,
     d.name    || gmail.split('@')[0],
@@ -1773,9 +1781,9 @@ function googleAuth(d) {
     'active',
     d.picture || ''
   ]);
- 
+
   logTraffic({user:gmail, action:'google_register', country:country, details:'Google Sign-In auto-register'});
- 
+
   return {ok:true, isNew:true, user:{
     id:      id,
     gmail:   gmail,
@@ -1793,7 +1801,7 @@ function submitAdRequest(d) {
   if (!d.adTitle)      return {ok:false, msg:'Ad title is required.'};
   if (!d.adType)       return {ok:false, msg:'Select an ad type.'};
   if (!d.adLinkURL)    return {ok:false, msg:'Destination link is required.'};
- 
+
   // Rate limit: same email can only submit 3 requests per day
   var today   = new Date().toDateString();
   var todayReqs = getRows('AdRequests').filter(function(r){
@@ -1801,10 +1809,10 @@ function submitAdRequest(d) {
            new Date(String(r[22])).toDateString() === today;
   });
   if (todayReqs.length >= 3) return {ok:false, msg:'Maximum 3 ad requests per day per email.'};
- 
+
   var id  = 'AD' + Date.now();
   var now = new Date().toISOString();
- 
+
   getSheet('AdRequests').appendRow([
     id,                          // ID
     d.businessName || '',        // BusinessName
@@ -1833,7 +1841,7 @@ function submitAdRequest(d) {
     0,                           // ViewCount
     0                            // ClickCount
   ]);
- 
+
   // Send confirmation email to advertiser
   try {
     var siteName = getSettingsMap()['site_name'] || 'KEYTUBE';
@@ -1860,10 +1868,10 @@ function submitAdRequest(d) {
         '</div>'
     });
   } catch(e) { /* email failure doesn't block submission */ }
- 
+
   return {ok:true, id:id, msg:'Ad request submitted successfully! We will review it within 1-2 business days and contact you at ' + d.email};
 }
- 
+
 // ── Admin gets all ad requests ─────────────────────────────────
 function getAdRequests(d) {
   if (!isAdmin(d.token)) return {ok:false, msg:'Unauthorized.'};
@@ -1897,7 +1905,7 @@ function getAdRequests(d) {
       clickCount:    parseInt(r[25]||0)
     };
   }).sort(function(a,b){return new Date(b.submittedDate)-new Date(a.submittedDate);});
- 
+
   var counts = {
     pending:  list.filter(function(r){return r.status==='pending';}).length,
     approved: list.filter(function(r){return r.status==='approved';}).length,
@@ -1906,16 +1914,16 @@ function getAdRequests(d) {
   };
   return {ok:true, ads:list, counts:counts};
 }
- 
+
 // ── Admin reviews (approve / reject / activate / expire) ───────
 function reviewAdRequest(d) {
   if (!isAdmin(d.token)) return {ok:false, msg:'Unauthorized.'};
   if (!d.id || !d.status) return {ok:false, msg:'Missing id or status.'};
- 
+
   var sh   = getSheet('AdRequests');
   var data = sh.getDataRange().getValues();
   var now  = new Date().toISOString();
- 
+
   for (var i=1; i<data.length; i++) {
     if (String(data[i][0]) === String(d.id)) {
       sh.getRange(i+1, 19).setValue(d.status);          // Status
@@ -1923,13 +1931,13 @@ function reviewAdRequest(d) {
       sh.getRange(i+1, 21).setValue(d.placement  || '');// Placement
       sh.getRange(i+1, 22).setValue(d.approvedPrice||'');// ApprovedPrice
       sh.getRange(i+1, 24).setValue(now);               // ReviewedDate
- 
+
       // Notify advertiser by email
       var email = String(data[i][3]);
       var adTitle = String(data[i][7]);
       var bizName = String(data[i][1]);
       var siteName = getSettingsMap()['site_name'] || 'KEYTUBE';
- 
+
       try {
         var subject='', body='';
         if (d.status === 'approved' || d.status === 'active') {
@@ -1960,13 +1968,13 @@ function reviewAdRequest(d) {
         }
         if (subject) MailApp.sendEmail({to:email, subject:subject, htmlBody:body});
       } catch(e) {}
- 
+
       return {ok:true, msg:'Ad ' + d.status + '!'};
     }
   }
   return {ok:false, msg:'Ad not found.'};
 }
- 
+
 // ── Get active ads for display on platform ────────────────────
 function getActiveAds(d) {
   var now   = new Date();
@@ -1997,7 +2005,7 @@ function getActiveAds(d) {
   });
   return {ok:true, ads:list};
 }
- 
+
 // ── Log ad view / click (analytics) ──────────────────────────
 function logAdView(d) {
   if (!d.adId) return {ok:false};
@@ -2012,7 +2020,7 @@ function logAdView(d) {
   }
   return {ok:false};
 }
- 
+
 function logAdClick(d) {
   if (!d.adId) return {ok:false};
   var sh   = getSheet('AdRequests');
@@ -2029,16 +2037,16 @@ function logAdClick(d) {
 // ── Step 1: Send OTP to Gmail before registering ──────────────
 function sendRegOTP(d) {
   if (!d.gmail) return {ok:false, msg:'Gmail is required.'};
- 
+
   var gmail = d.gmail.toLowerCase().trim();
- 
+
   // Check not already registered
   var users = getRows('Users');
   for (var i=0; i<users.length; i++) {
     if (String(users[i][1]).toLowerCase() === gmail)
       return {ok:false, msg:'This Gmail is already registered. Try signing in.'};
   }
- 
+
   // Rate limit: only 3 OTPs per email per day
   var sh   = getSheet('PasswordResets', ['ID','Gmail','Token','Expires','Status','Created']);
   var rows = sh.getDataRange().getValues();
@@ -2052,22 +2060,22 @@ function sendRegOTP(d) {
     }
   }
   if (todayCount >= 3) return {ok:false, msg:'Too many attempts. Try again tomorrow.'};
- 
+
   // Expire old pending reg OTPs for this email
   for (var k=1; k<rows.length; k++) {
     if (String(rows[k][1]).toLowerCase()===gmail && String(rows[k][4])==='reg_pending') {
       sh.getRange(k+1,5).setValue('expired');
     }
   }
- 
+
   // Generate 6-digit OTP
   var otp     = String(Math.floor(100000 + Math.random() * 900000));
   var id      = 'RG' + Date.now();
   var expires = new Date(Date.now() + 15*60*1000).toISOString();
   var now     = new Date().toISOString();
- 
+
   sh.appendRow([id, gmail, otp, expires, 'reg_pending', now]);
- 
+
   // Send email
   try {
     var siteName = getSettingsMap()['site_name'] || 'KEYTUBE';
@@ -2095,18 +2103,18 @@ function sendRegOTP(d) {
     return {ok:false, msg:'Could not send email: ' + e.message};
   }
 }
- 
+
 // ── Step 2: Verify the OTP ────────────────────────────────────
 function verifyRegOTP(d) {
   if (!d.gmail || !d.token) return {ok:false, msg:'Missing email or code.'};
- 
+
   var gmail = d.gmail.toLowerCase().trim();
   var token = String(d.token).trim();
   var now   = new Date();
- 
+
   var sh   = getSheet('PasswordResets');
   var data = sh.getDataRange().getValues();
- 
+
   for (var i=1; i<data.length; i++) {
     if (String(data[i][1]).toLowerCase()===gmail &&
         String(data[i][2])===token &&
