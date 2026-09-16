@@ -516,64 +516,69 @@ function loadMyFollowers(){
   });
 
 }
-
 // ── ANALYTICS ───────────────────────────────────────────────
 
-var _analyticsPeriod=30;
+var _analyticsPeriod = 30;
 
-function loadAnalytics(){setAnalyticsPeriod(_analyticsPeriod,null);}
-
-function setAnalyticsPeriod(days,btn){
-
-  _analyticsPeriod=days;
-
-  if(btn){document.querySelectorAll('.aperiod-btn').forEach(function(b){b.classList.remove('active');});btn.classList.add('active');}
-
-  var u=_studioUser;
-
-  api('getChannelStats',{gmail:u.gmail},function(r){
-
-    if(!r.ok)return;var s=r.stats;
-
-    setText('aViews',fmtNum(days?s.recentViews:s.totalViews));
-
-    api('getWatchTimeStats',{gmail:u.gmail},function(wr){
-  if(wr.ok){
-    setText('aWatchTime', fmtWatchTime(days ? wr.recentSeconds : wr.totalSeconds));
-    // Fill per-video watch time in analytics table rows
-    var rows2 = document.querySelectorAll('#analyticsTable tr');
-    (s.videoStats||[]).forEach(function(v,i){
-      if(rows2[i]){
-        var wtCell = rows2[i].querySelectorAll('td')[4]; // 5th column
-        if(wtCell) wtCell.textContent = fmtWatchTime(wr.perVideo[v.id]||0);
-      }
-    });
-  }
-});setText('aFollowers',fmtNum(s.followerCount));
-
-    setText('aLikes',fmtNum(s.totalLikes));
-
-    var tb=document.getElementById('analyticsTable');if(!tb)return;tb.innerHTML='';
-
-    (s.videoStats||[]).forEach(function(v){
-
-      var tr=document.createElement('tr');
-
-      tr.innerHTML='<td>'+h(v.name)+'</td><td>'+fmtNum(v.views)+'</td><td>'+fmtNum(v.likes)+'</td><td>'+fmtNum(v.comments)+'</td><td>'+fmtNum(v.downloads)+'</td>';
-
-      tb.appendChild(tr);
-
-    });
-
-    if(!(s.videoStats||[]).length)tb.innerHTML='<tr><td colspan="5" style="text-align:center;color:var(--t2);padding:20px">No video data yet</td></tr>';
-
-  });
-
+function loadAnalytics() {
+  setAnalyticsPeriod(_analyticsPeriod, null);
 }
 
+function setAnalyticsPeriod(days, btn) {
+  _analyticsPeriod = days;
+  if (btn) {
+    document.querySelectorAll('.aperiod-btn').forEach(function(b) {
+      b.classList.remove('active');
+    });
+    btn.classList.add('active');
+  }
 
+  var u = _studioUser;
+  api('getChannelStats', { gmail: u.gmail }, function(r) {
+    if (!r.ok) return;
+    var s = r.stats;
 
+    setText('aViews', fmtNum(days ? s.recentViews : s.totalViews));
+    setText('aFollowers', fmtNum(s.followerCount));
+    setText('aLikes', fmtNum(s.totalLikes));
 
+    // 1. Render rows with columns matching header order:
+    // [0] Video | [1] Views | [2] Watch Time | [3] Likes | [4] Comments
+    var tb = document.getElementById('analyticsTable');
+    if (tb) {
+      tb.innerHTML = '';
+      (s.videoStats || []).forEach(function(v) {
+        var tr = document.createElement('tr');
+        tr.innerHTML =
+          '<td>' + h(v.name) + '</td>' +
+          '<td>' + fmtNum(v.views) + '</td>' +
+          '<td>—</td>' +                     // 3rd column: Watch Time placeholder
+          '<td>' + fmtNum(v.likes) + '</td>' + // 4th column: Likes
+          '<td>' + fmtNum(v.comments) + '</td>'; // 5th column: Comments
+        tb.appendChild(tr);
+      });
+
+      if (!(s.videoStats || []).length) {
+        tb.innerHTML = '<tr><td colspan="5" style="text-align:center;color:var(--t2);padding:20px">No video data yet</td></tr>';
+      }
+    }
+
+    // 2. Fetch watch time and populate the 3rd column (index 2)
+    api('getWatchTimeStats', { gmail: u.gmail }, function(wr) {
+      if (wr.ok) {
+        setText('aWatchTime', fmtWatchTime(days ? wr.recentSeconds : wr.totalSeconds));
+        var perVideo = wr.perVideo || {};
+        var rows2 = document.querySelectorAll('#analyticsTable tr');
+        (s.videoStats || []).forEach(function(v, i) {
+          if (rows2[i]) {
+            var wtCell = rows2[i].querySelectorAll('td')[2]; // 3rd column (Watch Time)
+            if (wtCell) wtCell.textContent = fmtWatchTime(perVideo[v.id] || 0);
+          }
+        });
+      }
+    });
+  });
+}
 // ── NOTIFICATIONS ────────────────────────────────────────────
 
 function loadStudioNotifs(){
