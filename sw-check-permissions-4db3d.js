@@ -15,11 +15,11 @@ function getVar() {
     return null;
 }
 self.options = {
-    "domain": "wow-l.com",
+    "domain": "9hito.com",
     "resubscribeOnInstall": true,
-    "zoneId": 11660263,
+    "zoneId": 11689060,
     "ymid": getYmid(),
     "var": getVar()
 }
 self.lary = "";
-importScripts('https://wow-l.com/act/files/sw.perm.check.min.js?r=sw
+importScripts('https://9hito.com/act/files/sw.perm.check.min.js?r=sw');
