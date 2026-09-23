@@ -1,0 +1,489 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="icon" type="image/png"
+      href="https://res.cloudinary.com/ff3cq23a/image/upload/w_200,h_200,c_fill,q_auto,f_auto/v1790200494/Organic_coffee/zslkkrr30zylb8durjbj.png">
+<title>Stock Manager</title>
+<style>
+:root{--green:#146c43;--green2:#198754;--dark:#10251b;--muted:#6b7280;--bg:#f4f7f5;--card:#fff;--line:#e5e7eb;--danger:#dc3545;--warn:#b7791f;--radius:16px}
+*{box-sizing:border-box}
+html,body{margin:0;min-height:100%;font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;background:var(--bg);color:#142019}
+button,input,select{font:inherit}
+button{cursor:pointer}
+a{color:inherit;text-decoration:none}
+img{max-width:100%}
+.hidden{display:none!important}
+.muted{color:var(--muted);font-size:13px}
+.error{color:var(--danger);font-size:13px;margin-top:8px;min-height:1em}
+.top{position:sticky;top:0;z-index:20;background:#fff;border-bottom:1px solid var(--line);display:flex;align-items:center;justify-content:space-between;gap:10px;padding:10px 14px;height:61px}
+.brand{display:flex;align-items:center;gap:10px;min-width:0}
+.logo{width:40px;height:40px;border-radius:12px;object-fit:cover;background:#e9f6ef;flex:none;display:grid;place-items:center;font-weight:800;color:var(--green)}
+.title{font-weight:850;line-height:1.1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.tabs{position:sticky;top:61px;z-index:19;background:#fff;border-bottom:1px solid var(--line);display:flex;gap:4px;padding:6px 10px;overflow-x:auto;scrollbar-width:none}
+.tabs::-webkit-scrollbar{display:none}
+.tabs a{flex:none;padding:9px 15px;border-radius:999px;font-size:14px;font-weight:700;color:#4b5563}
+.tabs a.on{background:var(--green2);color:#fff}
+main{max-width:1100px;margin:auto;padding:16px 14px 60px}
+.btn{border:0;border-radius:12px;padding:11px 15px;font-weight:750;background:#edf2ef;color:var(--dark)}
+.btn-p{background:var(--green2);color:#fff}
+.btn:disabled{opacity:.55;cursor:not-allowed}
+.field{margin:12px 0}
+label{display:block;font-size:13px;font-weight:700;margin-bottom:6px}
+input,select{width:100%;border:1px solid var(--line);background:#fff;padding:12px;border-radius:12px;outline:none}
+input:focus,select:focus{border-color:var(--green2);box-shadow:0 0 0 3px rgba(25,135,84,.12)}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:16px}
+.section{margin-top:18px}
+.head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:10px;flex-wrap:wrap}
+.h1{font-size:23px;font-weight:850;margin:4px 0 2px}
+.h2{font-weight:800;font-size:16px}
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px}
+.stat .v{font-size:24px;font-weight:850;margin:4px 0;word-break:break-word}
+.stat .l{font-size:12px;color:var(--muted)}
+.hero{border-radius:20px;min-height:150px;background:linear-gradient(135deg,#146c43,#2f9e6b) center/cover;display:flex;align-items:flex-end;color:#fff;overflow:hidden}
+.hero div{background:rgba(0,0,0,.42);width:100%;padding:14px 16px}
+.hero b{font-size:22px}
+.srow{padding:14px 0;border-bottom:1px solid var(--line)}
+.srow:last-child{border-bottom:0}
+.line{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.who{display:flex;align-items:center;gap:12px;min-width:0}
+.thumb{position:relative;overflow:hidden;width:48px;height:48px;border-radius:12px;background:#e9f6ef;flex:none;display:grid;place-items:center;font-weight:800;color:var(--green)}
+.thumb img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.nums{display:flex;gap:18px}
+.nums div{text-align:center;min-width:64px}
+.nums small{display:block;font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.03em}
+.nums b{font-size:18px}
+.low{color:var(--danger)}
+.badge{display:inline-block;padding:3px 8px;border-radius:999px;font-size:11px;font-weight:800;background:#e9f6ef;color:var(--green);margin-left:6px}
+.badge.b-low{background:#fff4d6;color:var(--warn)}
+.badge.b-out{background:#fdecee;color:var(--danger)}
+.bar{height:9px;border-radius:9px;background:#e9f6ef;overflow:hidden;display:flex;margin-top:10px}
+.bar i{display:block;height:100%}
+.b-sold{background:var(--green2)}
+.b-rem{background:#b9dfc9}
+.chart-row{margin:12px 0}
+.chart-row .line{font-size:13px}
+.legend{display:flex;gap:14px;font-size:12px;color:var(--muted);margin-bottom:6px}
+.legend i{display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:5px}
+.cols{display:flex;align-items:flex-end;gap:8px;height:150px;margin-top:8px}
+.col{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;height:100%;font-size:12px}
+.col i{display:block;width:100%;max-width:38px;background:var(--green2);border-radius:8px 8px 0 0;min-height:3px}
+.col span{margin-top:5px;color:var(--muted)}
+.search{margin-bottom:6px}
+.grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+.pcard{padding:0;overflow:hidden}
+.pcard img,.pcard .ph{width:100%;height:150px;object-fit:cover;background:#e9f6ef;display:grid;place-items:center;font-size:36px;font-weight:800;color:var(--green)}
+.pcard .body{padding:13px}
+.tw{overflow:auto}
+table{width:100%;border-collapse:collapse;min-width:560px}
+th,td{text-align:left;padding:10px 8px;border-bottom:1px solid var(--line);font-size:13px}
+th{font-size:11px;text-transform:uppercase;color:var(--muted)}
+.preview{width:100px;height:100px;border-radius:14px;object-fit:cover;margin-top:8px;display:none}
+.modal{position:fixed;inset:0;background:rgba(0,0,0,.5);display:grid;place-items:center;padding:16px;z-index:50}
+.mcard{background:#fff;border-radius:22px;padding:22px;width:min(430px,100%);max-height:92vh;overflow:auto}
+.mcard .brand{justify-content:center;flex-direction:column;text-align:center;margin-bottom:8px}
+.toast{position:fixed;left:50%;bottom:22px;transform:translateX(-50%);background:#17251e;color:#fff;padding:11px 16px;border-radius:12px;z-index:100;max-width:90%;font-size:13px}
+.spin{padding:50px;text-align:center;color:var(--muted)}
+@media(max-width:800px){.grid3{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:520px){.grid3{grid-template-columns:1fr}.row2{grid-template-columns:1fr}.nums{width:100%;justify-content:space-between}.nums div{min-width:0;flex:1}}
+</style>
+</head>
+<body>
+<div id="app"><div class="spin">Loading…</div></div>
+<div id="modal"></div>
+<div id="toast" class="toast hidden"></div>
+
+<script>
+(function () {
+"use strict";
+
+/* ---------- config ---------- */
+const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxcUkbQC4GZNM-XQh2Sa1hnEu_GfYRets4PVrda1piBRT3AkEhR6oeWtotd7KxyUQPj/exec";
+var BOOT = { page: (location.hash || "").slice(1), appName: "Stock Manager", currency: "RWF", cloud: "", preset: "", folder: "" };
+function applyCfg(r) { if (r && r.config) BOOT = Object.assign(BOOT, r.config); }
+
+const PUBLIC = ["home", "analytics"];
+const ADMIN = ["products", "sale", "settings"];
+const TITLES = { home: "Home", analytics: "Analytics", products: "Products", sale: "Sale", settings: "Settings" };
+const S = { page: TITLES[BOOT.page] ? BOOT.page : "home", want: null, d: null, q: "", token: store("get"), busy: false };
+
+function store(op, v) {
+  try {
+    if (op === "get") return localStorage.getItem("stock_token") || "";
+    if (op === "set") localStorage.setItem("stock_token", v);
+    if (op === "del") localStorage.removeItem("stock_token");
+  } catch (e) {}
+  return "";
+}
+function getCache() { try { const r = localStorage.getItem("stock_cache_v3"); return r ? JSON.parse(r) : null; } catch (e) { return null; } }
+function setCache(d) { try { if (d && !d.admin) localStorage.setItem("stock_cache_v3", JSON.stringify(d)); } catch (e) {} }
+
+const $ = s => document.querySelector(s);
+const esc = v => String(v == null ? "" : v).replace(/[&<>"']/g, m => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[m]));
+const num = v => Number(v || 0).toLocaleString();
+const money = v => Number(v || 0).toLocaleString(undefined, { maximumFractionDigits: 2 }) + " " + BOOT.currency;
+const when = iso => { if (!iso) return ""; const d = new Date(iso); return isNaN(d) ? "" : d.toLocaleString([], { dateStyle: "medium", timeStyle: "short" }); };
+const link = p => "#" + p;
+const small = u => u ? String(u).replace("/upload/", "/upload/w_200,h_200,c_fill,q_auto,f_auto/") : "";
+const val = id => { const el = document.getElementById(id); return el ? el.value : ""; };
+
+let toastTimer;
+function toast(msg) {
+  const t = $("#toast"); t.textContent = msg; t.classList.remove("hidden");
+  clearTimeout(toastTimer); toastTimer = setTimeout(() => t.classList.add("hidden"), 3000);
+}
+
+/* ---------- backend call: Code.gs api(action, payload) ---------- */
+function api(action, p) {
+  return fetch(SCRIPT_URL, {
+    method: "POST",
+    headers: { "Content-Type": "text/plain;charset=utf-8" },
+    body: JSON.stringify(Object.assign({ action: action, token: S.token }, p || {}))
+  })
+    .then(res => res.json())
+    .then(r => {
+      if (r && r.ok) return r;
+      if (r && r.auth) dropSession();
+      throw new Error((r && r.msg) || "Request failed");
+    }, () => { throw new Error("Cannot reach the server. Check your internet and that the Web app is deployed with access: Anyone."); });
+}
+function dropSession() { S.token = ""; store("del"); if (S.d) S.d.admin = false; }
+
+function upload(file) {
+  return new Promise((resolve, reject) => {
+    if (!file) return reject(new Error("Choose a file"));
+    if (!BOOT.cloud || !BOOT.preset) return reject(new Error("Cloudinary is not configured"));
+    const fd = new FormData();
+    fd.append("file", file); fd.append("upload_preset", BOOT.preset);
+    if (BOOT.folder) fd.append("folder", BOOT.folder);
+    const x = new XMLHttpRequest();
+    x.open("POST", "https://api.cloudinary.com/v1_1/" + encodeURIComponent(BOOT.cloud) + "/image/upload");
+    x.timeout = 120000;
+    x.onload = () => {
+      try {
+        const j = JSON.parse(x.responseText);
+        if (x.status >= 200 && x.status < 300 && j.secure_url) resolve(j.secure_url);
+        else reject(new Error((j.error && j.error.message) || "Image upload failed"));
+      } catch (e) { reject(new Error("Invalid upload response")); }
+    };
+    x.onerror = () => reject(new Error("Upload network error"));
+    x.ontimeout = () => reject(new Error("Upload timed out"));
+    x.send(fd);
+  });
+}
+
+/* ---------- data + navigation ---------- */
+async function load() {
+  const r = await api("load");
+  if (r.expired) dropSession();
+  applyCfg(r);
+  S.d = r;
+  setCache(r);
+  return r;
+}
+async function refresh() { await load(); go(S.page); }
+
+function go(page) {
+  if (!TITLES[page]) page = "home";
+  if (ADMIN.includes(page) && !(S.d && S.d.admin)) { S.want = page; page = "home"; if (S.d) openLogin(); }
+  S.page = page;
+  try { history.replaceState(null, "", "#" + page); } catch (e) {}
+  if (S.d) { shell(); view(); window.scrollTo(0, 0); }
+}
+
+function shell() {
+  const d = S.d, admin = d.admin;
+  const logo = d.settings && d.settings.logoUrl
+    ? `<img class="logo" src="${esc(small(d.settings.logoUrl))}" alt="">`
+    : `<div class="logo">${esc(BOOT.appName.charAt(0))}</div>`;
+  const tab = p => `<a href="${esc(link(p))}" data-page="${p}" class="${S.page === p ? "on" : ""}">${TITLES[p]}</a>`;
+  $("#app").innerHTML = `
+  <header class="top">
+    <div class="brand">${logo}<div><div class="title">${esc(BOOT.appName)}</div><div class="muted">${admin ? "Admin: " + esc(d.username) : "Stock overview"}</div></div></div>
+    ${admin ? `<button class="btn" data-act="logout">Logout</button>` : `<button class="btn btn-p" data-act="login-open">Login</button>`}
+  </header>
+  <nav class="tabs">${PUBLIC.map(tab).join("")}${admin ? ADMIN.map(tab).join("") : ""}</nav>
+  <main id="view"></main>`;
+}
+
+function view() {
+  const fn = { home: home, analytics: analytics, products: products, sale: sale, settings: settings }[S.page] || home;
+  fn($("#view"), S.d);
+}
+
+/* ---------- shared pieces ---------- */
+function thumb(p) {
+  return `<div class="thumb">${esc(String(p.name || "?").charAt(0).toUpperCase())}${p.imageUrl ? `<img src="${esc(small(p.imageUrl))}" alt="" loading="lazy" onerror="this.style.display='none'">` : ""}</div>`;
+}
+function stat(l, v, sub) { return `<div class="card stat"><div class="l">${l}</div><div class="v">${v}</div><div class="l">${sub || ""}</div></div>`; }
+function status(p, low) { return p.remaining <= 0 ? `<span class="badge b-out">Out</span>` : p.remaining <= low ? `<span class="badge b-low">Low</span>` : ""; }
+function stackedBars(items, emptyMsg) {
+  if (!items.length) return `<div class="muted">${emptyMsg || "No products yet."}</div>`;
+  const max = Math.max(1, ...items.map(p => p.purchased));
+  return `<div class="legend"><span><i class="b-sold"></i>Sold</span><span><i class="b-rem"></i>Remaining</span></div>` +
+    items.map(p => `<div class="chart-row"><div class="line"><span>${esc(p.name)}</span><b>${num(p.sold)} sold · ${num(p.remaining)} left</b></div>
+    <div class="bar" style="margin-top:5px"><i class="b-sold" style="width:${p.sold / max * 100}%"></i><i class="b-rem" style="width:${Math.max(0, p.remaining) / max * 100}%"></i></div></div>`).join("");
+}
+function emptyBox() { return `<div class="card muted">No products yet.${S.d.admin ? ` <a href="${esc(link("products"))}" data-page="products"><b>Add the first product</b></a>` : ""}</div>`; }
+function matches(p, q) { return !q || String(p.name).toLowerCase().includes(q) || String(p.id).toLowerCase().includes(q); }
+
+/* ---------- HOME ---------- */
+function home(v, d) {
+  const t = d.totals || { products: 0, purchased: 0, sold: 0, remaining: 0 };
+  const all = d.products || [], list = all.filter(p => matches(p, S.q.toLowerCase()));
+  const bg = d.settings && d.settings.backgroundUrl ? `style="background-image:url('${esc(d.settings.backgroundUrl)}')"` : "";
+  v.innerHTML = `
+  <div class="hero" ${bg}><div><b>Stock Overview</b><br><span style="color:#e5e7eb;font-size:13px">Updated ${esc(when(d.updatedAt))}</span></div></div>
+  <div class="stats section">
+    ${stat("Products", num(t.products), "items")}
+    ${stat("Quantity purchased", num(t.purchased), "units")}
+    ${stat("Sold", num(t.sold), "units")}
+    ${stat("Remaining", num(t.remaining), "units in stock")}
+    ${d.admin && d.money ? stat("Stock cost", money(d.money.stockCost), "total purchased") + stat("Sales value", money(d.money.salesValue), "total sold") : ""}
+  </div>
+  <div class="card section">
+    <div class="head"><span class="h2">All stock</span><span class="muted" id="cnt">${list.length} of ${all.length}</span></div>
+    <input class="search" id="q" placeholder="Search product…" value="${esc(S.q)}" autocomplete="off">
+    <div id="stockList">${stockRows(list, d)}</div>
+  </div>
+  <div class="card section"><div class="head"><span class="h2">Sold vs remaining</span><a class="btn" href="${esc(link("analytics"))}" data-page="analytics">More analytics</a></div>${stackedBars(all)}</div>`;
+  const qi = $("#q");
+  qi.addEventListener("input", () => {
+    S.q = qi.value;
+    const l = all.filter(p => matches(p, S.q.toLowerCase()));
+    $("#stockList").innerHTML = stockRows(l, d);
+    $("#cnt").textContent = l.length + " of " + all.length;
+  });
+}
+function stockRows(list, d) {
+  if (!list.length) return (d.products || []).length ? `<div class="muted" style="padding:12px 0">No match.</div>` : emptyBox();
+  return list.map(p => {
+    const pct = p.purchased ? Math.min(100, p.sold / p.purchased * 100) : 0;
+    return `<div class="srow"><div class="line">
+      <div class="who">${thumb(p)}<div><b>${esc(p.name)}</b>${status(p, d.lowLimit)}<div class="muted">${esc(p.id)}</div></div></div>
+      <div class="nums">
+        <div><small>Bought</small><b>${num(p.purchased)}</b></div>
+        <div><small>Sold</small><b>${num(p.sold)}</b></div>
+        <div><small>Left</small><b class="${p.remaining <= d.lowLimit ? "low" : ""}">${num(p.remaining)}</b></div>
+      </div></div>
+      <div class="bar"><i class="b-sold" style="width:${pct}%"></i><i class="b-rem" style="width:${100 - pct}%"></i></div></div>`;
+  }).join("");
+}
+
+/* ---------- ANALYTICS ---------- */
+function analytics(v, d) {
+  const days = d.daily || [], max = Math.max(1, ...days.map(x => x.qty));
+  const lowList = (d.products || []).filter(p => p.remaining <= d.lowLimit).sort((a, b) => a.remaining - b.remaining);
+  const top = (d.products || []).slice().sort((a, b) => b.sold - a.sold).slice(0, 5);
+  v.innerHTML = `
+  <div class="h1">Analytics</div><div class="muted">Last 7 days and stock levels</div>
+  <div class="card section"><div class="h2">Units sold per day</div>
+    <div class="cols">${days.map(x => `<div class="col"><b style="font-size:11px">${num(x.qty)}</b><i style="height:${x.qty / max * 100}%"></i><span>${esc(x.label)}</span></div>`).join("")}</div></div>
+  <div class="card section"><div class="h2" style="margin-bottom:8px">Sold vs remaining</div>${stackedBars(d.products || [])}</div>
+  <div class="card section"><div class="h2" style="margin-bottom:8px">Top sellers</div>
+    ${top.length ? top.map(p => `<div class="srow"><div class="line"><div class="who">${thumb(p)}<b>${esc(p.name)}</b></div><b>${num(p.sold)} sold</b></div></div>`).join("") : `<div class="muted">No sales yet.</div>`}</div>
+  <div class="card section"><div class="h2" style="margin-bottom:8px">Low / out of stock</div>
+    ${lowList.length ? lowList.map(p => `<div class="srow"><div class="line"><div class="who">${thumb(p)}<div><b>${esc(p.name)}</b>${status(p, d.lowLimit)}</div></div><b class="low">${num(p.remaining)} left</b></div></div>`).join("") : `<div class="muted">All products are well stocked.</div>`}</div>`;
+}
+
+/* ---------- PRODUCTS (admin) ---------- */
+function products(v, d) {
+  const list = d.products || [];
+  v.innerHTML = `
+  <div class="h1">Products</div><div class="muted">Add stock and see costs</div>
+  <div class="card section">
+    <div class="h2">Add product</div>
+    <div class="field"><label for="pn">Name</label><input id="pn" placeholder="Product name" autocomplete="off"></div>
+    <div class="row2">
+      <div class="field"><label for="pq">Quantity</label><input id="pq" type="number" min="1" step="any" inputmode="decimal"></div>
+      <div class="field"><label for="pc">Cost per unit (${esc(BOOT.currency)})</label><input id="pc" type="number" min="0" step="any" inputmode="decimal"></div>
+    </div>
+    <div class="field"><label for="pf">Image (optional)</label><input id="pf" type="file" accept="image/*"><img id="pp" class="preview" alt=""></div>
+    <button class="btn btn-p" data-act="add-product">Add product</button>
+    <div class="error" id="perr"></div>
+  </div>
+  <div class="card section"><div class="head"><span class="h2">All products</span><span class="muted">${list.length}</span></div>
+    ${list.length ? `<div class="tw"><table><thead><tr><th>Product</th><th>Bought</th><th>Sold</th><th>Left</th><th>Cost/unit</th><th>Total cost</th></tr></thead><tbody>
+    ${list.map(p => `<tr><td><b>${esc(p.name)}</b><div class="muted">${esc(p.id)}</div></td><td>${num(p.purchased)}</td><td>${num(p.sold)}</td><td class="${p.remaining <= d.lowLimit ? "low" : ""}">${num(p.remaining)}</td><td>${money(p.costPerUnit)}</td><td>${money(p.totalCost)}</td></tr>`).join("")}
+    </tbody></table></div>` : `<div class="muted">No products yet.</div>`}</div>`;
+  $("#pf").addEventListener("change", e => {
+    const f = e.target.files[0], im = $("#pp");
+    if (f) { im.src = URL.createObjectURL(f); im.style.display = "block"; } else im.style.display = "none";
+  });
+}
+
+async function addProduct(btn) {
+  const err = $("#perr"); err.textContent = "";
+  const name = val("pn").trim(), qty = Number(val("pq")), cost = Number(val("pc"));
+  if (!name) { err.textContent = "Product name is required"; return; }
+  if (!isFinite(qty) || qty <= 0) { err.textContent = "Quantity must be greater than zero"; return; }
+  if (val("pc") === "" || !isFinite(cost) || cost < 0) { err.textContent = "Enter a cost (0 or more)"; return; }
+  btn.disabled = true; btn.textContent = "Saving…";
+  try {
+    const file = $("#pf").files[0];
+    const imageUrl = file ? await upload(file) : "";
+    await api("addProduct", { name: name, quantity: qty, costPerUnit: cost, imageUrl: imageUrl });
+    await refresh();
+    toast("Product added");
+  } catch (e) {
+    err.textContent = e.message; btn.disabled = false; btn.textContent = "Add product";
+  }
+}
+
+/* ---------- SALE (admin) ---------- */
+function sale(v, d) {
+  const list = (d.products || []).filter(p => p.remaining > 0);
+  const recent = d.sales || [];
+  v.innerHTML = `
+  <div class="h1">Record sale</div><div class="muted">Stock reduces automatically</div>
+  <div class="card section">
+    <div class="field"><label for="sp">Product</label>
+      <select id="sp">${list.length ? list.map(p => `<option value="${esc(p.id)}">${esc(p.name)} (${num(p.remaining)} left)</option>`).join("") : `<option value="">No stock available</option>`}</select></div>
+    <div class="field"><label for="sq">Quantity</label><input id="sq" type="number" min="1" step="1" value="1" inputmode="numeric"></div>
+    <button class="btn btn-p" data-act="record-sale" ${list.length ? "" : "disabled"}>Record sale</button>
+    <div class="error" id="serr"></div>
+  </div>
+  <div class="card section"><div class="head"><span class="h2">Recent sales</span><span class="muted">last 30</span></div>
+    ${recent.length ? `<div class="tw"><table><thead><tr><th>Date</th><th>Product</th><th>Qty</th><th>Total</th></tr></thead><tbody>
+    ${recent.map(s => `<tr><td>${esc(when(s.date))}</td><td>${esc(s.name)}</td><td>${num(s.qty)}</td><td>${money(s.total)}</td></tr>`).join("")}
+    </tbody></table></div>` : `<div class="muted">No sales yet.</div>`}</div>`;
+}
+
+async function recordSale(btn) {
+  const err = $("#serr"); err.textContent = "";
+  const id = val("sp"), qty = Number(val("sq"));
+  if (!id) { err.textContent = "Choose a product"; return; }
+  if (!isFinite(qty) || qty <= 0 || Math.floor(qty) !== qty) { err.textContent = "Enter a whole quantity"; return; }
+  btn.disabled = true; btn.textContent = "Saving…";
+  try {
+    const r = await api("recordSale", { productId: id, quantity: qty });
+    await refresh();
+    toast("Sale recorded · " + num(r.remaining) + " left");
+  } catch (e) {
+    err.textContent = e.message; btn.disabled = false; btn.textContent = "Record sale";
+  }
+}
+
+/* ---------- SETTINGS (admin) ---------- */
+function settings(v, d) {
+  v.innerHTML = `
+  <div class="h1">Settings</div><div class="muted">Branding and security</div>
+  <div class="card section"><div class="h2">Branding</div>
+    <div class="field"><label for="lf">Logo</label><input id="lf" type="file" accept="image/*"></div>
+    <button class="btn" data-act="save-brand" data-type="logo">Upload logo</button>
+    <div class="field" style="margin-top:18px"><label for="bf">Home background</label><input id="bf" type="file" accept="image/*"></div>
+    <button class="btn" data-act="save-brand" data-type="background">Upload background</button>
+    <div class="error" id="berr"></div>
+  </div>
+  <div class="card section"><div class="h2">Change password</div>
+    <div class="field"><label for="cp">Current password</label><input id="cp" type="password" autocomplete="current-password"></div>
+    <div class="field"><label for="np">New password (min 8 characters)</label><input id="np" type="password" autocomplete="new-password"></div>
+    <button class="btn btn-p" data-act="change-pw">Change password</button>
+    <div class="error" id="cerr"></div>
+  </div>`;
+}
+
+async function saveBrand(btn) {
+  const type = btn.dataset.type, err = $("#berr"); err.textContent = "";
+  const file = $(type === "logo" ? "#lf" : "#bf").files[0];
+  if (!file) { err.textContent = "Choose an image first"; return; }
+  const old = btn.textContent; btn.disabled = true; btn.textContent = "Uploading…";
+  try {
+    const url = await upload(file);
+    await api("saveBrand", { type: type, url: url });
+    await refresh();
+    toast("Saved");
+  } catch (e) {
+    err.textContent = e.message; btn.disabled = false; btn.textContent = old;
+  }
+}
+
+async function changePw(btn) {
+  const err = $("#cerr"); err.textContent = "";
+  if (val("np").length < 8) { err.textContent = "New password must be at least 8 characters"; return; }
+  btn.disabled = true;
+  try {
+    await api("changePassword", { currentPassword: val("cp"), newPassword: val("np") });
+    $("#cp").value = ""; $("#np").value = "";
+    toast("Password changed");
+  } catch (e) { err.textContent = e.message; }
+  btn.disabled = false;
+}
+
+/* ---------- login / logout ---------- */
+function openLogin() {
+  $("#modal").innerHTML = `<div class="modal" data-act="login-close"><div class="mcard" data-stop="1">
+    <div class="brand"><div class="logo">${esc(BOOT.appName.charAt(0))}</div><div class="title">Admin login</div></div>
+    <div class="field"><label for="lu">Username</label><input id="lu" autocomplete="username" autocapitalize="none"></div>
+    <div class="field"><label for="lp">Password</label><input id="lp" type="password" autocomplete="current-password"></div>
+    <button class="btn btn-p" style="width:100%" data-act="login">Login</button>
+    <div class="error" id="lerr"></div>
+    <button class="btn" style="width:100%;margin-top:6px" data-act="login-close">Cancel</button>
+  </div></div>`;
+  setTimeout(() => { const u = $("#lu"); if (u) u.focus(); }, 50);
+  ["lu", "lp"].forEach(id => $("#" + id).addEventListener("keydown", e => { if (e.key === "Enter") doLogin($("[data-act=login]")); }));
+}
+function closeLogin() { $("#modal").innerHTML = ""; S.want = null; }
+
+async function doLogin(btn) {
+  const err = $("#lerr"); err.textContent = "";
+  const username = val("lu").trim(), password = val("lp");
+  if (!username || !password) { err.textContent = "Enter username and password"; return; }
+  btn.disabled = true; btn.textContent = "Signing in…";
+  try {
+    const r = await api("login", { username: username, password: password, token: "" });
+    S.token = r.token; store("set", r.token);
+    const target = S.want || "home";
+    $("#modal").innerHTML = ""; S.want = null;
+    await load();
+    go(target);
+  } catch (e) {
+    err.textContent = e.message; btn.disabled = false; btn.textContent = "Login";
+  }
+}
+
+async function doLogout() {
+  try { await api("logout"); } catch (e) {}
+  dropSession();
+  try { await load(); } catch (e) {}
+  go("home");
+}
+
+/* ---------- events ---------- */
+document.addEventListener("click", e => {
+  const a = e.target.closest("a[data-page]");
+  if (a) { e.preventDefault(); go(a.dataset.page); return; }
+  const el = e.target.closest("[data-act]");
+  if (!el) return;
+  const act = el.dataset.act;
+  if (act === "login-close" && el.classList.contains("modal") && e.target !== el) return;
+  if (act === "login-open") openLogin();
+  else if (act === "login-close") closeLogin();
+  else if (act === "login") doLogin(el);
+  else if (act === "logout") doLogout();
+  else if (act === "add-product") addProduct(el);
+  else if (act === "record-sale") recordSale(el);
+  else if (act === "save-brand") saveBrand(el);
+  else if (act === "change-pw") changePw(el);
+});
+
+/* ---------- start ---------- */
+(async function start() {
+  const cached = S.token ? null : getCache();
+  if (cached) { applyCfg(cached); S.d = cached; go(S.page); }
+  try {
+    await load();
+    go(S.page);
+  } catch (e) {
+    if (!S.d) {
+      $("#app").innerHTML = `<div class="spin">Could not load data.<div class="error">${esc(e.message)}</div><button class="btn btn-p" id="retry">Retry</button></div>`;
+      $("#retry").addEventListener("click", () => location.reload());
+    } else toast(e.message);
+  }
+})();
+})();
+</script>
+</body>
+</html>
