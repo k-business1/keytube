@@ -42,9 +42,6 @@ input:focus,select:focus{border-color:var(--green2);box-shadow:0 0 0 3px rgba(25
 .stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px}
 .stat .v{font-size:24px;font-weight:850;margin:4px 0;word-break:break-word}
 .stat .l{font-size:12px;color:var(--muted)}
-.hero{border-radius:20px;min-height:150px;background:linear-gradient(135deg,#146c43,#2f9e6b) center/cover;display:flex;align-items:flex-end;color:#fff;overflow:hidden}
-.hero div{background:rgba(0,0,0,.42);width:100%;padding:14px 16px}
-.hero b{font-size:22px}
 .srow{padding:14px 0;border-bottom:1px solid var(--line)}
 .srow:last-child{border-bottom:0}
 .line{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
@@ -88,6 +85,115 @@ th{font-size:11px;text-transform:uppercase;color:var(--muted)}
 .spin{padding:50px;text-align:center;color:var(--muted)}
 @media(max-width:800px){.grid3{grid-template-columns:repeat(2,1fr)}}
 @media(max-width:520px){.grid3{grid-template-columns:1fr}.row2{grid-template-columns:1fr}.nums{width:100%;justify-content:space-between}.nums div{min-width:0;flex:1}}
+
+/* ---- full-page background on Home ---- */
+html.bgmode{background:#10251b}
+html.bgmode::before{content:"";position:fixed;inset:0;z-index:-1;background:linear-gradient(rgba(0,0,0,.2),rgba(0,0,0,.35)),var(--bg-img) center/cover no-repeat}
+html.bgmode body{background:transparent}
+html.bgmode .top,html.bgmode .tabs{background:rgba(255,255,255,.18);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border-color:rgba(255,255,255,.25)}
+html.bgmode .title,html.bgmode .top .muted,html.bgmode .tabs a{color:#fff}
+html.bgmode .tabs a.on{background:var(--green2)}
+html.bgmode .card{background:rgba(255,255,255,.88);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px)}
+.greet{padding:60px 4px 6px;color:var(--dark)}
+html.bgmode .greet{color:#fff;text-shadow:0 1px 6px rgba(0,0,0,.5)}
+.g1{font-size:26px}.g2{font-size:36px;font-weight:850;line-height:1.1}.g3{font-size:14px;margin-top:8px}.g4{font-size:13px;margin-top:14px;opacity:.9}
+
+/* ---- icons, glass stat cards, stock table, bottom nav ---- */
+.ic{flex:none;display:block}
+.tabs a{display:inline-flex;align-items:center;gap:8px}
+.top .btn{display:inline-flex;align-items:center;gap:8px}
+html.bgmode .top .btn:not(.btn-p){background:rgba(255,255,255,.2);color:#fff;border:1px solid rgba(255,255,255,.3)}
+.card{border-radius:22px;box-shadow:0 6px 24px rgba(16,37,27,.10)}
+.stats{grid-template-columns:1fr 1fr}
+a.stat{display:flex;align-items:center;gap:12px;color:inherit}
+.stx{display:flex;flex-direction:column;min-width:0;flex:1}
+.stat .t{font-size:14px;font-weight:700;color:#4b5563}
+.stat .v{font-size:28px;font-weight:850;line-height:1.15;margin:2px 0;word-break:break-word;color:#0f1f17}
+.stat .l{font-size:13px;color:var(--muted)}
+.chev{color:#9ca3af;display:grid;place-items:center;flex:none}
+.sic{width:48px;height:48px;border-radius:50%;display:grid;place-items:center;flex:none}
+.sic.sm{width:34px;height:34px;border-radius:10px}
+.c-green{background:#dff3e7;color:#198754}
+.c-blue{background:#dbe8ff;color:#3b6fe0}
+.c-orange{background:#fff0d1;color:#f59e0b}
+.c-purple{background:#ece4ff;color:#7c4dff}
+.c-teal{background:#d9f3ec;color:#14a08a}
+.c-pink{background:#ffe3ea;color:#e0245e}
+.ttl{display:inline-flex;align-items:center;gap:10px}
+.gl{width:34px;height:3px;border-radius:3px;background:#22c55e;margin:12px 0}
+.g4{display:flex;align-items:center;gap:10px;opacity:1;margin-top:0}
+.greet{padding:36px 4px 6px}
+.g2{font-size:40px}
+.st{display:grid;grid-template-columns:20px minmax(0,1fr) 64px 92px 12px;align-items:center;gap:6px;padding:10px 8px;font-size:13px}
+.st-h{background:rgba(0,0,0,.05);border-radius:10px;font-size:11px;font-weight:700;color:var(--muted)}
+.st-r{border-bottom:1px solid var(--line)}
+.st-r:last-child{border-bottom:0}
+.st .who{gap:8px;min-width:0}
+.st .who b{font-size:13px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.st .thumb{width:32px;height:32px;border-radius:50%;font-size:13px}
+.pill{font-style:normal;display:inline-flex;align-items:center;gap:6px;padding:4px 9px;border-radius:999px;font-size:11px;font-weight:700;white-space:nowrap}
+.pill::before{content:"";width:7px;height:7px;border-radius:50%;background:currentColor}
+.pill.ok{background:#dcf5e6;color:#0f8a4b}
+.pill.low{background:#fff4d6;color:#b7791f}
+.pill.out{background:#fdecee;color:#dc3545}
+.bnav{position:fixed;left:12px;right:12px;bottom:12px;z-index:30;display:flex;justify-content:space-around;max-width:640px;margin:0 auto;background:rgba(255,255,255,.93);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border-radius:24px;padding:8px 4px;box-shadow:0 8px 30px rgba(0,0,0,.18)}
+.bnav a{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;font-size:12px;color:#6b7280;padding:6px 0;position:relative}
+.bnav a.on{color:var(--green2);font-weight:700}
+.bnav a.on::after{content:"";position:absolute;bottom:-2px;width:44px;height:3px;border-radius:3px;background:var(--green2)}
+main{padding-bottom:110px}
+.toast{bottom:96px}
+
+/* ---- compact phone sizing ---- */
+html,body{overflow-x:hidden;max-width:100%}
+@media(max-width:640px){
+body{font-size:14px}
+.top{height:52px;padding:6px 10px}
+.tabs{top:52px;padding:4px 8px;gap:2px}
+.tabs a{padding:6px 11px;font-size:12.5px;gap:6px}
+.tabs .ic{width:16px;height:16px}
+.logo{width:34px;height:34px;border-radius:10px}
+.title{font-size:15px}
+.muted{font-size:12px}
+.top .btn{padding:7px 11px;font-size:12.5px;gap:6px}
+.top .btn .ic{width:16px;height:16px}
+main{padding:8px 10px 92px}
+.greet{padding:18px 2px 0}
+.gl{margin:8px 0;width:28px}
+.g1{font-size:18px}
+.g2{font-size:28px}
+.g3{font-size:12.5px;margin-top:6px}
+.g4{font-size:12px;gap:8px}
+.g4 .ic{width:18px;height:18px}
+.card{padding:12px;border-radius:18px}
+.section{margin-top:12px}
+.stats{gap:8px}
+a.stat{gap:8px;padding:10px}
+.sic{width:36px;height:36px}
+.sic .ic{width:19px;height:19px}
+.sic.sm{width:28px;height:28px;border-radius:8px}
+.stat .t{font-size:12px}
+.stat .v{font-size:20px;margin:1px 0}
+.stat .l{font-size:11px}
+.stat .chev .ic{width:14px;height:14px}
+.h1{font-size:19px}
+.h2{font-size:14px}
+.btn{padding:9px 12px;font-size:13px;border-radius:10px}
+input,select{padding:10px;font-size:15px;border-radius:10px}
+label{font-size:12px}
+.st{font-size:11.5px;padding:8px 6px;grid-template-columns:16px minmax(0,1fr) 54px 82px 10px;gap:5px}
+.st .who b{font-size:12px}
+.st .thumb{width:26px;height:26px}
+.pill{font-size:10px;padding:3px 7px;gap:4px}
+.pill::before{width:6px;height:6px}
+.nums b{font-size:15px}
+th,td{padding:8px 6px;font-size:12px}
+.chart-row .line{font-size:12px}
+.bnav{left:8px;right:8px;bottom:8px;padding:4px;border-radius:20px}
+.bnav a{font-size:10.5px;padding:5px 0;gap:2px}
+.bnav .ic{width:19px;height:19px}
+.bnav a.on::after{width:34px}
+.toast{bottom:78px;font-size:12px}
+}
 </style>
 </head>
 <body>
@@ -106,8 +212,26 @@ function applyCfg(r) { if (r && r.config) BOOT = Object.assign(BOOT, r.config); 
 
 const PUBLIC = ["home", "analytics"];
 const ADMIN = ["products", "sale", "settings"];
-const TITLES = { home: "Home", analytics: "Analytics", products: "Products", sale: "Sale", settings: "Settings" };
+const TITLES = { home: "Home", analytics: "Analytics", products: "Products", sale: "Sales", settings: "Settings" };
 const S = { page: TITLES[BOOT.page] ? BOOT.page : "home", want: null, d: null, q: "", token: store("get"), busy: false };
+
+const UNITS = ["item", "kg", "g", "L", "ml", "box", "bag", "dozen"];
+const qu = (n, p) => { const u = (p && p.unit) || "item"; return num(n) + " " + (u === "item" && Number(n) !== 1 ? "items" : u); };
+
+const ICONS = {
+  home: '<path d="M3 11l9-8 9 8"/><path d="M5 10v10h5v-6h4v6h5V10"/>',
+  analytics: '<rect x="4" y="12" width="4" height="8" rx="1"/><rect x="10" y="7" width="4" height="13" rx="1"/><rect x="16" y="3" width="4" height="17" rx="1"/>',
+  products: '<path d="M12 2l9 5v10l-9 5-9-5V7z"/><path d="M3 7l9 5 9-5M12 12v10"/>',
+  sale: '<circle cx="9" cy="20" r="1.5"/><circle cx="18" cy="20" r="1.5"/><path d="M2 3h3l2.7 12.4a1 1 0 001 .8h8.9a1 1 0 001-.8L21 7H6"/>',
+  settings: '<circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 00.3 1.8l.1.1a2 2 0 11-2.8 2.8l-.1-.1a1.7 1.7 0 00-1.8-.3 1.7 1.7 0 00-1 1.5V21a2 2 0 11-4 0v-.1a1.7 1.7 0 00-1.1-1.5 1.7 1.7 0 00-1.8.3l-.1.1a2 2 0 11-2.8-2.8l.1-.1a1.7 1.7 0 00.3-1.8 1.7 1.7 0 00-1.5-1H3a2 2 0 110-4h.1a1.7 1.7 0 001.5-1.1 1.7 1.7 0 00-.3-1.8l-.1-.1a2 2 0 112.8-2.8l.1.1a1.7 1.7 0 001.8.3H9a1.7 1.7 0 001-1.5V3a2 2 0 114 0v.1a1.7 1.7 0 001 1.5 1.7 1.7 0 001.8-.3l.1-.1a2 2 0 112.8 2.8l-.1.1a1.7 1.7 0 00-.3 1.8V9a1.7 1.7 0 001.5 1H21a2 2 0 110 4h-.1a1.7 1.7 0 00-1.5 1z"/>',
+  check: '<circle cx="12" cy="12" r="10" fill="currentColor" stroke="none"/><path d="M7.5 12.5l3 3 6-7" stroke="#fff"/>',
+  coins: '<ellipse cx="12" cy="6" rx="7" ry="3"/><path d="M5 6v6c0 1.7 3.1 3 7 3s7-1.3 7-3V6M5 12v6c0 1.7 3.1 3 7 3s7-1.3 7-3v-6"/>',
+  trend: '<path d="M3 17l6-6 4 4 8-8"/><path d="M15 7h6v6"/>',
+  cal: '<rect x="3" y="5" width="18" height="16" rx="2"/><path d="M8 3v4M16 3v4M3 10h18"/><path d="M8 14h.01M12 14h.01M16 14h.01M8 18h.01M12 18h.01"/>',
+  chev: '<path d="M9 6l6 6-6 6"/>',
+  logout: '<path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4M16 17l5-5-5-5M21 12H9"/>'
+};
+const ic = (n, s) => `<svg class="ic" viewBox="0 0 24 24" width="${s || 22}" height="${s || 22}" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${ICONS[n] || ""}</svg>`;
 
 function store(op, v) {
   try {
@@ -122,7 +246,7 @@ function setCache(d) { try { if (d && !d.admin) localStorage.setItem("stock_cach
 
 const $ = s => document.querySelector(s);
 const esc = v => String(v == null ? "" : v).replace(/[&<>"']/g, m => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[m]));
-const num = v => Number(v || 0).toLocaleString();
+const num = v => Number(v || 0).toLocaleString(undefined, { maximumFractionDigits: 3 });
 const money = v => Number(v || 0).toLocaleString(undefined, { maximumFractionDigits: 2 }) + " " + BOOT.currency;
 const when = iso => { if (!iso) return ""; const d = new Date(iso); return isNaN(d) ? "" : d.toLocaleString([], { dateStyle: "medium", timeStyle: "short" }); };
 const link = p => "#" + p;
@@ -198,17 +322,26 @@ function shell() {
   const logo = d.settings && d.settings.logoUrl
     ? `<img class="logo" src="${esc(small(d.settings.logoUrl))}" alt="">`
     : `<div class="logo">${esc(BOOT.appName.charAt(0))}</div>`;
-  const tab = p => `<a href="${esc(link(p))}" data-page="${p}" class="${S.page === p ? "on" : ""}">${TITLES[p]}</a>`;
+  const tab = p => `<a href="${esc(link(p))}" data-page="${p}" class="${S.page === p ? "on" : ""}">${ic(p, 20)}<span>${TITLES[p]}</span></a>`;
   $("#app").innerHTML = `
   <header class="top">
     <div class="brand">${logo}<div><div class="title">${esc(BOOT.appName)}</div><div class="muted">${admin ? "Admin: " + esc(d.username) : "Stock overview"}</div></div></div>
-    ${admin ? `<button class="btn" data-act="logout">Logout</button>` : `<button class="btn btn-p" data-act="login-open">Login</button>`}
+    ${admin ? `<button class="btn" data-act="logout">${ic("logout", 18)} Logout</button>` : `<button class="btn btn-p" data-act="login-open">Login</button>`}
   </header>
   <nav class="tabs">${PUBLIC.map(tab).join("")}${admin ? ADMIN.map(tab).join("") : ""}</nav>
-  <main id="view"></main>`;
+  <main id="view"></main>
+  <nav class="bnav">${PUBLIC.concat(admin ? ADMIN : []).map(p => `<a href="${esc(link(p))}" data-page="${p}" class="${S.page === p ? "on" : ""}">${ic(p, 22)}<span>${TITLES[p]}</span></a>`).join("")}</nav>`;
+}
+
+function applyBg() {
+  const u = S.d && S.d.settings && S.d.settings.backgroundUrl;
+  const on = S.page === "home" && !!u;
+  document.documentElement.classList.toggle("bgmode", on);
+  if (on) document.documentElement.style.setProperty("--bg-img", 'url("' + String(u).replace(/["\\\n\r]/g, "") + '")');
 }
 
 function view() {
+  applyBg();
   const fn = { home: home, analytics: analytics, products: products, sale: sale, settings: settings }[S.page] || home;
   fn($("#view"), S.d);
 }
@@ -217,13 +350,15 @@ function view() {
 function thumb(p) {
   return `<div class="thumb">${esc(String(p.name || "?").charAt(0).toUpperCase())}${p.imageUrl ? `<img src="${esc(small(p.imageUrl))}" alt="" loading="lazy" onerror="this.style.display='none'">` : ""}</div>`;
 }
-function stat(l, v, sub) { return `<div class="card stat"><div class="l">${l}</div><div class="v">${v}</div><div class="l">${sub || ""}</div></div>`; }
+function stat(l, v, sub, icon, cls, page) {
+  return `<a class="card stat" href="${esc(link(page))}" data-page="${page}"><span class="sic ${cls}">${ic(icon, 24)}</span><span class="stx"><span class="t">${l}</span><span class="v">${v}</span><span class="l">${sub || ""}</span></span><span class="chev">${ic("chev", 18)}</span></a>`;
+}
 function status(p, low) { return p.remaining <= 0 ? `<span class="badge b-out">Out</span>` : p.remaining <= low ? `<span class="badge b-low">Low</span>` : ""; }
 function stackedBars(items, emptyMsg) {
   if (!items.length) return `<div class="muted">${emptyMsg || "No products yet."}</div>`;
   const max = Math.max(1, ...items.map(p => p.purchased));
   return `<div class="legend"><span><i class="b-sold"></i>Sold</span><span><i class="b-rem"></i>Remaining</span></div>` +
-    items.map(p => `<div class="chart-row"><div class="line"><span>${esc(p.name)}</span><b>${num(p.sold)} sold · ${num(p.remaining)} left</b></div>
+    items.map(p => `<div class="chart-row"><div class="line"><span>${esc(p.name)}</span><b>${qu(p.sold, p)} sold · ${qu(p.remaining, p)} left</b></div>
     <div class="bar" style="margin-top:5px"><i class="b-sold" style="width:${p.sold / max * 100}%"></i><i class="b-rem" style="width:${Math.max(0, p.remaining) / max * 100}%"></i></div></div>`).join("");
 }
 function emptyBox() { return `<div class="card muted">No products yet.${S.d.admin ? ` <a href="${esc(link("products"))}" data-page="products"><b>Add the first product</b></a>` : ""}</div>`; }
@@ -233,18 +368,19 @@ function matches(p, q) { return !q || String(p.name).toLowerCase().includes(q) |
 function home(v, d) {
   const t = d.totals || { products: 0, purchased: 0, sold: 0, remaining: 0 };
   const all = d.products || [], list = all.filter(p => matches(p, S.q.toLowerCase()));
-  const bg = d.settings && d.settings.backgroundUrl ? `style="background-image:url('${esc(d.settings.backgroundUrl)}')"` : "";
+  const h = new Date().getHours();
+  const hi = h < 12 ? "Good Morning" : h < 18 ? "Good Afternoon" : "Good Evening";
   v.innerHTML = `
-  <div class="hero" ${bg}><div><b>Stock Overview</b><br><span style="color:#e5e7eb;font-size:13px">Updated ${esc(when(d.updatedAt))}</span></div></div>
+  <div class="greet"><div class="gl"></div><div class="g1">${hi},</div><div class="g2">${esc(d.admin ? String(d.username).charAt(0).toUpperCase() + String(d.username).slice(1) : "Welcome")}</div><div class="g3">Manage your stock, track sales and grow your business.</div><div class="g4">${ic("cal", 22)}<span>Today: ${esc(new Date().toLocaleString([], { dateStyle: "medium", timeStyle: "short" }))}</span></div><div class="gl"></div></div>
   <div class="stats section">
-    ${stat("Products", num(t.products), "items")}
-    ${stat("Quantity purchased", num(t.purchased), "units")}
-    ${stat("Sold", num(t.sold), "units")}
-    ${stat("Remaining", num(t.remaining), "units in stock")}
-    ${d.admin && d.money ? stat("Stock cost", money(d.money.stockCost), "total purchased") + stat("Sales value", money(d.money.salesValue), "total sold") : ""}
+    ${stat("Products", num(t.products), t.products === 1 ? "item" : "items", "products", "c-green", "products")}
+    ${stat("Quantity purchased", num(t.purchased), "units", "sale", "c-blue", "products")}
+    ${stat("Sold", num(t.sold), "units", "check", "c-orange", "analytics")}
+    ${stat("Remaining", num(t.remaining), "units in stock", "products", "c-purple", "analytics")}
+    ${d.admin && d.money ? stat("Stock cost", money(d.money.stockCost), "total purchased", "coins", "c-teal", "products") + stat("Sales value", money(d.money.salesValue), "total sold", "trend", "c-pink", "sale") : ""}
   </div>
   <div class="card section">
-    <div class="head"><span class="h2">All stock</span><span class="muted" id="cnt">${list.length} of ${all.length}</span></div>
+    <div class="head"><span class="h2 ttl"><span class="sic sm c-green">${ic("products", 20)}</span>All stock</span><span class="muted" id="cnt">${list.length} of ${all.length}</span></div>
     <input class="search" id="q" placeholder="Search product…" value="${esc(S.q)}" autocomplete="off">
     <div id="stockList">${stockRows(list, d)}</div>
   </div>
@@ -259,16 +395,9 @@ function home(v, d) {
 }
 function stockRows(list, d) {
   if (!list.length) return (d.products || []).length ? `<div class="muted" style="padding:12px 0">No match.</div>` : emptyBox();
-  return list.map(p => {
-    const pct = p.purchased ? Math.min(100, p.sold / p.purchased * 100) : 0;
-    return `<div class="srow"><div class="line">
-      <div class="who">${thumb(p)}<div><b>${esc(p.name)}</b>${status(p, d.lowLimit)}<div class="muted">${esc(p.id)}</div></div></div>
-      <div class="nums">
-        <div><small>Bought</small><b>${num(p.purchased)}</b></div>
-        <div><small>Sold</small><b>${num(p.sold)}</b></div>
-        <div><small>Left</small><b class="${p.remaining <= d.lowLimit ? "low" : ""}">${num(p.remaining)}</b></div>
-      </div></div>
-      <div class="bar"><i class="b-sold" style="width:${pct}%"></i><i class="b-rem" style="width:${100 - pct}%"></i></div></div>`;
+  return `<div class="st st-h"><span>#</span><span>Product</span><span>Quantity</span><span>Status</span><span></span></div>` + list.map((p, i) => {
+    const st = p.remaining <= 0 ? ["out", "Out"] : p.remaining <= d.lowLimit ? ["low", "Low"] : ["ok", "In stock"];
+    return `<div class="st st-r"><span>${i + 1}</span><span class="who">${thumb(p)}<b>${esc(p.name)}</b></span><span>${qu(p.remaining, p)}</span><span><i class="pill ${st[0]}">${st[1]}</i></span><span class="chev">${ic("chev", 16)}</span></div>`;
   }).join("");
 }
 
@@ -283,9 +412,9 @@ function analytics(v, d) {
     <div class="cols">${days.map(x => `<div class="col"><b style="font-size:11px">${num(x.qty)}</b><i style="height:${x.qty / max * 100}%"></i><span>${esc(x.label)}</span></div>`).join("")}</div></div>
   <div class="card section"><div class="h2" style="margin-bottom:8px">Sold vs remaining</div>${stackedBars(d.products || [])}</div>
   <div class="card section"><div class="h2" style="margin-bottom:8px">Top sellers</div>
-    ${top.length ? top.map(p => `<div class="srow"><div class="line"><div class="who">${thumb(p)}<b>${esc(p.name)}</b></div><b>${num(p.sold)} sold</b></div></div>`).join("") : `<div class="muted">No sales yet.</div>`}</div>
+    ${top.length ? top.map(p => `<div class="srow"><div class="line"><div class="who">${thumb(p)}<b>${esc(p.name)}</b></div><b>${qu(p.sold, p)} sold</b></div></div>`).join("") : `<div class="muted">No sales yet.</div>`}</div>
   <div class="card section"><div class="h2" style="margin-bottom:8px">Low / out of stock</div>
-    ${lowList.length ? lowList.map(p => `<div class="srow"><div class="line"><div class="who">${thumb(p)}<div><b>${esc(p.name)}</b>${status(p, d.lowLimit)}</div></div><b class="low">${num(p.remaining)} left</b></div></div>`).join("") : `<div class="muted">All products are well stocked.</div>`}</div>`;
+    ${lowList.length ? lowList.map(p => `<div class="srow"><div class="line"><div class="who">${thumb(p)}<div><b>${esc(p.name)}</b>${status(p, d.lowLimit)}</div></div><b class="low">${qu(p.remaining, p)} left</b></div></div>`).join("") : `<div class="muted">All products are well stocked.</div>`}</div>`;
 }
 
 /* ---------- PRODUCTS (admin) ---------- */
@@ -297,16 +426,17 @@ function products(v, d) {
     <div class="h2">Add product</div>
     <div class="field"><label for="pn">Name</label><input id="pn" placeholder="Product name" autocomplete="off"></div>
     <div class="row2">
-      <div class="field"><label for="pq">Quantity</label><input id="pq" type="number" min="1" step="any" inputmode="decimal"></div>
-      <div class="field"><label for="pc">Cost per unit (${esc(BOOT.currency)})</label><input id="pc" type="number" min="0" step="any" inputmode="decimal"></div>
+      <div class="field"><label for="pq">Quantity</label><input id="pq" type="number" min="0" step="any" inputmode="decimal"></div>
+      <div class="field"><label for="pu">Unit</label><select id="pu">${UNITS.map(u => `<option>${u}</option>`).join("")}</select></div>
     </div>
+    <div class="field"><label for="pc">Cost per unit (${esc(BOOT.currency)})</label><input id="pc" type="number" min="0" step="any" inputmode="decimal"></div>
     <div class="field"><label for="pf">Image (optional)</label><input id="pf" type="file" accept="image/*"><img id="pp" class="preview" alt=""></div>
     <button class="btn btn-p" data-act="add-product">Add product</button>
     <div class="error" id="perr"></div>
   </div>
   <div class="card section"><div class="head"><span class="h2">All products</span><span class="muted">${list.length}</span></div>
     ${list.length ? `<div class="tw"><table><thead><tr><th>Product</th><th>Bought</th><th>Sold</th><th>Left</th><th>Cost/unit</th><th>Total cost</th></tr></thead><tbody>
-    ${list.map(p => `<tr><td><b>${esc(p.name)}</b><div class="muted">${esc(p.id)}</div></td><td>${num(p.purchased)}</td><td>${num(p.sold)}</td><td class="${p.remaining <= d.lowLimit ? "low" : ""}">${num(p.remaining)}</td><td>${money(p.costPerUnit)}</td><td>${money(p.totalCost)}</td></tr>`).join("")}
+    ${list.map(p => `<tr><td><b>${esc(p.name)}</b><div class="muted">${esc(p.id)}</div></td><td>${qu(p.purchased, p)}</td><td>${qu(p.sold, p)}</td><td class="${p.remaining <= d.lowLimit ? "low" : ""}">${qu(p.remaining, p)}</td><td>${money(p.costPerUnit)}</td><td>${money(p.totalCost)}</td></tr>`).join("")}
     </tbody></table></div>` : `<div class="muted">No products yet.</div>`}</div>`;
   $("#pf").addEventListener("change", e => {
     const f = e.target.files[0], im = $("#pp");
@@ -324,7 +454,7 @@ async function addProduct(btn) {
   try {
     const file = $("#pf").files[0];
     const imageUrl = file ? await upload(file) : "";
-    await api("addProduct", { name: name, quantity: qty, costPerUnit: cost, imageUrl: imageUrl });
+    await api("addProduct", { name: name, quantity: qty, unit: val("pu") || "item", costPerUnit: cost, imageUrl: imageUrl });
     await refresh();
     toast("Product added");
   } catch (e) {
@@ -338,10 +468,15 @@ function sale(v, d) {
   const recent = d.sales || [];
   v.innerHTML = `
   <div class="h1">Record sale</div><div class="muted">Stock reduces automatically</div>
+  <div class="card section"><div class="h2">Quick sale</div>
+    <div class="muted">Type: ngurishije Coffee Beans 2</div>
+    <div class="field"><input id="qs" placeholder="ngurishije Coffee Beans 2" autocomplete="off"></div>
+    <button class="btn btn-p" data-act="quick-sale">Sell</button>
+    <div class="error" id="qerr"></div></div>
   <div class="card section">
     <div class="field"><label for="sp">Product</label>
-      <select id="sp">${list.length ? list.map(p => `<option value="${esc(p.id)}">${esc(p.name)} (${num(p.remaining)} left)</option>`).join("") : `<option value="">No stock available</option>`}</select></div>
-    <div class="field"><label for="sq">Quantity</label><input id="sq" type="number" min="1" step="1" value="1" inputmode="numeric"></div>
+      <select id="sp">${list.length ? list.map(p => `<option value="${esc(p.id)}">${esc(p.name)} (${qu(p.remaining, p)} left)</option>`).join("") : `<option value="">No stock available</option>`}</select></div>
+    <div class="field"><label for="sq" id="sql">Quantity</label><input id="sq" type="number" min="0" step="any" value="1" inputmode="decimal"></div>
     <button class="btn btn-p" data-act="record-sale" ${list.length ? "" : "disabled"}>Record sale</button>
     <div class="error" id="serr"></div>
   </div>
@@ -349,13 +484,22 @@ function sale(v, d) {
     ${recent.length ? `<div class="tw"><table><thead><tr><th>Date</th><th>Product</th><th>Qty</th><th>Total</th></tr></thead><tbody>
     ${recent.map(s => `<tr><td>${esc(when(s.date))}</td><td>${esc(s.name)}</td><td>${num(s.qty)}</td><td>${money(s.total)}</td></tr>`).join("")}
     </tbody></table></div>` : `<div class="muted">No sales yet.</div>`}</div>`;
+  const sp = $("#sp");
+  const setLabel = () => {
+    const p = list.find(x => String(x.id) === sp.value);
+    $("#sql").textContent = "Quantity" + (p && p.unit ? " (" + p.unit + ")" : "");
+  };
+  sp.addEventListener("change", setLabel); setLabel();
 }
 
 async function recordSale(btn) {
   const err = $("#serr"); err.textContent = "";
   const id = val("sp"), qty = Number(val("sq"));
+  const p = ((S.d && S.d.products) || []).find(x => String(x.id) === id);
+  const whole = !p || !p.unit || p.unit === "item" || p.unit === "box" || p.unit === "bag" || p.unit === "dozen";
   if (!id) { err.textContent = "Choose a product"; return; }
-  if (!isFinite(qty) || qty <= 0 || Math.floor(qty) !== qty) { err.textContent = "Enter a whole quantity"; return; }
+  if (!isFinite(qty) || qty <= 0) { err.textContent = "Enter a quantity greater than zero"; return; }
+  if (whole && Math.floor(qty) !== qty) { err.textContent = "Enter a whole quantity"; return; }
   btn.disabled = true; btn.textContent = "Saving…";
   try {
     const r = await api("recordSale", { productId: id, quantity: qty });
@@ -364,6 +508,40 @@ async function recordSale(btn) {
   } catch (e) {
     err.textContent = e.message; btn.disabled = false; btn.textContent = "Record sale";
   }
+}
+
+function parseSale(text, list) {
+  const t = text.toLowerCase().replace(/,/g, ".");
+  const m = t.match(/(\d+(?:\.\d+)?)/);
+  if (!m) return { err: "I can't see a quantity. Example: ngurishije Coffee Beans 2" };
+  const words = t.replace(m[0], " ")
+    .replace(/\b(ngurishije|nagurishije|sold|sell|kg|g|l|ml|litres?|liters?|items?|ibintu|ikilo|amakilo|box|bag|dozen)\b/g, " ")
+    .replace(/\s+/g, " ").trim();
+  let best = null, score = 0;
+  list.forEach(p => {
+    const n = String(p.name).toLowerCase(); let sc = 0;
+    if (words && n === words) sc = 3;
+    else if (words && (n.includes(words) || words.includes(n))) sc = 2;
+    else { const w = words.split(" ").filter(x => x.length > 2); sc = w.filter(x => n.includes(x)).length / Math.max(1, w.length); }
+    if (sc > score) { score = sc; best = p; }
+  });
+  if (!best || score < 0.5) return { err: "Product not found. Check the name." };
+  return { p: best, qty: Number(m[1]) };
+}
+
+async function quickSale(btn) {
+  const err = $("#qerr"); err.textContent = "";
+  const r = parseSale(val("qs"), (S.d && S.d.products) || []);
+  if (r.err) { err.textContent = r.err; return; }
+  const p = r.p;
+  if (r.qty > p.remaining) { err.textContent = "Only " + qu(p.remaining, p) + " left"; return; }
+  if (!confirm("Sell " + qu(r.qty, p) + " of " + p.name + "?\n" + qu(p.remaining - r.qty, p) + " will remain.")) return;
+  btn.disabled = true;
+  try {
+    const x = await api("recordSale", { productId: p.id, quantity: r.qty });
+    await refresh();
+    toast("Sale recorded · " + num(x.remaining) + " left");
+  } catch (e) { err.textContent = e.message; btn.disabled = false; }
 }
 
 /* ---------- SETTINGS (admin) ---------- */
@@ -465,6 +643,7 @@ document.addEventListener("click", e => {
   else if (act === "logout") doLogout();
   else if (act === "add-product") addProduct(el);
   else if (act === "record-sale") recordSale(el);
+  else if (act === "quick-sale") quickSale(el);
   else if (act === "save-brand") saveBrand(el);
   else if (act === "change-pw") changePw(el);
 });
