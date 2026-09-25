@@ -1,12 +1,7 @@
-<!DOCTYPE html>
-<html lang="en">
+<!DOCTYPE html><html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-<title>Tool Management</title>
-
-<style>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"><title>Tool Management</title><style>
 * {
     box-sizing: border-box;
 }
@@ -28,8 +23,19 @@
 body {
     margin: 0;
     font-family: Arial, Helvetica, sans-serif;
-    background: var(--bg);
     color: var(--text);
+
+    background-image:
+        linear-gradient(
+            rgba(245,247,251,.84),
+            rgba(245,247,251,.84)
+        ),
+        url("https://images.unsplash.com/photo-1497366811353-6870744d04b2?auto=format&fit=crop&w=2400&q=85");
+
+    background-size: cover;
+    background-position: center;
+    background-attachment: fixed;
+    background-repeat: no-repeat;
 }
 
 /* -------------------------------
@@ -37,7 +43,8 @@ body {
 -------------------------------- */
 
 .header {
-    background: white;
+    background: rgba(255,255,255,.94);
+    backdrop-filter: blur(12px);
     border-bottom: 1px solid var(--border);
     height: 70px;
     display: flex;
@@ -47,6 +54,12 @@ body {
     position: sticky;
     top: 0;
     z-index: 50;
+}
+
+.header-left {
+    display: flex;
+    align-items: center;
+    gap: 16px;
 }
 
 .logo {
@@ -66,6 +79,29 @@ body {
     display: grid;
     place-items: center;
     font-weight: bold;
+}
+
+.home-button {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    border: 0;
+    background: #f3f4f6;
+    color: #111827;
+    padding: 10px 14px;
+    border-radius: 10px;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 600;
+}
+
+.home-button:hover {
+    background: #e5e7eb;
+}
+
+.home-icon {
+    font-size: 17px;
+    line-height: 1;
 }
 
 .status {
@@ -119,7 +155,7 @@ body {
 -------------------------------- */
 
 .card {
-    background: var(--card);
+    background: rgba(255,255,255,.96);
     border: 1px solid var(--border);
     border-radius: var(--radius);
     box-shadow: var(--shadow);
@@ -593,6 +629,18 @@ button {
         padding: 0 15px;
     }
 
+    .header-left {
+        gap: 8px;
+    }
+
+    .logo span {
+        display: none;
+    }
+
+    .home-button {
+        padding: 9px 11px;
+    }
+
     .container {
         width: 94%;
     }
@@ -622,461 +670,443 @@ button {
         font-size: 24px;
     }
 }
-</style>
-</head>
-
-<body>
-
-<!-- =========================================
+</style></head><body><!-- =========================================
      HEADER
-========================================= -->
-
-<header class="header">
+========================================= --><header class="header"><div class="header-left">
 
     <div class="logo">
         <div class="logo-icon">T</div>
         <span>Tool Management</span>
     </div>
 
-    <div class="status">
-        <span id="statusDot" class="status-dot"></span>
-        <span id="statusText">Connecting...</span>
-    </div>
+    <button
+        class="home-button"
+        onclick="window.location.href='index.html'">
 
-</header>
+        <span class="home-icon">🏠</span>
+        <span>Back to Home</span>
 
+    </button>
 
-<!-- =========================================
+</div>
+
+<div class="status">
+    <span id="statusDot" class="status-dot"></span>
+    <span id="statusText">Connecting...</span>
+</div>
+
+</header><!-- =========================================
      MAIN
-========================================= -->
+========================================= --><main class="container"><div class="page-title">
 
-<main class="container">
+    <h1>Tools</h1>
 
-    <div class="page-title">
+    <p>
+        Manage your tools, images, versions and status.
+    </p>
 
-        <h1>Tools</h1>
-
-        <p>
-            Manage your tools, images, versions and status.
-        </p>
-
-    </div>
+</div>
 
 
-    <div class="dashboard">
+<div class="dashboard">
 
-        <!-- SIDEBAR -->
+    <!-- SIDEBAR -->
 
-        <aside class="card sidebar">
+    <aside class="card sidebar">
 
-            <div class="sidebar-title">
-                Management
+        <div class="sidebar-title">
+            Management
+        </div>
+
+        <button
+            class="side-button active"
+            onclick="showTools()">
+            🧰 Tools
+        </button>
+
+        <button
+            class="side-button"
+            onclick="openAddTool()">
+            ＋ Add Tool
+        </button>
+
+        <button
+            class="side-button"
+            onclick="refreshTools()">
+            ↻ Refresh
+        </button>
+
+    </aside>
+
+
+    <!-- CONTENT -->
+
+    <section class="content">
+
+        <!-- STATS -->
+
+        <div class="stats">
+
+            <div class="card stat">
+
+                <div class="stat-label">
+                    Total Tools
+                </div>
+
+                <div
+                    class="stat-value"
+                    id="totalTools">
+                    0
+                </div>
+
+            </div>
+
+
+            <div class="card stat">
+
+                <div class="stat-label">
+                    Active
+                </div>
+
+                <div
+                    class="stat-value"
+                    id="activeTools">
+                    0
+                </div>
+
+            </div>
+
+
+            <div class="card stat">
+
+                <div class="stat-label">
+                    Inactive
+                </div>
+
+                <div
+                    class="stat-value"
+                    id="inactiveTools">
+                    0
+                </div>
+
+            </div>
+
+
+            <div class="card stat">
+
+                <div class="stat-label">
+                    With Images
+                </div>
+
+                <div
+                    class="stat-value"
+                    id="imageTools">
+                    0
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <!-- TOOLBAR -->
+
+        <div class="card toolbar">
+
+            <div class="search">
+
+                <input
+                    id="searchInput"
+                    type="search"
+                    placeholder="Search tools..."
+                    oninput="filterTools()">
+
             </div>
 
             <button
-                class="side-button active"
-                onclick="showTools()">
-                🧰 Tools
-            </button>
-
-            <button
-                class="side-button"
+                class="btn btn-primary"
                 onclick="openAddTool()">
+
                 ＋ Add Tool
-            </button>
 
-            <button
-                class="side-button"
-                onclick="refreshTools()">
-                ↻ Refresh
-            </button>
-
-        </aside>
-
-
-        <!-- CONTENT -->
-
-        <section class="content">
-
-            <!-- STATS -->
-
-            <div class="stats">
-
-                <div class="card stat">
-
-                    <div class="stat-label">
-                        Total Tools
-                    </div>
-
-                    <div
-                        class="stat-value"
-                        id="totalTools">
-                        0
-                    </div>
-
-                </div>
-
-
-                <div class="card stat">
-
-                    <div class="stat-label">
-                        Active
-                    </div>
-
-                    <div
-                        class="stat-value"
-                        id="activeTools">
-                        0
-                    </div>
-
-                </div>
-
-
-                <div class="card stat">
-
-                    <div class="stat-label">
-                        Inactive
-                    </div>
-
-                    <div
-                        class="stat-value"
-                        id="inactiveTools">
-                        0
-                    </div>
-
-                </div>
-
-
-                <div class="card stat">
-
-                    <div class="stat-label">
-                        With Images
-                    </div>
-
-                    <div
-                        class="stat-value"
-                        id="imageTools">
-                        0
-                    </div>
-
-                </div>
-
-            </div>
-
-
-            <!-- TOOLBAR -->
-
-            <div class="card toolbar">
-
-                <div class="search">
-
-                    <input
-                        id="searchInput"
-                        type="search"
-                        placeholder="Search tools..."
-                        oninput="filterTools()">
-
-                </div>
-
-                <button
-                    class="btn btn-primary"
-                    onclick="openAddTool()">
-
-                    ＋ Add Tool
-
-                </button>
-
-            </div>
-
-
-            <!-- TOOLS -->
-
-            <div id="toolsContainer">
-
-                <div class="loading">
-                    Loading tools...
-                </div>
-
-            </div>
-
-        </section>
-
-    </div>
-
-</main>
-
-
-<!-- =========================================
-     ADD / EDIT MODAL
-========================================= -->
-
-<div
-    id="toolModal"
-    class="modal-backdrop">
-
-    <div class="modal">
-
-        <div class="modal-header">
-
-            <h2 id="modalTitle">
-                Add Tool
-            </h2>
-
-            <button
-                class="close"
-                onclick="closeModal()">
-                ×
             </button>
 
         </div>
 
 
-        <form
-            id="toolForm"
-            class="form"
-            onsubmit="saveTool(event)">
+        <!-- TOOLS -->
+
+        <div id="toolsContainer">
+
+            <div class="loading">
+                Loading tools...
+            </div>
+
+        </div>
+
+    </section>
+
+</div>
+
+</main><!-- =========================================
+     ADD / EDIT MODAL
+========================================= --><div
+    id="toolModal"
+    class="modal-backdrop"><div class="modal">
+
+    <div class="modal-header">
+
+        <h2 id="modalTitle">
+            Add Tool
+        </h2>
+
+        <button
+            class="close"
+            onclick="closeModal()">
+            ×
+        </button>
+
+    </div>
+
+
+    <form
+        id="toolForm"
+        class="form"
+        onsubmit="saveTool(event)">
+
+        <input
+            type="hidden"
+            id="toolId">
+
+
+        <!-- NAME -->
+
+        <div class="form-group">
+
+            <label>
+                Tool Name *
+            </label>
 
             <input
-                type="hidden"
-                id="toolId">
+                id="toolName"
+                type="text"
+                placeholder="e.g. Organic Coffee Roaster"
+                required>
+
+        </div>
 
 
-            <!-- NAME -->
+        <!-- DESCRIPTION -->
+
+        <div class="form-group">
+
+            <label>
+                Description
+            </label>
+
+            <textarea
+                id="toolDescription"
+                placeholder="Describe this tool..."></textarea>
+
+        </div>
+
+
+        <!-- CATEGORY / VERSION -->
+
+        <div class="form-row">
 
             <div class="form-group">
 
                 <label>
-                    Tool Name *
+                    Category
                 </label>
 
                 <input
-                    id="toolName"
+                    id="toolCategory"
                     type="text"
-                    placeholder="e.g. Organic Coffee Roaster"
-                    required>
+                    placeholder="AI">
 
             </div>
 
-
-            <!-- DESCRIPTION -->
 
             <div class="form-group">
 
                 <label>
-                    Description
+                    Version
                 </label>
 
-                <textarea
-                    id="toolDescription"
-                    placeholder="Describe this tool..."></textarea>
+                <input
+                    id="toolVersion"
+                    type="text"
+                    value="1.0.0">
 
             </div>
 
+        </div>
 
-            <!-- CATEGORY / VERSION -->
 
-            <div class="form-row">
+        <!-- STATUS -->
 
-                <div class="form-group">
+        <div class="form-group">
 
-                    <label>
-                        Category
-                    </label>
+            <label>
+                Status
+            </label>
 
-                    <input
-                        id="toolCategory"
-                        type="text"
-                        placeholder="AI">
+            <select id="toolStatus">
 
+                <option value="active">
+                    Active
+                </option>
+
+                <option value="inactive">
+                    Inactive
+                </option>
+
+            </select>
+
+        </div>
+
+
+        <!-- IMAGE -->
+
+        <div class="form-group">
+
+            <label>
+                Tool Image
+            </label>
+
+            <div
+                class="image-upload"
+                onclick="document.getElementById('imageFile').click()">
+
+                <div>
+                    📷
                 </div>
 
-
-                <div class="form-group">
-
-                    <label>
-                        Version
-                    </label>
-
-                    <input
-                        id="toolVersion"
-                        type="text"
-                        value="1.0.0">
-
-                </div>
-
-            </div>
-
-
-            <!-- STATUS -->
-
-            <div class="form-group">
-
-                <label>
-                    Status
-                </label>
-
-                <select id="toolStatus">
-
-                    <option value="active">
-                        Active
-                    </option>
-
-                    <option value="inactive">
-                        Inactive
-                    </option>
-
-                </select>
-
-            </div>
-
-
-            <!-- IMAGE -->
-
-            <div class="form-group">
-
-                <label>
-                    Tool Image
-                </label>
+                <strong>
+                    Choose tool image
+                </strong>
 
                 <div
-                    class="image-upload"
-                    onclick="document.getElementById('imageFile').click()">
-
-                    <div>
-                        📷
-                    </div>
-
-                    <strong>
-                        Choose tool image
-                    </strong>
-
-                    <div
-                        style="
-                        color:#6b7280;
-                        font-size:12px;
-                        margin-top:5px;">
-                        PNG, JPG, WEBP
-                    </div>
-
-                    <input
-                        id="imageFile"
-                        type="file"
-                        accept="image/png,image/jpeg,image/webp"
-                        hidden
-                        onchange="previewImage(event)">
-
+                    style="
+                    color:#6b7280;
+                    font-size:12px;
+                    margin-top:5px;">
+                    PNG, JPG, WEBP
                 </div>
 
-
-                <div
-                    id="imagePreview"
-                    class="image-preview">
-
-                    <img
-                        id="previewImg"
-                        src=""
-                        alt="Preview">
-
-                </div>
-
-
-                <div
-                    id="uploadProgress"
-                    class="progress">
-
-                    <div class="progress-bar">
-
-                        <div
-                            id="progressFill"
-                            class="progress-fill">
-                        </div>
-
-                    </div>
-
-                    <div
-                        id="progressText"
-                        class="progress-text">
-                        Uploading...
-                    </div>
-
-                </div>
-
-            </div>
-
-
-            <!-- CLOUDINARY INFO -->
-
-            <div class="form-row">
-
-                <div class="form-group">
-
-                    <label>
-                        Cloudinary Preset
-                    </label>
-
-                    <input
-                        id="cloudinaryPreset"
-                        value="Organic_coffe"
-                        readonly>
-
-                </div>
-
-
-                <div class="form-group">
-
-                    <label>
-                        Asset Folder
-                    </label>
-
-                    <input
-                        id="cloudinaryFolder"
-                        value="Organic_coffe"
-                        readonly>
-
-                </div>
+                <input
+                    id="imageFile"
+                    type="file"
+                    accept="image/png,image/jpeg,image/webp"
+                    hidden
+                    onchange="previewImage(event)">
 
             </div>
 
 
             <div
-                class="modal-footer">
+                id="imagePreview"
+                class="image-preview">
 
-                <button
-                    type="button"
-                    class="btn btn-secondary"
-                    onclick="closeModal()">
-
-                    Cancel
-
-                </button>
-
-                <button
-                    id="saveButton"
-                    type="submit"
-                    class="btn btn-primary">
-
-                    Save Tool
-
-                </button>
+                <img
+                    id="previewImg"
+                    src=""
+                    alt="Preview">
 
             </div>
 
-        </form>
 
-    </div>
+            <div
+                id="uploadProgress"
+                class="progress">
+
+                <div class="progress-bar">
+
+                    <div
+                        id="progressFill"
+                        class="progress-fill">
+                    </div>
+
+                </div>
+
+                <div
+                    id="progressText"
+                    class="progress-text">
+                    Uploading...
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <!-- CLOUDINARY INFO -->
+
+        <div class="form-row">
+
+            <div class="form-group">
+
+                <label>
+                    Cloudinary Preset
+                </label>
+
+                <input
+                    id="cloudinaryPreset"
+                    value="Organic_coffe"
+                    readonly>
+
+            </div>
+
+
+            <div class="form-group">
+
+                <label>
+                    Asset Folder
+                </label>
+
+                <input
+                    id="cloudinaryFolder"
+                    value="Organic_coffe"
+                    readonly>
+
+            </div>
+
+        </div>
+
+
+        <div
+            class="modal-footer">
+
+            <button
+                type="button"
+                class="btn btn-secondary"
+                onclick="closeModal()">
+
+                Cancel
+
+            </button>
+
+            <button
+                id="saveButton"
+                type="submit"
+                class="btn btn-primary">
+
+                Save Tool
+
+            </button>
+
+        </div>
+
+    </form>
 
 </div>
 
-
-<!-- TOAST -->
-
-<div
+</div><!-- TOAST --><div
     id="toast"
     class="toast">
-</div>
-
-
-<script>
+</div><script>
 
 /* =================================================
    CONFIGURATION
@@ -1161,16 +1191,6 @@ document.addEventListener(
 /* =================================================
    API HELPER
 ================================================= */
-
-/*
- * Apps Script web apps don't send CORS headers back
- * for a JSON-typed request, which makes the browser
- * send a preflight OPTIONS call that Apps Script
- * can't answer. Sending the body as text/plain keeps
- * this a "simple request" (no preflight), while the
- * backend still receives valid JSON text and parses
- * it with JSON.parse(e.postData.contents).
- */
 
 async function callApi(action, payload) {
 
@@ -2177,7 +2197,5 @@ document
         }
     );
 
-</script>
-
-</body>
+</script></body>
 </html>
