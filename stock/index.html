@@ -664,5 +664,45 @@ document.addEventListener("click", e => {
 })();
 })();
 </script>
+<!-- Tool Manager Button -->
+<button id="toolManagerBtn" style="display:none;">
+  Tool Manager 🧰
+</button>
+
+<script>
+(function () {
+  const toolBtn = document.getElementById("toolManagerBtn");
+
+  // Check login status
+  function updateToolManager() {
+    const loggedIn = localStorage.getItem("loggedIn") === "true";
+
+    if (loggedIn) {
+      toolBtn.style.display = "block";
+    } else {
+      toolBtn.style.display = "none";
+    }
+  }
+
+  // Open Tool Manager
+  toolBtn.addEventListener("click", function () {
+    window.location.href = "tool.html";
+  });
+
+  // Make available to your existing login/logout code
+  window.setLoggedIn = function () {
+    localStorage.setItem("loggedIn", "true");
+    updateToolManager();
+  };
+
+  window.setLoggedOut = function () {
+    localStorage.removeItem("loggedIn");
+    updateToolManager();
+  };
+
+  // Check when page loads
+  updateToolManager();
+})();
+</script>
 </body>
 </html>
