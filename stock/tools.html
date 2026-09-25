@@ -1,0 +1,2183 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>Tool Management</title>
+
+<style>
+* {
+    box-sizing: border-box;
+}
+
+:root {
+    --bg: #f5f7fb;
+    --card: #ffffff;
+    --text: #172033;
+    --muted: #6b7280;
+    --border: #e5e7eb;
+    --primary: #2563eb;
+    --primary-dark: #1d4ed8;
+    --danger: #dc2626;
+    --success: #16a34a;
+    --shadow: 0 10px 35px rgba(0,0,0,.08);
+    --radius: 18px;
+}
+
+body {
+    margin: 0;
+    font-family: Arial, Helvetica, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+}
+
+/* -------------------------------
+   HEADER
+-------------------------------- */
+
+.header {
+    background: white;
+    border-bottom: 1px solid var(--border);
+    height: 70px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 28px;
+    position: sticky;
+    top: 0;
+    z-index: 50;
+}
+
+.logo {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-size: 20px;
+    font-weight: 700;
+}
+
+.logo-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 12px;
+    background: var(--primary);
+    color: white;
+    display: grid;
+    place-items: center;
+    font-weight: bold;
+}
+
+.status {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 13px;
+    color: var(--muted);
+}
+
+.status-dot {
+    width: 9px;
+    height: 9px;
+    border-radius: 50%;
+    background: #aaa;
+}
+
+.status-dot.online {
+    background: var(--success);
+}
+
+.status-dot.offline {
+    background: var(--danger);
+}
+
+/* -------------------------------
+   LAYOUT
+-------------------------------- */
+
+.container {
+    width: min(1400px, 94%);
+    margin: 28px auto;
+}
+
+.page-title {
+    margin-bottom: 24px;
+}
+
+.page-title h1 {
+    margin: 0;
+    font-size: 30px;
+}
+
+.page-title p {
+    margin: 8px 0 0;
+    color: var(--muted);
+}
+
+/* -------------------------------
+   CARDS
+-------------------------------- */
+
+.card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+}
+
+.dashboard {
+    display: grid;
+    grid-template-columns: 280px 1fr;
+    gap: 24px;
+}
+
+.sidebar {
+    padding: 20px;
+    height: fit-content;
+}
+
+.sidebar-title {
+    font-weight: 700;
+    margin-bottom: 15px;
+}
+
+.side-button {
+    width: 100%;
+    border: 0;
+    background: transparent;
+    padding: 12px 14px;
+    border-radius: 10px;
+    text-align: left;
+    cursor: pointer;
+    font-size: 14px;
+    margin-bottom: 5px;
+}
+
+.side-button:hover,
+.side-button.active {
+    background: #eff6ff;
+    color: var(--primary);
+}
+
+.content {
+    min-width: 0;
+}
+
+/* -------------------------------
+   STATS
+-------------------------------- */
+
+.stats {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 16px;
+    margin-bottom: 24px;
+}
+
+.stat {
+    padding: 20px;
+}
+
+.stat-label {
+    color: var(--muted);
+    font-size: 13px;
+}
+
+.stat-value {
+    font-size: 28px;
+    font-weight: 700;
+    margin-top: 7px;
+}
+
+/* -------------------------------
+   TOOLBAR
+-------------------------------- */
+
+.toolbar {
+    padding: 18px;
+    display: flex;
+    gap: 12px;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 18px;
+}
+
+.search {
+    flex: 1;
+    max-width: 500px;
+    position: relative;
+}
+
+.search input {
+    width: 100%;
+    height: 44px;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 0 15px;
+    outline: none;
+    font-size: 14px;
+}
+
+.search input:focus {
+    border-color: var(--primary);
+}
+
+/* -------------------------------
+   BUTTONS
+-------------------------------- */
+
+button {
+    font-family: inherit;
+}
+
+.btn {
+    border: 0;
+    border-radius: 11px;
+    padding: 11px 17px;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 600;
+}
+
+.btn:disabled {
+    opacity: .6;
+    cursor: not-allowed;
+}
+
+.btn-primary {
+    background: var(--primary);
+    color: white;
+}
+
+.btn-primary:hover {
+    background: var(--primary-dark);
+}
+
+.btn-secondary {
+    background: #f3f4f6;
+    color: #111827;
+}
+
+.btn-danger {
+    background: #fee2e2;
+    color: var(--danger);
+}
+
+.btn-small {
+    padding: 7px 10px;
+    font-size: 12px;
+}
+
+/* -------------------------------
+   TOOL GRID
+-------------------------------- */
+
+.tool-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 18px;
+}
+
+.tool-card {
+    overflow: hidden;
+    background: white;
+    border: 1px solid var(--border);
+    border-radius: 16px;
+}
+
+.tool-image {
+    width: 100%;
+    height: 190px;
+    background: #f1f5f9;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+}
+
+.tool-image img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.no-image {
+    color: #9ca3af;
+    font-size: 14px;
+}
+
+.tool-body {
+    padding: 16px;
+}
+
+.tool-name {
+    font-size: 18px;
+    font-weight: 700;
+}
+
+.tool-description {
+    color: var(--muted);
+    font-size: 13px;
+    margin: 7px 0 12px;
+    line-height: 1.5;
+}
+
+.tool-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 7px;
+    margin-bottom: 15px;
+}
+
+.badge {
+    display: inline-block;
+    background: #f1f5f9;
+    color: #475569;
+    border-radius: 20px;
+    padding: 5px 9px;
+    font-size: 11px;
+}
+
+.badge.active {
+    background: #dcfce7;
+    color: #166534;
+}
+
+.badge.inactive {
+    background: #fee2e2;
+    color: #991b1b;
+}
+
+.tool-actions {
+    display: flex;
+    gap: 7px;
+}
+
+/* -------------------------------
+   MODAL
+-------------------------------- */
+
+.modal-backdrop {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,.5);
+    z-index: 100;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+}
+
+.modal-backdrop.show {
+    display: flex;
+}
+
+.modal {
+    width: min(650px, 100%);
+    max-height: 92vh;
+    overflow-y: auto;
+    background: white;
+    border-radius: 20px;
+    box-shadow: 0 30px 80px rgba(0,0,0,.25);
+}
+
+.modal-header {
+    padding: 20px 22px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.modal-header h2 {
+    margin: 0;
+    font-size: 20px;
+}
+
+.close {
+    width: 35px;
+    height: 35px;
+    border: 0;
+    background: #f3f4f6;
+    border-radius: 9px;
+    cursor: pointer;
+    font-size: 20px;
+}
+
+.form {
+    padding: 22px;
+}
+
+.form-group {
+    margin-bottom: 17px;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 7px;
+    font-size: 13px;
+    font-weight: 600;
+}
+
+.form-group input,
+.form-group textarea,
+.form-group select {
+    width: 100%;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 11px 12px;
+    font-size: 14px;
+    outline: none;
+    background: white;
+}
+
+.form-group textarea {
+    min-height: 90px;
+    resize: vertical;
+}
+
+.form-group input:focus,
+.form-group textarea:focus,
+.form-group select:focus {
+    border-color: var(--primary);
+}
+
+.form-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 14px;
+}
+
+.image-upload {
+    border: 2px dashed #cbd5e1;
+    border-radius: 14px;
+    padding: 20px;
+    text-align: center;
+    cursor: pointer;
+    background: #f8fafc;
+}
+
+.image-upload:hover {
+    border-color: var(--primary);
+}
+
+.image-preview {
+    margin-top: 12px;
+    display: none;
+}
+
+.image-preview img {
+    width: 130px;
+    height: 100px;
+    object-fit: cover;
+    border-radius: 10px;
+}
+
+.progress {
+    margin-top: 12px;
+    display: none;
+}
+
+.progress-bar {
+    width: 100%;
+    height: 7px;
+    background: #e5e7eb;
+    border-radius: 10px;
+    overflow: hidden;
+}
+
+.progress-fill {
+    width: 0%;
+    height: 100%;
+    background: var(--primary);
+    transition: width .2s;
+}
+
+.progress-text {
+    margin-top: 6px;
+    font-size: 12px;
+    color: var(--muted);
+}
+
+.modal-footer {
+    padding: 18px 22px;
+    border-top: 1px solid var(--border);
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+}
+
+/* -------------------------------
+   EMPTY
+-------------------------------- */
+
+.empty {
+    padding: 60px 20px;
+    text-align: center;
+    color: var(--muted);
+}
+
+.empty h3 {
+    color: var(--text);
+}
+
+/* -------------------------------
+   LOADING
+-------------------------------- */
+
+.loading {
+    padding: 50px;
+    text-align: center;
+    color: var(--muted);
+}
+
+/* -------------------------------
+   TOAST
+-------------------------------- */
+
+.toast {
+    position: fixed;
+    right: 20px;
+    bottom: 20px;
+    z-index: 300;
+    background: #111827;
+    color: white;
+    padding: 13px 17px;
+    border-radius: 10px;
+    opacity: 0;
+    transform: translateY(20px);
+    pointer-events: none;
+    transition: .25s;
+    max-width: 350px;
+    font-size: 14px;
+}
+
+.toast.show {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+.toast.error {
+    background: #7f1d1d;
+}
+
+/* -------------------------------
+   RESPONSIVE
+-------------------------------- */
+
+@media(max-width: 1050px) {
+
+    .tool-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .stats {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media(max-width: 800px) {
+
+    .dashboard {
+        grid-template-columns: 1fr;
+    }
+
+    .sidebar {
+        display: none;
+    }
+}
+
+@media(max-width: 600px) {
+
+    .header {
+        padding: 0 15px;
+    }
+
+    .container {
+        width: 94%;
+    }
+
+    .toolbar {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .search {
+        max-width: none;
+    }
+
+    .tool-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .stats {
+        grid-template-columns: 1fr 1fr;
+    }
+
+    .form-row {
+        grid-template-columns: 1fr;
+    }
+
+    .page-title h1 {
+        font-size: 24px;
+    }
+}
+</style>
+</head>
+
+<body>
+
+<!-- =========================================
+     HEADER
+========================================= -->
+
+<header class="header">
+
+    <div class="logo">
+        <div class="logo-icon">T</div>
+        <span>Tool Management</span>
+    </div>
+
+    <div class="status">
+        <span id="statusDot" class="status-dot"></span>
+        <span id="statusText">Connecting...</span>
+    </div>
+
+</header>
+
+
+<!-- =========================================
+     MAIN
+========================================= -->
+
+<main class="container">
+
+    <div class="page-title">
+
+        <h1>Tools</h1>
+
+        <p>
+            Manage your tools, images, versions and status.
+        </p>
+
+    </div>
+
+
+    <div class="dashboard">
+
+        <!-- SIDEBAR -->
+
+        <aside class="card sidebar">
+
+            <div class="sidebar-title">
+                Management
+            </div>
+
+            <button
+                class="side-button active"
+                onclick="showTools()">
+                🧰 Tools
+            </button>
+
+            <button
+                class="side-button"
+                onclick="openAddTool()">
+                ＋ Add Tool
+            </button>
+
+            <button
+                class="side-button"
+                onclick="refreshTools()">
+                ↻ Refresh
+            </button>
+
+        </aside>
+
+
+        <!-- CONTENT -->
+
+        <section class="content">
+
+            <!-- STATS -->
+
+            <div class="stats">
+
+                <div class="card stat">
+
+                    <div class="stat-label">
+                        Total Tools
+                    </div>
+
+                    <div
+                        class="stat-value"
+                        id="totalTools">
+                        0
+                    </div>
+
+                </div>
+
+
+                <div class="card stat">
+
+                    <div class="stat-label">
+                        Active
+                    </div>
+
+                    <div
+                        class="stat-value"
+                        id="activeTools">
+                        0
+                    </div>
+
+                </div>
+
+
+                <div class="card stat">
+
+                    <div class="stat-label">
+                        Inactive
+                    </div>
+
+                    <div
+                        class="stat-value"
+                        id="inactiveTools">
+                        0
+                    </div>
+
+                </div>
+
+
+                <div class="card stat">
+
+                    <div class="stat-label">
+                        With Images
+                    </div>
+
+                    <div
+                        class="stat-value"
+                        id="imageTools">
+                        0
+                    </div>
+
+                </div>
+
+            </div>
+
+
+            <!-- TOOLBAR -->
+
+            <div class="card toolbar">
+
+                <div class="search">
+
+                    <input
+                        id="searchInput"
+                        type="search"
+                        placeholder="Search tools..."
+                        oninput="filterTools()">
+
+                </div>
+
+                <button
+                    class="btn btn-primary"
+                    onclick="openAddTool()">
+
+                    ＋ Add Tool
+
+                </button>
+
+            </div>
+
+
+            <!-- TOOLS -->
+
+            <div id="toolsContainer">
+
+                <div class="loading">
+                    Loading tools...
+                </div>
+
+            </div>
+
+        </section>
+
+    </div>
+
+</main>
+
+
+<!-- =========================================
+     ADD / EDIT MODAL
+========================================= -->
+
+<div
+    id="toolModal"
+    class="modal-backdrop">
+
+    <div class="modal">
+
+        <div class="modal-header">
+
+            <h2 id="modalTitle">
+                Add Tool
+            </h2>
+
+            <button
+                class="close"
+                onclick="closeModal()">
+                ×
+            </button>
+
+        </div>
+
+
+        <form
+            id="toolForm"
+            class="form"
+            onsubmit="saveTool(event)">
+
+            <input
+                type="hidden"
+                id="toolId">
+
+
+            <!-- NAME -->
+
+            <div class="form-group">
+
+                <label>
+                    Tool Name *
+                </label>
+
+                <input
+                    id="toolName"
+                    type="text"
+                    placeholder="e.g. Organic Coffee Roaster"
+                    required>
+
+            </div>
+
+
+            <!-- DESCRIPTION -->
+
+            <div class="form-group">
+
+                <label>
+                    Description
+                </label>
+
+                <textarea
+                    id="toolDescription"
+                    placeholder="Describe this tool..."></textarea>
+
+            </div>
+
+
+            <!-- CATEGORY / VERSION -->
+
+            <div class="form-row">
+
+                <div class="form-group">
+
+                    <label>
+                        Category
+                    </label>
+
+                    <input
+                        id="toolCategory"
+                        type="text"
+                        placeholder="AI">
+
+                </div>
+
+
+                <div class="form-group">
+
+                    <label>
+                        Version
+                    </label>
+
+                    <input
+                        id="toolVersion"
+                        type="text"
+                        value="1.0.0">
+
+                </div>
+
+            </div>
+
+
+            <!-- STATUS -->
+
+            <div class="form-group">
+
+                <label>
+                    Status
+                </label>
+
+                <select id="toolStatus">
+
+                    <option value="active">
+                        Active
+                    </option>
+
+                    <option value="inactive">
+                        Inactive
+                    </option>
+
+                </select>
+
+            </div>
+
+
+            <!-- IMAGE -->
+
+            <div class="form-group">
+
+                <label>
+                    Tool Image
+                </label>
+
+                <div
+                    class="image-upload"
+                    onclick="document.getElementById('imageFile').click()">
+
+                    <div>
+                        📷
+                    </div>
+
+                    <strong>
+                        Choose tool image
+                    </strong>
+
+                    <div
+                        style="
+                        color:#6b7280;
+                        font-size:12px;
+                        margin-top:5px;">
+                        PNG, JPG, WEBP
+                    </div>
+
+                    <input
+                        id="imageFile"
+                        type="file"
+                        accept="image/png,image/jpeg,image/webp"
+                        hidden
+                        onchange="previewImage(event)">
+
+                </div>
+
+
+                <div
+                    id="imagePreview"
+                    class="image-preview">
+
+                    <img
+                        id="previewImg"
+                        src=""
+                        alt="Preview">
+
+                </div>
+
+
+                <div
+                    id="uploadProgress"
+                    class="progress">
+
+                    <div class="progress-bar">
+
+                        <div
+                            id="progressFill"
+                            class="progress-fill">
+                        </div>
+
+                    </div>
+
+                    <div
+                        id="progressText"
+                        class="progress-text">
+                        Uploading...
+                    </div>
+
+                </div>
+
+            </div>
+
+
+            <!-- CLOUDINARY INFO -->
+
+            <div class="form-row">
+
+                <div class="form-group">
+
+                    <label>
+                        Cloudinary Preset
+                    </label>
+
+                    <input
+                        id="cloudinaryPreset"
+                        value="Organic_coffe"
+                        readonly>
+
+                </div>
+
+
+                <div class="form-group">
+
+                    <label>
+                        Asset Folder
+                    </label>
+
+                    <input
+                        id="cloudinaryFolder"
+                        value="Organic_coffe"
+                        readonly>
+
+                </div>
+
+            </div>
+
+
+            <div
+                class="modal-footer">
+
+                <button
+                    type="button"
+                    class="btn btn-secondary"
+                    onclick="closeModal()">
+
+                    Cancel
+
+                </button>
+
+                <button
+                    id="saveButton"
+                    type="submit"
+                    class="btn btn-primary">
+
+                    Save Tool
+
+                </button>
+
+            </div>
+
+        </form>
+
+    </div>
+
+</div>
+
+
+<!-- TOAST -->
+
+<div
+    id="toast"
+    class="toast">
+</div>
+
+
+<script>
+
+/* =================================================
+   CONFIGURATION
+================================================= */
+
+/*
+ * IMPORTANT — fill these two values in before you
+ * push this file to GitHub / GitHub Pages.
+ */
+
+// Your deployed Google Apps Script Web App URL
+// (Deploy > New deployment > Web app > Execute as
+// "Me", who has access "Anyone"). It looks like:
+// https://script.google.com/macros/s/XXXXXXXX/exec
+const APPS_SCRIPT_URL =
+    "https://script.google.com/macros/s/AKfycbzQVqCMYnqIcZQSF30LPJvnOoMkzFrpXURGUM7MvDrUzNUtCc8iiSbNEddTYWX7B4A1OQ/exec";
+
+// Your Cloudinary cloud name (found on your
+// Cloudinary dashboard, top left)
+const CLOUDINARY_CLOUD_NAME =
+    "ff3cq23a";
+
+// These two match the values baked into Code.gs —
+// only change them if you changed them there too.
+const CLOUDINARY_UPLOAD_PRESET =
+    "Organic_coffe";
+
+const CLOUDINARY_FOLDER =
+    "Organic_coffe";
+
+
+/* =================================================
+   STATE
+================================================= */
+
+let tools = [];
+
+let editingToolId = null;
+
+let selectedImageFile = null;
+
+let isSaving = false;
+
+
+/* =================================================
+   START
+================================================= */
+
+document.addEventListener(
+    "DOMContentLoaded",
+    function() {
+
+        const configured =
+            APPS_SCRIPT_URL !==
+            "YOUR_APPS_SCRIPT_WEB_APP_URL" &&
+            APPS_SCRIPT_URL.trim() !== "";
+
+        if (!configured) {
+
+            setStatus(
+                false,
+                "Configure API"
+            );
+
+            renderConfigNeeded();
+
+            showToast(
+                "Add your Apps Script Web App URL " +
+                "in the APPS_SCRIPT_URL constant at " +
+                "the top of the <script> tag.",
+                true
+            );
+
+            return;
+        }
+
+        loadTools();
+    }
+);
+
+
+/* =================================================
+   API HELPER
+================================================= */
+
+/*
+ * Apps Script web apps don't send CORS headers back
+ * for a JSON-typed request, which makes the browser
+ * send a preflight OPTIONS call that Apps Script
+ * can't answer. Sending the body as text/plain keeps
+ * this a "simple request" (no preflight), while the
+ * backend still receives valid JSON text and parses
+ * it with JSON.parse(e.postData.contents).
+ */
+
+async function callApi(action, payload) {
+
+    if (!payload) {
+
+        payload = {};
+    }
+
+    payload.action = action;
+
+    const response =
+        await fetch(
+            APPS_SCRIPT_URL,
+            {
+                method: "POST",
+                headers: {
+                    "Content-Type":
+                        "text/plain;charset=utf-8"
+                },
+                body:
+                    JSON.stringify(payload)
+            }
+        );
+
+    if (!response.ok) {
+
+        throw new Error(
+            "Request failed with status " +
+            response.status
+        );
+    }
+
+    const data =
+        await response.json();
+
+    if (!data.success) {
+
+        throw new Error(
+            data.error ||
+            "Unknown API error"
+        );
+    }
+
+    return data;
+}
+
+
+/* =================================================
+   LOAD / REFRESH
+================================================= */
+
+async function loadTools() {
+
+    setStatus(
+        null,
+        "Connecting..."
+    );
+
+    renderLoading();
+
+    try {
+
+        const data =
+            await callApi("getTools");
+
+        tools =
+            data.tools || [];
+
+        setStatus(
+            true,
+            "Connected"
+        );
+
+        renderTools(tools);
+
+        updateStats(tools);
+
+    } catch (error) {
+
+        setStatus(
+            false,
+            "Offline"
+        );
+
+        renderError(error.message);
+
+        showToast(
+            "Couldn't load tools: " +
+            error.message,
+            true
+        );
+    }
+}
+
+
+function refreshTools() {
+
+    loadTools();
+}
+
+
+function showTools() {
+
+    document
+        .getElementById("searchInput")
+        .value = "";
+
+    renderTools(tools);
+}
+
+
+/* =================================================
+   RENDER: TOOLS GRID
+================================================= */
+
+function renderLoading() {
+
+    document
+        .getElementById("toolsContainer")
+        .innerHTML =
+        '<div class="loading">Loading tools...</div>';
+}
+
+
+function renderError(message) {
+
+    document
+        .getElementById("toolsContainer")
+        .innerHTML =
+        '<div class="card empty">' +
+        '<h3>Couldn\'t reach the API</h3>' +
+        '<p>' + escapeHtml(message) + '</p>' +
+        '<button class="btn btn-primary" ' +
+        'onclick="loadTools()" ' +
+        'style="margin-top:12px;">Try again</button>' +
+        '</div>';
+}
+
+
+function renderConfigNeeded() {
+
+    document
+        .getElementById("toolsContainer")
+        .innerHTML =
+        '<div class="card empty">' +
+        '<h3>Almost there</h3>' +
+        '<p>Set APPS_SCRIPT_URL (and, if you want ' +
+        'image uploads, CLOUDINARY_CLOUD_NAME) at ' +
+        'the top of the script tag in this file, ' +
+        'then reload the page.</p>' +
+        '</div>';
+}
+
+
+function renderTools(list) {
+
+    const container =
+        document.getElementById(
+            "toolsContainer"
+        );
+
+    if (!list || list.length === 0) {
+
+        container.innerHTML =
+            '<div class="card empty">' +
+            '<h3>No tools yet</h3>' +
+            '<p>Add your first tool to get started.</p>' +
+            '</div>';
+
+        return;
+    }
+
+    const grid =
+        document.createElement("div");
+
+    grid.className = "tool-grid";
+
+    list.forEach(function(tool) {
+
+        grid.appendChild(
+            buildToolCard(tool)
+        );
+    });
+
+    container.innerHTML = "";
+
+    container.appendChild(grid);
+}
+
+
+function buildToolCard(tool) {
+
+    const card =
+        document.createElement("div");
+
+    card.className = "tool-card";
+
+    const statusClass =
+        tool.Status === "active" ?
+            "active" :
+            "inactive";
+
+    const imageBlock =
+        tool.ImageURL ?
+            '<img src="' +
+            escapeHtml(tool.ImageURL) +
+            '" alt="' +
+            escapeHtml(tool.Name || "") +
+            '">' :
+            '<span class="no-image">No image</span>';
+
+    card.innerHTML =
+        '<div class="tool-image">' +
+        imageBlock +
+        '</div>' +
+        '<div class="tool-body">' +
+        '<div class="tool-name">' +
+        escapeHtml(tool.Name || "Untitled") +
+        '</div>' +
+        '<div class="tool-description">' +
+        escapeHtml(tool.Description || "No description") +
+        '</div>' +
+        '<div class="tool-meta">' +
+        (tool.Category ?
+            '<span class="badge">' +
+            escapeHtml(tool.Category) +
+            '</span>' : "") +
+        (tool.Version ?
+            '<span class="badge">v' +
+            escapeHtml(tool.Version) +
+            '</span>' : "") +
+        '<span class="badge ' + statusClass + '">' +
+        escapeHtml(tool.Status || "unknown") +
+        '</span>' +
+        '</div>' +
+        '<div class="tool-actions">' +
+        '<button class="btn btn-secondary btn-small" ' +
+        'data-action="edit">Edit</button>' +
+        '<button class="btn btn-danger btn-small" ' +
+        'data-action="delete">Delete</button>' +
+        '</div>' +
+        '</div>';
+
+    card
+        .querySelector('[data-action="edit"]')
+        .addEventListener(
+            "click",
+            function() {
+                openEditTool(tool.ID);
+            }
+        );
+
+    card
+        .querySelector('[data-action="delete"]')
+        .addEventListener(
+            "click",
+            function() {
+                deleteToolPrompt(
+                    tool.ID,
+                    tool.Name
+                );
+            }
+        );
+
+    return card;
+}
+
+
+/* =================================================
+   STATS
+================================================= */
+
+function updateStats(list) {
+
+    const total =
+        list.length;
+
+    const active =
+        list.filter(
+            t => t.Status === "active"
+        ).length;
+
+    const inactive =
+        total - active;
+
+    const withImages =
+        list.filter(
+            t => t.ImageURL
+        ).length;
+
+    document.getElementById(
+        "totalTools"
+    ).textContent = total;
+
+    document.getElementById(
+        "activeTools"
+    ).textContent = active;
+
+    document.getElementById(
+        "inactiveTools"
+    ).textContent = inactive;
+
+    document.getElementById(
+        "imageTools"
+    ).textContent = withImages;
+}
+
+
+/* =================================================
+   SEARCH / FILTER
+================================================= */
+
+function filterTools() {
+
+    const query =
+        document
+            .getElementById("searchInput")
+            .value
+            .toLowerCase()
+            .trim();
+
+    if (!query) {
+
+        renderTools(tools);
+
+        return;
+    }
+
+    const filtered =
+        tools.filter(function(tool) {
+
+            const haystack =
+                [
+                    tool.Name,
+                    tool.Description,
+                    tool.Category,
+                    tool.Status
+                ]
+                .join(" ")
+                .toLowerCase();
+
+            return haystack.includes(query);
+        });
+
+    renderTools(filtered);
+}
+
+
+/* =================================================
+   MODAL: OPEN / CLOSE
+================================================= */
+
+function openAddTool() {
+
+    editingToolId = null;
+
+    selectedImageFile = null;
+
+    document.getElementById(
+        "modalTitle"
+    ).textContent = "Add Tool";
+
+    document
+        .getElementById("toolForm")
+        .reset();
+
+    document.getElementById(
+        "toolId"
+    ).value = "";
+
+    document.getElementById(
+        "toolVersion"
+    ).value = "1.0.0";
+
+    hideImagePreview();
+
+    hideProgress();
+
+    document.getElementById(
+        "toolModal"
+    ).classList.add("show");
+}
+
+
+function openEditTool(id) {
+
+    const tool =
+        tools.find(
+            t => String(t.ID) === String(id)
+        );
+
+    if (!tool) {
+
+        showToast(
+            "Couldn't find that tool.",
+            true
+        );
+
+        return;
+    }
+
+    editingToolId = id;
+
+    selectedImageFile = null;
+
+    document.getElementById(
+        "modalTitle"
+    ).textContent = "Edit Tool";
+
+    document.getElementById(
+        "toolId"
+    ).value = tool.ID;
+
+    document.getElementById(
+        "toolName"
+    ).value = tool.Name || "";
+
+    document.getElementById(
+        "toolDescription"
+    ).value = tool.Description || "";
+
+    document.getElementById(
+        "toolCategory"
+    ).value = tool.Category || "";
+
+    document.getElementById(
+        "toolVersion"
+    ).value = tool.Version || "1.0.0";
+
+    document.getElementById(
+        "toolStatus"
+    ).value = tool.Status || "active";
+
+    if (tool.ImageURL) {
+
+        showImagePreview(tool.ImageURL);
+
+    } else {
+
+        hideImagePreview();
+    }
+
+    hideProgress();
+
+    document.getElementById(
+        "toolModal"
+    ).classList.add("show");
+}
+
+
+function closeModal() {
+
+    if (isSaving) {
+
+        return;
+    }
+
+    document.getElementById(
+        "toolModal"
+    ).classList.remove("show");
+}
+
+
+/* =================================================
+   IMAGE PREVIEW
+================================================= */
+
+function previewImage(event) {
+
+    const file =
+        event.target.files[0];
+
+    if (!file) {
+
+        return;
+    }
+
+    selectedImageFile = file;
+
+    const reader =
+        new FileReader();
+
+    reader.onload = function(e) {
+
+        showImagePreview(
+            e.target.result
+        );
+    };
+
+    reader.readAsDataURL(file);
+}
+
+
+function showImagePreview(src) {
+
+    document.getElementById(
+        "previewImg"
+    ).src = src;
+
+    document.getElementById(
+        "imagePreview"
+    ).style.display = "block";
+}
+
+
+function hideImagePreview() {
+
+    document.getElementById(
+        "previewImg"
+    ).src = "";
+
+    document.getElementById(
+        "imagePreview"
+    ).style.display = "none";
+}
+
+
+/* =================================================
+   PROGRESS BAR
+================================================= */
+
+function showProgress() {
+
+    document.getElementById(
+        "uploadProgress"
+    ).style.display = "block";
+
+    setProgress(0, "Uploading...");
+}
+
+
+function hideProgress() {
+
+    document.getElementById(
+        "uploadProgress"
+    ).style.display = "none";
+
+    setProgress(0, "");
+}
+
+
+function setProgress(percent, text) {
+
+    document.getElementById(
+        "progressFill"
+    ).style.width = percent + "%";
+
+    document.getElementById(
+        "progressText"
+    ).textContent = text;
+}
+
+
+/* =================================================
+   CLOUDINARY UPLOAD
+================================================= */
+
+function uploadToCloudinary(file) {
+
+    return new Promise(
+        function(resolve, reject) {
+
+            if (
+                CLOUDINARY_CLOUD_NAME ===
+                "YOUR_CLOUD_NAME" ||
+                !CLOUDINARY_CLOUD_NAME.trim()
+            ) {
+
+                reject(
+                    new Error(
+                        "Set CLOUDINARY_CLOUD_NAME " +
+                        "at the top of the script " +
+                        "tag before uploading images."
+                    )
+                );
+
+                return;
+            }
+
+            const url =
+                "https://api.cloudinary.com/v1_1/" +
+                CLOUDINARY_CLOUD_NAME +
+                "/image/upload";
+
+            const formData =
+                new FormData();
+
+            formData.append(
+                "file",
+                file
+            );
+
+            formData.append(
+                "upload_preset",
+                CLOUDINARY_UPLOAD_PRESET
+            );
+
+            formData.append(
+                "folder",
+                CLOUDINARY_FOLDER
+            );
+
+            const xhr =
+                new XMLHttpRequest();
+
+            xhr.open(
+                "POST",
+                url,
+                true
+            );
+
+            xhr.upload.onprogress =
+                function(e) {
+
+                    if (!e.lengthComputable) {
+
+                        return;
+                    }
+
+                    const percent =
+                        Math.round(
+                            (e.loaded / e.total) * 100
+                        );
+
+                    setProgress(
+                        percent,
+                        "Uploading... " + percent + "%"
+                    );
+                };
+
+            xhr.onload = function() {
+
+                if (
+                    xhr.status >= 200 &&
+                    xhr.status < 300
+                ) {
+
+                    try {
+
+                        const data =
+                            JSON.parse(
+                                xhr.responseText
+                            );
+
+                        setProgress(
+                            100,
+                            "Upload complete"
+                        );
+
+                        resolve(data);
+
+                    } catch (parseError) {
+
+                        reject(parseError);
+                    }
+
+                } else {
+
+                    reject(
+                        new Error(
+                            "Cloudinary upload failed " +
+                            "(status " + xhr.status + "). " +
+                            "Check your cloud name and " +
+                            "upload preset."
+                        )
+                    );
+                }
+            };
+
+            xhr.onerror = function() {
+
+                reject(
+                    new Error(
+                        "Network error while " +
+                        "uploading to Cloudinary."
+                    )
+                );
+            };
+
+            xhr.send(formData);
+        }
+    );
+}
+
+
+/* =================================================
+   SAVE (ADD / UPDATE)
+================================================= */
+
+async function saveTool(event) {
+
+    event.preventDefault();
+
+    if (isSaving) {
+
+        return;
+    }
+
+    const name =
+        document
+            .getElementById("toolName")
+            .value
+            .trim();
+
+    if (!name) {
+
+        showToast(
+            "Tool name is required.",
+            true
+        );
+
+        return;
+    }
+
+    isSaving = true;
+
+    const saveButton =
+        document.getElementById(
+            "saveButton"
+        );
+
+    saveButton.disabled = true;
+
+    saveButton.textContent =
+        "Saving...";
+
+    try {
+
+        let imageURL =
+            editingToolId ?
+                (
+                    tools.find(
+                        t => String(t.ID) ===
+                            String(editingToolId)
+                    ) || {}
+                ).ImageURL || "" :
+                "";
+
+        if (selectedImageFile) {
+
+            showProgress();
+
+            const uploadResult =
+                await uploadToCloudinary(
+                    selectedImageFile
+                );
+
+            imageURL =
+                uploadResult.secure_url ||
+                uploadResult.url ||
+                "";
+        }
+
+        const payload = {
+
+            name: name,
+
+            description:
+                document
+                    .getElementById(
+                        "toolDescription"
+                    )
+                    .value
+                    .trim(),
+
+            category:
+                document
+                    .getElementById(
+                        "toolCategory"
+                    )
+                    .value
+                    .trim(),
+
+            version:
+                document
+                    .getElementById(
+                        "toolVersion"
+                    )
+                    .value
+                    .trim() || "1.0.0",
+
+            status:
+                document
+                    .getElementById(
+                        "toolStatus"
+                    )
+                    .value,
+
+            imageName: name,
+
+            imageURL: imageURL,
+
+            cloudinaryPreset:
+                CLOUDINARY_UPLOAD_PRESET,
+
+            cloudinaryFolder:
+                CLOUDINARY_FOLDER
+        };
+
+        if (editingToolId) {
+
+            payload.id =
+                editingToolId;
+
+            await callApi(
+                "updateTool",
+                payload
+            );
+
+            showToast(
+                "Tool updated."
+            );
+
+        } else {
+
+            await callApi(
+                "addTool",
+                payload
+            );
+
+            showToast(
+                "Tool added."
+            );
+        }
+
+        document.getElementById(
+            "toolModal"
+        ).classList.remove("show");
+
+        await loadTools();
+
+    } catch (error) {
+
+        showToast(
+            "Couldn't save: " +
+            error.message,
+            true
+        );
+
+    } finally {
+
+        isSaving = false;
+
+        saveButton.disabled = false;
+
+        saveButton.textContent =
+            "Save Tool";
+
+        hideProgress();
+    }
+}
+
+
+/* =================================================
+   DELETE
+================================================= */
+
+function deleteToolPrompt(id, name) {
+
+    const confirmed =
+        window.confirm(
+            'Delete "' +
+            (name || "this tool") +
+            '"? This can\'t be undone.'
+        );
+
+    if (!confirmed) {
+
+        return;
+    }
+
+    deleteToolAction(id);
+}
+
+
+async function deleteToolAction(id) {
+
+    try {
+
+        await callApi(
+            "deleteTool",
+            { id: id }
+        );
+
+        showToast(
+            "Tool deleted."
+        );
+
+        await loadTools();
+
+    } catch (error) {
+
+        showToast(
+            "Couldn't delete: " +
+            error.message,
+            true
+        );
+    }
+}
+
+
+/* =================================================
+   STATUS INDICATOR
+================================================= */
+
+function setStatus(online, text) {
+
+    const dot =
+        document.getElementById(
+            "statusDot"
+        );
+
+    dot.classList.remove(
+        "online",
+        "offline"
+    );
+
+    if (online === true) {
+
+        dot.classList.add("online");
+
+    } else if (online === false) {
+
+        dot.classList.add("offline");
+    }
+
+    document.getElementById(
+        "statusText"
+    ).textContent = text;
+}
+
+
+/* =================================================
+   TOAST
+================================================= */
+
+let toastTimer = null;
+
+function showToast(message, isError) {
+
+    const toast =
+        document.getElementById(
+            "toast"
+        );
+
+    toast.textContent = message;
+
+    toast.classList.toggle(
+        "error",
+        !!isError
+    );
+
+    toast.classList.add("show");
+
+    if (toastTimer) {
+
+        clearTimeout(toastTimer);
+    }
+
+    toastTimer = setTimeout(
+        function() {
+
+            toast.classList.remove(
+                "show"
+            );
+        },
+        4000
+    );
+}
+
+
+/* =================================================
+   UTIL
+================================================= */
+
+function escapeHtml(value) {
+
+    return String(value)
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#39;");
+}
+
+
+/* =================================================
+   MODAL: click outside to close
+================================================= */
+
+document
+    .getElementById("toolModal")
+    .addEventListener(
+        "click",
+        function(event) {
+
+            if (
+                event.target ===
+                this
+            ) {
+
+                closeModal();
+            }
+        }
+    );
+
+</script>
+
+</body>
+</html>
