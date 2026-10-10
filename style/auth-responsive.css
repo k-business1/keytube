@@ -1,0 +1,35 @@
+/* Mobile fit-to-screen fixes for login & register pages (loaded after the base auth styles) */
+html,body{overflow-x:hidden;}
+.auth-card{overflow:visible;}
+.otp-wrap{flex-wrap:wrap;row-gap:8px;}
+
+@media (max-width:480px){
+  body.auth-page{padding:14px;}
+  .auth-card{padding:26px 16px 22px;border-radius:22px;min-height:auto;}
+  .auth-card::before{border-radius:24px;}
+  .auth-card::after{border-radius:20px;}
+  .border-glow{inset:-6px;border-radius:28px;}
+  .auth-logo{margin-bottom:14px;gap:8px;}
+  .logo-kb{width:38px;height:38px;}
+  .logo-kb img{width:20px;height:20px;}
+  .logo-brand{font-size:20px;}
+  .auth-title{font-size:20px !important;margin-bottom:5px;}
+  .auth-sub{font-size:12px;margin-bottom:16px;}
+  .fg{margin-bottom:12px;}
+  .fi{height:46px;font-size:13.5px;padding:0 13px;}
+  .auth-btn{height:48px;font-size:13.5px;}
+  .auth-divider{margin:14px 0;}
+  .reset-steps{gap:4px;margin-bottom:16px;}
+  .rst-lbl{font-size:9px;}
+  .rst-num{width:18px;height:18px;font-size:9.5px;}
+  .rst-line{width:12px;}
+  .otp-wrap{gap:5px;margin:14px 0;}
+  .otp-input{width:clamp(30px,9.2vw,42px);height:44px;font-size:16px;border-radius:10px;}
+  .otp-dash{margin:0 1px;}
+}
+
+@media (max-width:360px){
+  .otp-input{width:clamp(26px,8vw,36px);height:40px;font-size:14px;}
+  .otp-wrap{gap:4px;}
+  .reg-av-upload{width:82px;height:82px;}
+}
