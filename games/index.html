@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Live Football Scores</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<header>
+  <a class="brand" href="../index.html" title="Home">
+    <img src="../imagelib/logo.png" alt="" class="logo" onerror="this.style.display='none'">
+    <h1>LIVE <span>FOOTBALL</span></h1>
+  </a>
+  <div class="hbtns"><button id="themeBtn" class="icon-btn" title="Switch theme">🌙</button>
+    <button id="logoutBtn" class="icon-btn" title="Log out">⎋</button></div>
+</header>
+
+<nav class="tabs">
+  <button data-mode="live" class="active">🔴 Live</button>
+  <button data-mode="today">Today</button>
+  <button data-mode="date">Date</button>
+  <input type="date" id="dateInput">
+</nav>
+
+<section class="filters">
+  <input id="q" type="search" placeholder="Search team / league...">
+  <select id="fCountry"><option value="">All countries</option></select>
+  <select id="fLeague"><option value="">All leagues</option></select>
+  <select id="fStatus">
+    <option value="">All game types</option>
+    <option value="live">Live now</option>
+    <option value="upcoming">Upcoming</option>
+    <option value="finished">Finished</option>
+    <option value="other">Postponed / other</option>
+  </select>
+  <button id="reset" class="ghost">Reset</button>
+</section>
+
+<div class="info" id="info">Loading...</div>
+<main id="list"></main>
+<footer>Data is shared and refreshed every 2 minutes to save API requests.</footer>
+<script src="../app/auth.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
