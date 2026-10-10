@@ -7,7 +7,7 @@
 })();
 function appLogout() {
   try { clearSession(); } catch (e) {}
-  location.replace('../index.html');
+  location.replace('../pages/login.html');
 }
 
 /* ====== CONFIG: paste your Apps Script Web App URL (ends with /exec) ====== */
