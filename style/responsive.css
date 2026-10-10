@@ -1,4 +1,3 @@
-
 /* ── responsive.css ── Mobile-first breakpoints ── */
 /* SMALL PHONES: up to 380px */
 @media(max-width:380px){
@@ -76,11 +75,5 @@
   .gw{grid-template-columns:repeat(auto-fill,minmax(200px,1fr))}
   .watch-body{max-width:1440px;grid-template-columns:1fr 400px}
 }
-/* DARK MODE (future) */
-@media(prefers-color-scheme:dark){
-  /* Opt-in only via .dark class on body */
-}
-body.dark{
-  --w:#0f0f0f;--bg:#080808;--bg2:#1a1a1a;--bg3:#222;
-  --brd:#333;--txt:#f1f1f1;--t2:#aaa;--t3:#666;
-}
+/* Dark mode now lives in main.css (applies to every page, follows system setting) */
+
