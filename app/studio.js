@@ -393,7 +393,7 @@ function loadMyComments(){
 
       var d=document.createElement('div');d.className='studio-cmt-item';
 
-      
+
 
       var init=(c.name||c.gmail||'?')[0].toUpperCase();
 
@@ -501,11 +501,15 @@ function loadMyFollowers(){
 
       var d=document.createElement('div');d.className='follower-item';
 
-      var init=(f.gmail||'?')[0].toUpperCase();
+      var init=(f.name||f.gmail||'?')[0].toUpperCase();
 
-      d.innerHTML='<div class="follower-av">'+init+'</div>'+
+      var avHTML=(f.avatar&&f.avatar.trim())
+        ?'<img class="follower-av" src="'+h(f.avatar)+'" alt="'+init+'" onerror="this.outerHTML=\'<div class=&quot;follower-av&quot;>'+init+'</div>\'">'
+        :'<div class="follower-av">'+init+'</div>';
 
-        '<div><div class="follower-name">'+h(f.gmail)+'</div>'+
+      d.innerHTML=avHTML+
+
+        '<div><div class="follower-name">'+h(f.name||f.gmail)+'</div>'+
 
         '<div class="follower-date">Followed '+fmtDate(f.date)+'</div></div>';
 
@@ -835,13 +839,13 @@ function renderEarnHistory(list) {
 
   if (empty) empty.classList.add('hidden');
 
-  
+
 
   var icons = { view_revenue: '👁', like_revenue: '❤️', comment_revenue: '💬', follower_bonus: '👥', withdrawal: '💸', bonus: '⭐' };
 
   var labels = { view_revenue: 'View Revenue', like_revenue: 'Like Revenue', comment_revenue: 'Comment Revenue', follower_bonus: 'Follower Bonus', withdrawal: 'Withdrawal', bonus: 'Bonus' };
 
-  
+
 
   list.slice(0, 60).forEach(function(e) {
 
@@ -1137,20 +1141,13 @@ function changePasswordStudio(){
 
 // ── SETTINGS ─────────────────────────────────────────────────
 
-// DELETE THIS from studio.js — now handled by auth.js
-
-function setTheme(theme){
-
-  document.body.classList.toggle('dark',theme==='dark');
-
-  try{localStorage.setItem('kt_theme',theme);}catch(e){}
-
+// Studio's theme buttons call this; the actual light/dark switching
+// (including following the phone's system setting) lives in auth.js's setTheme().
+function setThemeStudio(theme){
+  setTheme(theme); // from auth.js
   document.querySelectorAll('.tt-btn').forEach(function(b){b.classList.remove('active');});
-
   var btn=document.getElementById('tt-'+theme);if(btn)btn.classList.add('active');
-
   toastOK('Theme: '+cap(theme));
-
 }
 
 
@@ -1166,3 +1163,4 @@ function fmtWatchTime(sec){
   var h = Math.floor(sec/3600), m = Math.floor((sec%3600)/60);
   return h + 'h' + (m>0?' '+m+'m':'');
 }
+
