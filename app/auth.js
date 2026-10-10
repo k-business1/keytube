@@ -1,19 +1,25 @@
 // ── auth.js — Auth, session, nav UI ────────────────────────
 // ── Apply saved theme on EVERY page immediately ───────────────
+// If the user has never manually picked a theme, we follow the phone/
+// browser's system light-dark setting (see the prefers-color-scheme
+// rule in main.css). A manual choice ('dark' or 'light') overrides it.
 (function(){
   try{
     var t = localStorage.getItem('kt_theme');
     if(t === 'dark') document.body.classList.add('dark');
+    else if(t === 'light') document.body.classList.add('light');
   } catch(e){}
 })();
-var _S={user:null,adminToken:null,settings:{},pages:{}};
+var _S={user:null,adminToken:null,sessionToken:null,settings:{},pages:{}};
 
 // Session
 function getUser(){if(!_S.user){try{var u=localStorage.getItem('kt_u');if(u)_S.user=JSON.parse(u);}catch(e){}}return _S.user;}
-function getAdminToken(){if(!_S.adminToken)_S.adminToken=localStorage.getItem('kt_a')||null;return _S.adminToken;}
+function getAdminToken(){if(!_S.adminToken)_S.adminToken=sessionStorage.getItem('kt_a')||null;return _S.adminToken;}
+function getSessionToken(){if(!_S.sessionToken)_S.sessionToken=localStorage.getItem('kt_s')||null;return _S.sessionToken;}
 function setUser(u){_S.user=u;localStorage.setItem('kt_u',JSON.stringify(u));}
-function setAdminToken(t){_S.adminToken=t;localStorage.setItem('kt_a',t);}
-function clearSession(){_S.user=null;_S.adminToken=null;localStorage.removeItem('kt_u');localStorage.removeItem('kt_a');}
+function setAdminToken(t){_S.adminToken=t;sessionStorage.setItem('kt_a',t);}
+function setSessionToken(t){_S.sessionToken=t;if(t)localStorage.setItem('kt_s',t);else localStorage.removeItem('kt_s');}
+function clearSession(){_S.user=null;_S.adminToken=null;_S.sessionToken=null;localStorage.removeItem('kt_u');sessionStorage.removeItem('kt_a');localStorage.removeItem('kt_s');}
 
 // Login required
 function showLoginReq(){var el=document.getElementById('loginReq');if(el)el.classList.add('show');var f=document.querySelector('.lr-fill');if(f){f.style.width='0%';void f.offsetWidth;f.style.animation='none';void f.offsetWidth;f.style.animation='';}}
@@ -53,37 +59,57 @@ document.addEventListener('click',function(e){
 
 // Logout
 function doLogout(){
+  var tok=getSessionToken();
+  if(tok)api('logout',{sessionToken:tok},null);
   clearSession();
   if(window._pingTimer)clearInterval(window._pingTimer);
   window.location.href=window.location.pathname.includes('/pages/')?'../index.html':'index.html';
 }
 // ── THEME — works on every page ───────────────────────────────
+// theme: 'dark' | 'light' | 'auto' (auto = follow the phone's system setting)
 function setTheme(theme){
-  document.body.classList.toggle('dark', theme === 'dark');
-  try{ localStorage.setItem('kt_theme', theme); }catch(e){}
-  // Update all toggle buttons on the page
-  document.querySelectorAll('.theme-toggle-btn').forEach(function(btn){
-    btn.textContent = theme === 'dark' ? '☀️' : '🌙';
-    btn.title = theme === 'dark' ? 'Switch to Light' : 'Switch to Dark';
-  });
+  document.body.classList.remove('dark','light');
+  if(theme === 'dark') document.body.classList.add('dark');
+  else if(theme === 'light') document.body.classList.add('light');
+  try{
+    if(theme === 'auto') localStorage.removeItem('kt_theme');
+    else localStorage.setItem('kt_theme', theme);
+  }catch(e){}
+  updateThemeButtons();
+}
+
+// Is the page actually showing dark right now (accounting for 'auto')?
+function isDarkActive(){
+  if(document.body.classList.contains('dark')) return true;
+  if(document.body.classList.contains('light')) return false;
+  try{ return window.matchMedia('(prefers-color-scheme: dark)').matches; }catch(e){ return false; }
 }
 
 function toggleTheme(){
-  var isDark = document.body.classList.contains('dark');
-  setTheme(isDark ? 'light' : 'dark');
+  setTheme(isDarkActive() ? 'light' : 'dark');
 }
 
-function initThemeBtn(){
-  // Set correct icon on all toggle buttons based on current theme
-  var isDark = document.body.classList.contains('dark');
+function updateThemeButtons(){
+  var isDark = isDarkActive();
   document.querySelectorAll('.theme-toggle-btn').forEach(function(btn){
     btn.textContent = isDark ? '☀️' : '🌙';
     btn.title = isDark ? 'Switch to Light' : 'Switch to Dark';
   });
 }
+function initThemeBtn(){ updateThemeButtons(); }
 
 // Auto-init theme buttons when DOM is ready
 document.addEventListener('DOMContentLoaded', initThemeBtn);
+
+// If the user hasn't manually overridden the theme, keep the toggle
+// icons in sync live when the phone's system theme changes.
+try{
+  window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', function(){
+    if(!document.body.classList.contains('dark') && !document.body.classList.contains('light')){
+      updateThemeButtons();
+    }
+  });
+}catch(e){}
 
 // Ping online
 function startPing(){
@@ -106,6 +132,7 @@ function doLogin(){
     if(btn){btn.disabled=false;btn.textContent='Sign In →';}
     if(r.ok){
       setUser(r.user);
+      setSessionToken(r.sessionToken||null);
       var redir=getParam('redirect')||'../index.html';
       window.location.href=redir;
     } else {if(er)er.textContent=r.msg;}
@@ -127,7 +154,7 @@ function doRegister(){
   var avatarUrl=window._regAvatarUrl||'';
   api('register',{name:nm.value.trim(),gmail:em.value.trim(),password:pw.value,country:co?co.value:'',avatar:avatarUrl},function(r){
     if(btn){btn.disabled=false;btn.textContent='Create Account →';}
-    if(r.ok){setUser(r.user);window.location.href='../index.html';}
+    if(r.ok){setUser(r.user);setSessionToken(r.sessionToken||null);window.location.href='../index.html';}
     else{if(er)er.textContent=r.msg;}
   });
 }
@@ -186,3 +213,4 @@ function initPage(page){
   if(page==='register'&&u){window.location.href='../index.html';return;}
   updateNavUI();
 }
+
