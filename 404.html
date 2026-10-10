@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <title>404 - Page Not Found | KEYTUBE</title>
+  <meta name="theme-color" content="#080d1b">
+  <meta name="robots" content="noindex, follow">
+
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 20px;
+      font-family: Arial, Helvetica, sans-serif;
+      color: #ffffff;
+      background:
+        radial-gradient(ellipse at top, #17294b, transparent 65%),
+        #080d1b;
+    }
+
+    .page {
+      width: 100%;
+      max-width: 460px;
+      padding: 35px 25px;
+      text-align: center;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 22px;
+      background: rgba(255, 255, 255, 0.04);
+      box-shadow: 0 20px 70px rgba(0, 0, 0, 0.35);
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      margin-bottom: 35px;
+    }
+
+    .brand img {
+      width: 48px;
+      height: 48px;
+      object-fit: contain;
+    }
+
+    .brand h2 {
+      font-size: 27px;
+      font-weight: 800;
+      letter-spacing: 1px;
+    }
+
+    .brand span {
+      color: #ff3030;
+    }
+
+    .error-code {
+      font-size: clamp(90px, 22vw, 125px);
+      line-height: 1;
+      font-weight: 900;
+      letter-spacing: -6px;
+      color: #ff3030;
+    }
+
+    h1 {
+      margin-top: 20px;
+      font-size: 25px;
+    }
+
+    .description {
+      margin-top: 13px;
+      color: #b0bdd0;
+      font-size: 15px;
+      line-height: 1.7;
+    }
+
+    .requested-path {
+      margin-top: 22px;
+      padding: 12px;
+      overflow-wrap: anywhere;
+      border-radius: 9px;
+      background: rgba(255, 255, 255, 0.06);
+      color: #8db7ff;
+      font-size: 13px;
+    }
+
+    .countdown {
+      margin-top: 22px;
+      color: #c7d0df;
+      font-size: 14px;
+    }
+
+    .countdown strong {
+      color: #ff4545;
+      font-size: 20px;
+    }
+
+    .home-button {
+      display: inline-block;
+      margin-top: 20px;
+      padding: 14px 24px;
+      border-radius: 9px;
+      background: #ff3030;
+      color: white;
+      font-size: 15px;
+      font-weight: bold;
+      text-decoration: none;
+      transition: background 0.2s, transform 0.2s;
+    }
+
+    .home-button:hover {
+      background: #d91f1f;
+      transform: translateY(-2px);
+    }
+
+    .footer {
+      margin-top: 30px;
+      color: #78859b;
+      font-size: 12px;
+    }
+  </style>
+</head>
+
+<body>
+
+  <main class="page">
+
+    <!-- KEYTUBE LOGO -->
+    <div class="brand">
+      <img src="../imagelib/logo.png" alt="KEYTUBE Logo">
+      <h2>KEY<span>TUBE</span></h2>
+    </div>
+
+    <!-- ERROR MESSAGE -->
+    <div class="error-code">404</div>
+
+    <h1>Page Not Found</h1>
+
+    <p class="description">
+      Sorry! The page you are looking for does not exist
+      or may have been moved.
+    </p>
+
+    <!-- REQUESTED URL -->
+    <div class="requested-path" id="requestedPath"></div>
+
+    <!-- COUNTDOWN -->
+    <p class="countdown">
+      Redirecting to homepage in
+      <strong><span id="seconds">10</span></strong>
+      seconds...
+    </p>
+
+    <!-- MANUAL HOME BUTTON -->
+    <a href="index.html" class="home-button" id="homeButton">
+      &#8592; Go to Homepage
+    </a>
+
+    <div class="footer">
+      &copy; <span id="year"></span> KEYTUBE.
+      All rights reserved.
+    </div>
+
+  </main>
+
+  <script>
+    // Display the requested URL path.
+    document.getElementById("requestedPath").textContent =
+      "Requested page: " + window.location.pathname;
+
+    // Automatically update the year.
+    document.getElementById("year").textContent =
+      new Date().getFullYear();
+
+    // Homepage URL.
+    // Works for a custom domain and a root-level GitHub Pages site.
+    const homeURL = new URL("index.html", window.location.href);
+
+    document.getElementById("homeButton").href = homeURL.href;
+
+    // Redirect after 10 seconds.
+    let remainingSeconds = 10;
+
+    const secondsDisplay = document.getElementById("seconds");
+
+    const countdown = setInterval(function () {
+      remainingSeconds--;
+
+      secondsDisplay.textContent = remainingSeconds;
+
+      if (remainingSeconds <= 0) {
+        clearInterval(countdown);
+        window.location.replace(homeURL.href);
+      }
+    }, 1000);
+  </script>
+
+</body>
+</html>
