@@ -1,208 +1,457 @@
-<!DOCTYPE html>
-<html lang="en">
+<!DOCTYPE html><html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#e50914">
+  <meta name="robots" content="noindex, follow">  <title>404 - Page Not Found | KEYTUBE</title>  <style>
+    :root {
+      --red: #e50914;
+      --dark-red: #b80710;
+      --text: #171717;
+      --muted: #737373;
+    }
 
-  <title>404 - Page Not Found | KEYTUBE</title>
-  <meta name="theme-color" content="#080d1b">
-  <meta name="robots" content="noindex, follow">
-
-  <style>
     * {
       margin: 0;
       padding: 0;
       box-sizing: border-box;
     }
 
+    html {
+      min-height: 100%;
+      -webkit-text-size-adjust: 100%;
+    }
+
     body {
       min-height: 100vh;
+      min-height: 100dvh;
+      padding:
+        max(12px, env(safe-area-inset-top))
+        max(12px, env(safe-area-inset-right))
+        max(12px, env(safe-area-inset-bottom))
+        max(12px, env(safe-area-inset-left));
+
       display: flex;
-      justify-content: center;
       align-items: center;
-      padding: 20px;
-      font-family: Arial, Helvetica, sans-serif;
-      color: #ffffff;
+      justify-content: center;
+
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI",
+        Roboto, Helvetica, Arial, sans-serif;
+
+      color: var(--text);
       background:
-        radial-gradient(ellipse at top, #17294b, transparent 65%),
-        #080d1b;
+        radial-gradient(ellipse at 50% 0%, #ffe5e6 0%, transparent 55%),
+        #fff;
     }
 
     .page {
       width: 100%;
-      max-width: 460px;
-      padding: 35px 25px;
+      max-width: 420px;
+      padding: clamp(20px, 4vh, 32px) clamp(16px, 5vw, 28px);
       text-align: center;
-      border: 1px solid rgba(255, 255, 255, 0.1);
-      border-radius: 22px;
-      background: rgba(255, 255, 255, 0.04);
-      box-shadow: 0 20px 70px rgba(0, 0, 0, 0.35);
+      background: rgba(255, 255, 255, 0.98);
+      border: 1px solid #f1eeee;
+      border-radius: 24px;
+      box-shadow: 0 15px 55px rgba(30, 0, 0, 0.09);
+      animation: enter 0.55s ease-out;
     }
 
+    @keyframes enter {
+      from {
+        opacity: 0;
+        transform: translateY(12px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    /* KEYTUBE BRAND */
     .brand {
       display: flex;
       align-items: center;
       justify-content: center;
-      gap: 12px;
-      margin-bottom: 35px;
+      gap: 9px;
+      margin-bottom: 17px;
     }
 
     .brand img {
-      width: 48px;
-      height: 48px;
+      width: 40px;
+      height: 40px;
       object-fit: contain;
+      flex-shrink: 0;
     }
 
-    .brand h2 {
-      font-size: 27px;
-      font-weight: 800;
-      letter-spacing: 1px;
-    }
-
-    .brand span {
-      color: #ff3030;
-    }
-
-    .error-code {
-      font-size: clamp(90px, 22vw, 125px);
-      line-height: 1;
+    .brand-name {
+      font-size: 24px;
       font-weight: 900;
-      letter-spacing: -6px;
-      color: #ff3030;
+      letter-spacing: -0.8px;
     }
 
+    .brand-name span {
+      color: var(--red);
+    }
+
+    .brand-line {
+      width: 38px;
+      height: 3px;
+      margin: 0 auto 23px;
+      background: var(--red);
+      border-radius: 10px;
+    }
+
+    /* 404 WITH THE EYE REPLACING ZERO */
+    .error-code {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 1px;
+      color: var(--red);
+      font-size: clamp(90px, 25vw, 122px);
+      font-weight: 950;
+      letter-spacing: -5px;
+      line-height: 1;
+      text-shadow: 0 4px 0 #ffe1e2;
+    }
+
+    .digit {
+      display: inline-block;
+    }
+
+    /* ZERO SHAPE */
+    .zero-eye {
+      width: 0.76em;
+      height: 0.83em;
+      flex-shrink: 0;
+      position: relative;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 2px;
+      border: 5px solid var(--red);
+      border-radius: 50%;
+      background: #fff;
+      overflow: hidden;
+      box-shadow: 0 4px 0 #ffe1e2;
+      text-shadow: none;
+    }
+
+    /* EYE INSIDE THE ZERO */
+    .eye {
+      width: 76%;
+      height: 53%;
+      position: relative;
+      display: block;
+      overflow: hidden;
+      border: 3px solid #202020;
+      border-radius: 50% 50% 48% 48%;
+      background: #fff;
+      transform: rotate(-5deg);
+      transform-origin: center;
+      animation: blink 4s infinite;
+    }
+
+    /* MOVING RED PUPIL */
+    .pupil {
+      width: 37%;
+      height: 76%;
+      position: absolute;
+      left: 31%;
+      top: 9%;
+      border: 2px solid #202020;
+      border-radius: 50%;
+      background: var(--red);
+      animation: look 5s infinite;
+    }
+
+    .pupil::after {
+      content: "";
+      position: absolute;
+      width: 32%;
+      height: 24%;
+      left: 14%;
+      top: 9%;
+      border-radius: 50%;
+      background: white;
+    }
+
+    @keyframes blink {
+      0%, 43%, 47%, 78%, 82%, 100% {
+        transform: rotate(-5deg) scaleY(1);
+      }
+
+      45%, 80% {
+        transform: rotate(-5deg) scaleY(0.05);
+      }
+    }
+
+    @keyframes look {
+      0%, 43%, 47%, 78%, 82%, 100% {
+        left: 31%;
+      }
+
+      20% {
+        left: 48%;
+      }
+
+      60% {
+        left: 15%;
+      }
+    }
+
+    /* ERROR MESSAGE */
     h1 {
-      margin-top: 20px;
-      font-size: 25px;
+      margin-top: 19px;
+      font-size: clamp(21px, 5.5vw, 27px);
+      line-height: 1.25;
+      font-weight: 800;
+      letter-spacing: -0.5px;
     }
 
     .description {
-      margin-top: 13px;
-      color: #b0bdd0;
-      font-size: 15px;
+      max-width: 310px;
+      margin: 11px auto 0;
+      color: var(--muted);
+      font-size: 14px;
       line-height: 1.7;
     }
 
     .requested-path {
-      margin-top: 22px;
-      padding: 12px;
+      width: 100%;
+      margin-top: 19px;
+      padding: 11px 12px;
       overflow-wrap: anywhere;
-      border-radius: 9px;
-      background: rgba(255, 255, 255, 0.06);
-      color: #8db7ff;
+      border: 1px solid #f5dada;
+      border-radius: 10px;
+      background: #fff6f6;
+      color: #bd1018;
+      font-size: 12px;
+      line-height: 1.5;
+    }
+
+    /* COUNTDOWN */
+    .redirect-box {
+      margin-top: 18px;
+      padding: 13px 10px;
+      background: #fafafa;
+      border: 1px solid #eeeeee;
+      border-radius: 12px;
+    }
+
+    .redirect-label {
+      margin-bottom: 8px;
+      color: #666;
+      font-size: 12px;
+    }
+
+    .timer-row {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-wrap: wrap;
+      gap: 7px;
+      color: #555;
       font-size: 13px;
     }
 
-    .countdown {
-      margin-top: 22px;
-      color: #c7d0df;
-      font-size: 14px;
-    }
-
-    .countdown strong {
-      color: #ff4545;
-      font-size: 20px;
-    }
-
-    .home-button {
-      display: inline-block;
-      margin-top: 20px;
-      padding: 14px 24px;
-      border-radius: 9px;
-      background: #ff3030;
+    .timer {
+      min-width: 36px;
+      padding: 5px 8px;
+      border-radius: 7px;
+      background: var(--red);
       color: white;
-      font-size: 15px;
-      font-weight: bold;
+      font-size: 19px;
+      font-weight: 800;
+      font-variant-numeric: tabular-nums;
+    }
+
+    /* HOMEPAGE BUTTON */
+    .home-button {
+      width: 100%;
+      min-height: 49px;
+      margin-top: 15px;
+      padding: 14px 18px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 9px;
+      border: none;
+      border-radius: 11px;
+      background: var(--red);
+      color: #fff;
       text-decoration: none;
+      font-size: 15px;
+      font-weight: 750;
+      box-shadow: 0 5px 14px rgba(229, 9, 20, 0.19);
       transition: background 0.2s, transform 0.2s;
+      -webkit-tap-highlight-color: transparent;
     }
 
     .home-button:hover {
-      background: #d91f1f;
-      transform: translateY(-2px);
+      background: var(--dark-red);
+    }
+
+    .home-button:active {
+      transform: scale(0.98);
     }
 
     .footer {
-      margin-top: 30px;
-      color: #78859b;
-      font-size: 12px;
+      margin-top: 21px;
+      color: #999;
+      font-size: 11px;
+      line-height: 1.6;
     }
-  </style>
-</head>
 
-<body>
+    .footer strong {
+      color: var(--red);
+    }
 
-  <main class="page">
-
-    <!-- KEYTUBE LOGO -->
-    <div class="brand">
-      <img src="../imagelib/logo.png" alt="KEYTUBE Logo">
-      <h2>KEY<span>TUBE</span></h2>
-    </div>
-
-    <!-- ERROR MESSAGE -->
-    <div class="error-code">404</div>
-
-    <h1>Page Not Found</h1>
-
-    <p class="description">
-      Sorry! The page you are looking for does not exist
-      or may have been moved.
-    </p>
-
-    <!-- REQUESTED URL -->
-    <div class="requested-path" id="requestedPath"></div>
-
-    <!-- COUNTDOWN -->
-    <p class="countdown">
-      Redirecting to homepage in
-      <strong><span id="seconds">10</span></strong>
-      seconds...
-    </p>
-
-    <!-- MANUAL HOME BUTTON -->
-    <a href="index.html" class="home-button" id="homeButton">
-      &#8592; Go to Homepage
-    </a>
-
-    <div class="footer">
-      &copy; <span id="year"></span> KEYTUBE.
-      All rights reserved.
-    </div>
-
-  </main>
-
-  <script>
-    // Display the requested URL path.
-    document.getElementById("requestedPath").textContent =
-      "Requested page: " + window.location.pathname;
-
-    // Automatically update the year.
-    document.getElementById("year").textContent =
-      new Date().getFullYear();
-
-    // Homepage URL.
-    // Works for a custom domain and a root-level GitHub Pages site.
-    const homeURL = new URL("index.html", window.location.href);
-
-    document.getElementById("homeButton").href = homeURL.href;
-
-    // Redirect after 10 seconds.
-    let remainingSeconds = 10;
-
-    const secondsDisplay = document.getElementById("seconds");
-
-    const countdown = setInterval(function () {
-      remainingSeconds--;
-
-      secondsDisplay.textContent = remainingSeconds;
-
-      if (remainingSeconds <= 0) {
-        clearInterval(countdown);
-        window.location.replace(homeURL.href);
+    /* SHORT MOBILE SCREENS */
+    @media (max-height: 650px) {
+      .page {
+        padding-top: 16px;
+        padding-bottom: 16px;
       }
-    }, 1000);
-  </script>
 
-</body>
+      .brand {
+        margin-bottom: 10px;
+      }
+
+      .brand-line {
+        margin-bottom: 15px;
+      }
+
+      .error-code {
+        font-size: clamp(76px, 20vw, 96px);
+      }
+
+      h1 {
+        margin-top: 12px;
+      }
+
+      .description {
+        margin-top: 7px;
+        font-size: 13px;
+      }
+
+      .requested-path {
+        margin-top: 12px;
+        padding: 8px;
+      }
+
+      .redirect-box {
+        margin-top: 12px;
+        padding: 9px;
+      }
+
+      .home-button {
+        min-height: 44px;
+        margin-top: 10px;
+        padding: 11px;
+      }
+
+      .footer {
+        margin-top: 12px;
+      }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after {
+        animation: none !important;
+        transition: none !important;
+      }
+    }
+  </style></head><body>  <main class="page"><!-- BRAND -->
+<header class="brand">
+  <img src="../imagelib/logo.png" alt="KEYTUBE Logo">
+  <div class="brand-name">KEY<span>TUBE</span></div>
+</header>
+
+<div class="brand-line"></div>
+
+<!-- THE EYE REPLACES ZERO: 4 [EYE] 4 -->
+<div class="error-code" aria-label="404">
+
+  <span class="digit" aria-hidden="true">4</span>
+
+  <span class="zero-eye" aria-hidden="true">
+    <span class="eye">
+      <span class="pupil"></span>
+    </span>
+  </span>
+
+  <span class="digit" aria-hidden="true">4</span>
+
+</div>
+
+<!-- MESSAGE -->
+<h1>Page Not Found</h1>
+
+<p class="description">
+  Oops! This page seems to have disappeared.
+  Let's get you back to KEYTUBE and keep exploring.
+</p>
+
+<!-- REQUESTED PAGE -->
+<div class="requested-path" id="requestedPath"></div>
+
+<!-- AUTOMATIC REDIRECT -->
+<section class="redirect-box" aria-live="polite">
+  <p class="redirect-label">Taking you back to KEYTUBE</p>
+
+  <div class="timer-row">
+    <span>Redirecting in</span>
+    <span class="timer" id="seconds">10</span>
+    <span>seconds</span>
+  </div>
+</section>
+
+<!-- MANUAL REDIRECT -->
+<a
+  href="https://www.keytube.work.gd"
+  class="home-button"
+  id="homeButton">
+
+  <span aria-hidden="true">&#8592;</span>
+  <span>Back to KEYTUBE</span>
+
+</a>
+
+<!-- FOOTER -->
+<footer class="footer">
+  &copy; <span id="year"></span>
+  <strong>KEYTUBE</strong>. All rights reserved.
+</footer>
+
+  </main>  <script>
+    (() => {
+      const homeURL = "https://www.keytube.work.gd";
+
+      // Display the requested path safely.
+      document.getElementById("requestedPath").textContent =
+        "Requested page: " + window.location.pathname;
+
+      // Current year.
+      document.getElementById("year").textContent =
+        new Date().getFullYear();
+
+      // Homepage button.
+      document.getElementById("homeButton").href = homeURL;
+
+      // Redirect after 10 seconds.
+      let remainingSeconds = 10;
+      const secondsDisplay = document.getElementById("seconds");
+
+      const countdown = setInterval(() => {
+        remainingSeconds--;
+        secondsDisplay.textContent = remainingSeconds;
+
+        if (remainingSeconds <= 0) {
+          clearInterval(countdown);
+          window.location.replace(homeURL);
+        }
+      }, 1000);
+    })();
+  </script></body>
 </html>
