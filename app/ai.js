@@ -10,6 +10,8 @@
 var DEEP_URL     = 'https://script.google.com/macros/s/AKfycbzsixduDHGQkuUkXRLDhIjdOgCLLnHWKIM0HiCPTOEQNg0zcjbYsaKkteCEXOWu1LEK/exec';   // ← Code.gs /exec URL
 var PAGES_BASE   = '../pages/';
 var KT_TIMEOUT   = 15000;
+var KT_MIN_SCORE = 0;   // raise (e.g. 2) if the common script returns r.score and still over-matches
+var KT_VOCAB = /key\s?tube|video|movie|film|channel|upload|download|earn|money|monetiz|follower|subscri|account|log\s?in|sign\s?up|password|comment|watch|trending|song|cartoon|comedy|series|premium|payout|withdraw|profile|help|contact|support/i;
 var DEEP_TIMEOUT = 30000;
 
 var _aiHistory = [];
@@ -195,7 +197,7 @@ function sendAIMessage() {
 
   askKeytube(q, function (r) {
     if (ctx.gen !== _aiGen) return;
-    if (r && r.ok && r.matched) {
+    if (ktTrusted(q, r)) {
       removeTyping(ctx.typingId);
       setBusy(false);
       appendAIMessage(r.response, r.movieLinks || {}, true, true, q);
@@ -203,6 +205,14 @@ function sendAIMessage() {
       runDeep(q, null, ctx, r);          // not about KEYTUBE → deep search
     }
   });
+}
+
+// Common script matches loosely ("What is photosynthesis?" hit a video tip) — only trust a match
+// when it is short chat (hi, thanks), mentions KEYTUBE topics, or scores high enough.
+function ktTrusted(q, r) {
+  if (!(r && r.ok && r.matched)) return false;
+  if (KT_MIN_SCORE && typeof r.score === 'number' && r.score < KT_MIN_SCORE) return false;
+  return q.trim().split(/\s+/).length <= 3 || KT_VOCAB.test(q);
 }
 
 function isImageIntent(q) {
@@ -262,9 +272,30 @@ function appendUserMessage(text) {
   b.appendChild(t);
   b.appendChild(m);
   w.appendChild(b);
+  w.appendChild(userAvatar());
   msgs.appendChild(w);
   scrollChat();
   _aiHistory.push({ role: 'user', text: text });
+}
+
+// Profile picture if the user has one, otherwise their initial
+function userAvatar() {
+  var u = currentUser();
+  var av = el('div', 'ai-av ai-av-user');
+  var initial = String((u && (u.name || u.username || u.fullname || u.gmail)) || 'U').trim().charAt(0).toUpperCase() || 'U';
+  function showInitial() { av.innerHTML = ''; av.appendChild(el('span', 'ai-av-init', initial)); }
+  var src = u && safeUrl(u.avatar);
+  if (src) {
+    var img = new Image();
+    img.alt = initial;
+    img.referrerPolicy = 'no-referrer';
+    img.onerror = showInitial;
+    img.src = src;
+    av.appendChild(img);
+  } else {
+    showInitial();
+  }
+  return av;
 }
 
 function createAIShell() {
