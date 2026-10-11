@@ -103,6 +103,10 @@ a { color: var(--k-link); }
   background: var(--k-card); border: 1px solid var(--k-line);
   display: grid; place-items: center; overflow: hidden; align-self: flex-start;
 }
+.ai-av-user { background: #1d2a44; border-color: #2a3d63; align-self: flex-end; }
+.ai-av-user img { width: 100% !important; height: 100% !important; border-radius: 50%; object-fit: cover; }
+.ai-av-init { font-weight: 700; font-size: .95rem; color: #a8cbff; }
+.ai-msg-user .user-bubble { max-width: calc(100% - 52px); }
 .ai-av img { width: 24px; height: 24px; object-fit: contain; border-radius: 50%; }
 
 .ai-col { display: flex; flex-direction: column; gap: 4px; min-width: 0; max-width: calc(100% - 50px); }
