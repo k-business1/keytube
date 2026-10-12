@@ -107,7 +107,7 @@ function statusText(m) {
 
 function detailHTML(id) {
   const d = state.detail[id];
-  if (!d) return '<div class="detail">Loading details...</div>';
+  if (!d) return '<div class="detail" style="display:flex;justify-content:center;align-items:center;min-height:60px"><div style="width:28px;height:28px;border:3px solid #ffd6d6;border-top:3px solid red;border-right:3px solid red;border-radius:50%;animation:spin .7s linear infinite"></div></div>';
   if (d.error) return `<div class="detail">${esc(d.error)}</div>`;
   const ev = d.events.length ? d.events.map(e =>
     `<div class="ev"><b>${e.m}'${e.x ? '+' + e.x : ''}</b> ${esc(e.type)} – ${esc(e.p || '')} <small>(${esc(e.d || '')}, ${esc(e.team)})</small></div>`).join('') : '<div class="ev">No events yet.</div>';
