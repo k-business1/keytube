@@ -1,13 +1,7 @@
-/* ====== AUTH GUARD: not logged in -> ../index.html (uses ../app/auth.js) ====== */
-(function () {
-  var ok = false;
-  try { ok = typeof getUser === 'function' && !!getUser(); } catch (e) {}
-  if (!ok) { location.replace('../index.html'); return; }
-  document.body.classList.add('auth-ok');
-})();
+/* ====== AUTH GUARD DISABLED: page opens without login ====== */
 function appLogout() {
-  try { clearSession(); } catch (e) {}
-  location.replace('../pages/login.html');
+try { clearSession(); } catch (e) {}
+location.replace('../pages/login.html');
 }
 
 /* ====== CONFIG: paste your Apps Script Web App URL (ends with /exec) ====== */
