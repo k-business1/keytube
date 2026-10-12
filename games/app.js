@@ -1,6 +1,23 @@
-/* ====== AUTH GUARD DISABLED: page opens without login ====== */
+/* ====== AUTH GUARD: LOGIN NOT REQUIRED ====== */
+(function () {
+try {
+if (document.body) {
+document.body.classList.add('auth-ok');
+} else {
+document.addEventListener('DOMContentLoaded', function () {
+document.body.classList.add('auth-ok');
+});
+}
+} catch (e) {}
+})();
+
 function appLogout() {
-try { clearSession(); } catch (e) {}
+try {
+if (typeof clearSession === 'function') {
+clearSession();
+}
+} catch (e) {}
+
 location.replace('../pages/login.html');
 }
 
