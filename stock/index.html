@@ -92,7 +92,7 @@ html.bgmode .greet{color:#fff;text-shadow:0 1px 6px rgba(0,0,0,.5)}
 <script>
 (function () {
 "use strict";
-const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxS5KTHtOnTLQRih9G0LYExz0roTpw3rpTinLdrPRffoWDBTd8To4ePXzvAYLPtncvQ/exec";
+const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxmACZXgLo_Iq6vSfO4zPpzQBBUtMOvHViNNUs2OhPMpTDQaX7DbWmUoJa6RYaRd4PzXg/exec";
 const OWNER = "kim";
 let BOOT = { appName: "Stock Manager", currency: "RWF", cloud: "", preset: "", folder: "", units: ["item", "kg", "L"] };
 const PUBLIC = ["home", "analytics"], ADMIN = ["products", "sale", "settings"];
@@ -296,13 +296,16 @@ async function addProduct(btn) {
 function sale(v, d) {
   const list = (d.products || []).filter(p => p.remaining > 0), recent = d.sales || [], own = isOwner();
   v.innerHTML = `<div class="h1">Record sale</div><div class="muted">Stock reduces automatically</div>
-  <div class="card section"><div class="h2">Quick sale</div><div class="muted">Type: ngurishije Coffee Beans 2</div>
-   <div class="field"><input id="qs" placeholder="ngurishije Coffee Beans 2" autocomplete="off"></div>
-   <button class="btn btn-p" data-act="quick-sale">Sell</button><div class="error" id="qerr"></div></div>
+  <div class="card section"><div class="h2">Quick sale</div><div class="muted">Several products at once, separated by commas. Example: Coffee Beans 2, Soap 1, Rice 3.5 &nbsp;·&nbsp; Part of a bar by money: Soap 400 rwf</div>
+   <div class="field"><textarea id="qs" rows="2" placeholder="Coffee Beans 2, Soap 1, Rice 3" autocomplete="off"></textarea></div>
+   <button class="btn btn-p" data-act="quick-sale">Sell all</button><div class="error" id="qerr"></div></div>
   <div class="card section">
    <div class="field"><label for="sp">Product</label><select id="sp">${list.length ? list.map(p => `<option value="${esc(p.id)}">${esc(p.name)} (${qu(p.remaining, p)} left)</option>`).join("") : '<option value="">No stock available</option>'}</select></div>
-   <div class="row2"><div class="field"><label for="sq" id="sql">Quantity</label><input id="sq" type="number" min="0" step="any" value="1" inputmode="decimal"></div>
+   <div class="field"><label for="sm">Sell by</label><select id="sm"><option value="qty">Quantity (whole or part, e.g. 0.5)</option><option value="amt">Amount paid (${esc(BOOT.currency)}) – for parts</option></select></div>
+   <div class="row2"><div class="field" id="fq"><label for="sq" id="sql">Quantity</label><input id="sq" type="number" min="0" step="any" value="1" inputmode="decimal"></div>
+   <div class="field hidden" id="fa"><label for="sa">Amount paid (${esc(BOOT.currency)})</label><input id="sa" type="number" min="0" step="any" inputmode="decimal" placeholder="e.g. 400"></div>
    <div class="field"><label for="spr" id="sprl">Unit price</label><input id="spr" type="number" min="0" step="any" inputmode="decimal"></div></div>
+   <div class="muted" id="sprev" style="margin-bottom:6px"></div>
    <div class="field"><label for="sx">Description (optional)</label><input id="sx" placeholder="customer, note…" autocomplete="off"></div>
    <div class="field"><label for="sd">Date</label><input id="sd" type="date" value="${today()}"></div>
    <button class="btn btn-p" data-act="record-sale" ${list.length ? "" : "disabled"}>Record sale</button><div class="error" id="serr"></div></div>
@@ -312,44 +315,75 @@ function sale(v, d) {
   </tbody></table></div>` : '<div class="muted">No sales yet.</div>'}</div>`;
   const sp = $("#sp"), fill = () => { const p = list.find(x => String(x.id) === sp.value); $("#sql").textContent = "Quantity" + (p ? " (" + p.unit + ")" : ""); $("#sprl").textContent = "Price per " + (p ? p.unit : "unit") + " (" + BOOT.currency + ")"; $("#spr").value = p ? p.costPerUnit : ""; };
   sp.addEventListener("change", fill); fill();
+  const calc = () => {
+    const p = list.find(x => String(x.id) === sp.value), pr = Number(val("spr")), by = val("sm") === "amt", out = $("#sprev");
+    $("#fq").classList.toggle("hidden", by); $("#fa").classList.toggle("hidden", !by);
+    if (!p || !(pr > 0)) { out.textContent = ""; return; }
+    const q = by ? Number(val("sa")) / pr : Number(val("sq"));
+    if (!isFinite(q) || q <= 0) { out.textContent = ""; return; }
+    const left = p.remaining - q;
+    out.textContent = (by ? "= " + num(q) + " " + p.unit + " · " : "= " + money(q * pr) + " · ") + (left < 0 ? "not enough stock" : num(left) + " " + p.unit + " left · stock worth " + money(left * pr));
+  };
+  ["sp", "sm", "sq", "sa", "spr"].forEach(i => { $("#" + i).addEventListener("input", calc); $("#" + i).addEventListener("change", calc); });
+  calc();
 }
 async function recordSale(btn) {
   const err = $("#serr"); err.textContent = "";
-  const id = val("sp"), qty = Number(val("sq"));
+  const id = val("sp"), byAmt = val("sm") === "amt", amt = Number(val("sa")), qty = Number(val("sq"));
   const p = ((S.d && S.d.products) || []).find(x => String(x.id) === id);
   if (!id) { err.textContent = "Choose a product"; return; }
-  if (!isFinite(qty) || qty <= 0) { err.textContent = "Enter a quantity greater than zero"; return; }
-  if ((!p || p.unit === "item") && Math.floor(qty) !== qty) { err.textContent = "Enter a whole quantity"; return; }
+  if (byAmt) { if (!isFinite(amt) || amt <= 0) { err.textContent = "Enter the amount paid"; return; } }
+  else if (!isFinite(qty) || qty <= 0) { err.textContent = "Enter a quantity greater than zero"; return; }
   btn.disabled = true; btn.textContent = "Saving…";
   try {
-    const r = await api("recordSale", { productId: id, quantity: qty, unitPrice: val("spr"), description: val("sx"), date: val("sd") });
+    const r = await api("recordSale", Object.assign({ productId: id, unitPrice: val("spr"), description: val("sx"), date: val("sd") }, byAmt ? { amount: amt } : { quantity: qty }));
     await refresh(); toast("Sale recorded · " + num(r.remaining) + " left");
   } catch (e) { err.textContent = e.message; btn.disabled = false; btn.textContent = "Record sale"; }
 }
-function parseSale(text, list) {
-  const t = text.toLowerCase().replace(/,/g, "."), m = t.match(/(\d+(?:\.\d+)?)/);
-  if (!m) return { err: "I can't see a quantity. Example: ngurishije Coffee Beans 2" };
-  const words = t.replace(m[0], " ").replace(/\b(ngurishije|nagurishije|sold|sell|kg|g|l|ml|litres?|liters?|items?|ibintu|ikilo|amakilo|box|bag|dozen)\b/g, " ").replace(/\s+/g, " ").trim();
+function parseItem(seg, list) {
+  const t = seg.toLowerCase(), m = t.match(/(\d+(?:\.\d+)?)/);
+  if (!m) return { err: "No quantity in: " + seg.trim() };
+  const byAmt = /\b(rwf|frw|rf)\b/.test(t), n = Number(m[1]);
+  const words = t.replace(m[0], " ").replace(/\b(ngurishije|nagurishije|sold|sell|rwf|frw|rf|kg|g|l|ml|litres?|liters?|items?|ibintu|ikilo|amakilo|box|bag|dozen)\b/g, " ").replace(/\s+/g, " ").trim();
   let best = null, score = 0;
   list.forEach(p => {
-    const n = String(p.name).toLowerCase(); let sc = 0;
-    if (words && n === words) sc = 3;
-    else if (words && (n.includes(words) || words.includes(n))) sc = 2;
-    else { const w = words.split(" ").filter(x => x.length > 2); sc = w.filter(x => n.includes(x)).length / Math.max(1, w.length); }
+    const nm = String(p.name).toLowerCase(); let sc = 0;
+    if (words && nm === words) sc = 3;
+    else if (words && (nm.includes(words) || words.includes(nm))) sc = 2;
+    else { const w = words.split(" ").filter(x => x.length > 2); sc = w.filter(x => nm.includes(x)).length / Math.max(1, w.length); }
     if (sc > score) { score = sc; best = p; }
   });
-  return !best || score < 0.5 ? { err: "Product not found. Check the name." } : { p: best, qty: Number(m[1]) };
+  if (!best || score < 0.5) return { err: 'Product not found: "' + (words || seg.trim()) + '"' };
+  return { p: best, qty: byAmt ? null : n, amount: byAmt ? n : null };
+}
+/* "Coffee Beans 2, Soap 1, Rice 3"  or  "Soap 400 rwf" (separate with comma, new line, + or "na") */
+function parseSale(text, list) {
+  const parts = text.replace(/(\d),(\d)/g, "$1.$2").split(/[,;\n+]|\s+(?:na|and)\s+/i).map(x => x.trim()).filter(Boolean);
+  if (!parts.length) return { err: "Type the products and quantities. Example: Coffee Beans 2, Soap 1" };
+  const items = [];
+  for (const seg of parts) { const r = parseItem(seg, list); if (r.err) return r; items.push(r); }
+  return { items: items };
 }
 async function quickSale(btn) {
   const err = $("#qerr"); err.textContent = "";
   const r = parseSale(val("qs"), (S.d && S.d.products) || []);
   if (r.err) { err.textContent = r.err; return; }
-  const p = r.p;
-  if (r.qty > p.remaining) { err.textContent = "Only " + qu(p.remaining, p) + " left"; return; }
-  if (!confirm("Sell " + qu(r.qty, p) + " of " + p.name + "?\n" + qu(p.remaining - r.qty, p) + " will remain.")) return;
+  const used = {}, lines = []; let sum = 0;
+  for (const it of r.items) {
+    const p = it.p, price = Number(p.costPerUnit);
+    if (it.amount != null && !(price > 0)) { err.textContent = p.name + ": no price set"; return; }
+    const q = it.amount != null ? it.amount / price : it.qty, tot = it.amount != null ? it.amount : q * price;
+    used[p.id] = (used[p.id] || 0) + q;
+    if (used[p.id] > p.remaining + 1e-9) { err.textContent = p.name + ": only " + qu(p.remaining, p) + " left"; return; }
+    sum += tot;
+    lines.push("• " + p.name + ": " + (it.amount != null ? num(q) + " " + p.unit : qu(q, p)) + " = " + money(tot));
+  }
+  if (!confirm("Sell these " + r.items.length + " product(s)?\n\n" + lines.join("\n") + "\n\nTotal: " + money(sum))) return;
   btn.disabled = true;
-  try { const x = await api("recordSale", { productId: p.id, quantity: r.qty }); await refresh(); toast("Sale recorded · " + num(x.remaining) + " left"); }
-  catch (e) { err.textContent = e.message; btn.disabled = false; }
+  try {
+    const x = await api("recordSales", { items: r.items.map(it => ({ productId: it.p.id, quantity: it.qty, amount: it.amount })) });
+    await refresh(); toast(x.count + " sale(s) recorded · " + money(x.total));
+  } catch (e) { err.textContent = e.message; btn.disabled = false; }
 }
 
 /* ---------- SETTINGS ---------- */
