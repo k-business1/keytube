@@ -212,10 +212,35 @@ function renderAgasobanuyeParts(parts){
       m.downloadURL=p.directUrl||'';
       Array.prototype.forEach.call(box.children,function(x){x.style.background='var(--w)';x.style.color='var(--red)';});
       b.style.background='var(--red)';b.style.color='#fff';
-      onPlayTap();
+      playAgasobanuyePart(p);
     };
     box.appendChild(b);
   });
+}
+
+function playAgasobanuyePart(p){
+  var m=window._currentMovie;if(!m)return;
+  var link=p.embedUrl||p.directUrl||'';
+  if(!link){toastErr('This part has no video link.');return;}
+  m.videoURL=link;
+  m.downloadURL=p.directUrl||'';
+  var vw=document.getElementById('videoWrap');
+  var heroMedia=document.getElementById('heroMedia');
+  if(!vw)return;
+  var isFile=/\.(mp4|webm|ogg|mkv|mov)(\?.*)?$/i.test(link);
+  vw.innerHTML=isFile
+    ?buildPlayer(link)
+    :'<iframe src="'+h(link)+'" allowfullscreen referrerpolicy="no-referrer" allow="autoplay;encrypted-media;fullscreen" style="width:100%;height:100%;border:none"></iframe>';
+  _video=vw.querySelector('video');
+  vw.style.display='block';
+  if(heroMedia)heroMedia.style.display='none';
+  var old=document.getElementById('agOpenLink');if(old)old.remove();
+  var a=document.createElement('a');
+  a.id='agOpenLink';a.href=link;a.target='_blank';a.rel='noopener';
+  a.textContent='Video not playing? Open in a new tab ↗';
+  a.style.cssText='display:block;padding:8px 14px;font-size:.78rem;color:var(--red);font-weight:700';
+  if(vw.parentNode)vw.parentNode.insertBefore(a,vw.nextSibling);
+  vw.scrollIntoView({behavior:'smooth',block:'start'});
 }
 
 function initWatchPage(){
@@ -384,6 +409,11 @@ function toggleChannelFollow(channelGmail){
 function onPlayTap(){
   var m=window._currentMovie;
   if(!m)return;
+  if(m.source==='agasobanuye'){
+    var cur=(window._agParts||[]).filter(function(x){return (x.embedUrl||x.directUrl)===m.videoURL;})[0]||{embedUrl:m.videoURL,directUrl:m.downloadURL};
+    playAgasobanuyePart(cur);
+    return;
+  }
   if(!m.videoURL){toastErr('No video available for this title.');return;}
   var vw=document.getElementById('videoWrap'),cw=document.getElementById('mmCovI');
   var heroMedia=document.getElementById('heroMedia');
@@ -609,6 +639,13 @@ function toggleLike(){
 
 function onDownloadTap(){
   var m=window._currentMovie;if(!m)return;
+  if(m.source==='agasobanuye'){
+    if(!m.downloadURL){toastErr('No direct download link for this part.');return;}
+    if(!requireLogin())return;
+    window.open(m.downloadURL,'_blank','noopener');
+    toastOK('Opening download…');
+    return;
+  }
   if(!m.downloadURL){toastErr('No download available.');return;}
   if(!requireLogin())return;
   var fn=(m.name.replace(/[^a-z0-9]/gi,'_')||'video')+'.mp4';
