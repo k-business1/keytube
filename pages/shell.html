@@ -1,0 +1,76 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>KEYTUBE</title>
+<style>
+html,body{margin:0;height:100%;background:#000}
+#app{position:fixed;inset:0;width:100%;height:100%;border:0;background:#fff}
+#mini{display:none;position:fixed;right:10px;bottom:76px;width:210px;background:#000;
+ border-radius:10px;overflow:hidden;box-shadow:0 4px 20px rgba(0,0,0,.55);z-index:9999}
+#mini video{width:100%;aspect-ratio:16/9;display:block}
+#mini .bar{display:flex;align-items:center;gap:6px;padding:4px 8px;color:#fff;font:12px sans-serif}
+#mini .t{flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#mini button{background:none;border:0;color:#fff;font-size:16px;padding:4px}
+#dl{display:none;position:fixed;top:8px;left:50%;transform:translateX(-50%);z-index:10000;
+ background:#222;color:#fff;font:12px sans-serif;padding:7px 14px;border-radius:20px;white-space:nowrap}
+</style></head><body>
+<iframe id="app"></iframe>
+<div id="dl"></div>
+<div id="mini"><video id="mv" playsinline></video>
+ <div class="bar"><span class="t" id="mt"></span>
+ <button onclick="KT.toggle()" id="mp">⏸</button><button onclick="KT.expand()">⤢</button>
+ <button onclick="KT.closeMini()">✕</button></div></div>
+
+<script src="app/api.js"></script><!-- for logDownload -->
+<script>
+var app=document.getElementById('app'),mv=document.getElementById('mv'),
+    mini=document.getElementById('mini'),cur=null;
+
+// open requested page (or index)
+var go=new URLSearchParams(location.search).get('go');
+try{var u=new URL(go||'index.html',location.href);
+  app.src=(u.origin===location.origin)?u.href:'index.html';}catch(e){app.src='index.html';}
+
+window.KT={
+  openMini:function(o){            // {url,time,id,title,cover}
+    cur=o;
+    mv.src=o.url;
+    mv.addEventListener('loadedmetadata',function(){
+      mv.currentTime=o.time||0; mv.play().catch(function(){});
+    },{once:true});
+    document.getElementById('mt').textContent=o.title||'';
+    mini.style.display='block';
+  },
+  closeMini:function(){mv.pause();mv.removeAttribute('src');mv.load();mini.style.display='none';cur=null;},
+  toggle:function(){mv.paused?mv.play():mv.pause();},
+  expand:function(){
+    if(!cur)return;
+    var t=Math.floor(mv.currentTime||0),id=cur.id;
+    KT.closeMini();
+    app.src='pages/watch.html?id='+encodeURIComponent(id)+'&t='+t;
+  },
+  download:async function(url,filename,movieId,movieName){
+    var box=document.getElementById('dl');box.style.display='block';box.textContent='⬇ Connecting…';
+    try{
+      var r=await fetch(url,{redirect:'follow'});
+      if(!r.ok)throw new Error('HTTP '+r.status);
+      var total=parseInt(r.headers.get('Content-Length')||'0'),rd=r.body.getReader(),ch=[],got=0;
+      while(true){
+        var x=await rd.read(); if(x.done)break;
+        ch.push(x.value); got+=x.value.length;
+        box.textContent='⬇ '+(total?Math.round(got/total*100)+'%':Math.round(got/1048576)+' MB')+' · '+filename;
+      }
+      var blob=new Blob(ch),a=document.createElement('a');
+      a.href=URL.createObjectURL(blob);a.download=filename;document.body.appendChild(a);a.click();a.remove();
+      setTimeout(function(){URL.revokeObjectURL(a.href)},5000);
+      box.textContent='✅ Downloaded: '+filename;
+      try{var us=JSON.parse(localStorage.getItem('user')||'null'); /* use your getUser() key */
+        if(typeof api==='function')api('logDownload',{gmail:us?us.gmail:'guest',movieId:movieId,movieName:movieName,status:'completed'},function(){});}catch(e){}
+    }catch(err){
+      box.textContent='Download failed'; window.open(url,'_blank');
+    }
+    setTimeout(function(){box.style.display='none'},3500);
+  }
+};
+mv.onpause=function(){document.getElementById('mp').textContent='▶'};
+mv.onplay=function(){document.getElementById('mp').textContent='⏸'};
+</script></body></html>
