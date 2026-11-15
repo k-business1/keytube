@@ -5,22 +5,89 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>KEYTUBE</title>
 <style>
-html,body{margin:0;height:100%;background:#000}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%;background:#000;font-family:Arial,Helvetica,sans-serif}
 #app{position:fixed;inset:0;width:100%;height:100%;border:0;background:#fff}
 
 /* Mini player */
-#mini{display:none;position:fixed;right:10px;bottom:76px;width:210px;background:#000;
-  border-radius:10px;overflow:hidden;box-shadow:0 4px 20px rgba(0,0,0,.55);z-index:9999;
-  touch-action:none;user-select:none;-webkit-user-select:none;cursor:grab}
-#mini video{width:100%;aspect-ratio:16/9;display:block;background:#000}
-#mini .bar{display:flex;align-items:center;gap:4px;padding:4px 8px;color:#fff;font:12px sans-serif}
-#mini .t{flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-#mini button{background:none;border:0;color:#fff;font-size:16px;padding:4px 6px;cursor:pointer}
+#mini{
+  display:none;
+  position:fixed;
+  right:14px;
+  bottom:85px;
+  width:230px;
+  background:#181818;
+  border:1px solid #303030;
+  border-radius:14px;
+  overflow:hidden;
+  box-shadow:0 8px 30px rgba(0,0,0,.65);
+  z-index:9999;
+  touch-action:none;
+  user-select:none;
+  -webkit-user-select:none;
+  cursor:grab;
+  transition:box-shadow .2s ease;
+}
+#mini:active{box-shadow:0 10px 35px rgba(0,0,0,.8)}
+#mini video{
+  width:100%;
+  aspect-ratio:16/9;
+  display:block;
+  background:#000;
+  object-fit:contain;
+}
+#mini .bar{
+  display:flex;
+  align-items:center;
+  gap:7px;
+  padding:8px 9px;
+  color:#fff;
+  font:13px Arial,sans-serif;
+  background:#181818;
+}
+#mini .t{
+  flex:1;
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
+  font-weight:600;
+}
+#mini button{
+  background:#292929;
+  border:0;
+  color:#fff;
+  font-size:15px;
+  width:29px;
+  height:29px;
+  border-radius:50%;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  cursor:pointer;
+  transition:background .2s;
+}
+#mini button:active{background:#555}
 
 /* Download pill */
-#dl{display:none;position:fixed;top:8px;left:50%;transform:translateX(-50%);z-index:10000;
-  background:#222;color:#fff;font:12px sans-serif;padding:7px 14px;border-radius:20px;
-  white-space:nowrap;max-width:92vw;overflow:hidden;text-overflow:ellipsis;box-shadow:0 2px 10px rgba(0,0,0,.4)}
+#dl{
+  display:none;
+  position:fixed;
+  top:12px;
+  left:50%;
+  transform:translateX(-50%);
+  z-index:10000;
+  background:#202020;
+  color:#fff;
+  font:13px Arial,sans-serif;
+  padding:10px 17px;
+  border:1px solid #383838;
+  border-radius:30px;
+  white-space:nowrap;
+  max-width:92vw;
+  overflow:hidden;
+  text-overflow:ellipsis;
+  box-shadow:0 5px 20px rgba(0,0,0,.5);
+}
 </style>
 </head>
 <body>
@@ -39,7 +106,6 @@ html,body{margin:0;height:100%;background:#000}
   </div>
 </div>
 
-<!-- Needed only so logDownload can be sent to your API. Remove if api.js touches the DOM badly. -->
 <script src="app/api.js"></script>
 <script>
 var app  = document.getElementById('app'),
@@ -57,8 +123,8 @@ var app  = document.getElementById('app'),
 })();
 
 window.KT = {
-  /* ── Mini player ── */
-  openMini: function(o){            // o = {url,time,id,title,cover}
+  /* Mini player */
+  openMini: function(o){
     if(!o || !o.url) return;
     cur = o;
     mv.pause();
@@ -83,7 +149,7 @@ window.KT = {
     app.src = 'pages/watch.html?id=' + encodeURIComponent(id) + '&t=' + t;
   },
 
-  /* ── Download (keeps running while the user changes pages) ── */
+  /* Download */
   download: async function(url, filename, movieId, movieName, gmail){
     var box = document.getElementById('dl');
     box.style.display = 'block';
@@ -122,7 +188,7 @@ window.KT = {
   }
 };
 
-/* ── Draggable mini player: drag anywhere on it, snaps to the nearest side; tap video = expand ── */
+/* Draggable mini player */
 (function(){
   var M = 10, drag = null;
 
@@ -130,7 +196,7 @@ window.KT = {
   function clampY(y){ return Math.max(M, Math.min(innerHeight - mini.offsetHeight - M, y)); }
 
   mini.addEventListener('pointerdown', function(e){
-    if(e.target.closest('button')) return;          // let the buttons work normally
+    if(e.target.closest('button')) return;
     var r = mini.getBoundingClientRect();
     drag = {sx:e.clientX, sy:e.clientY, ox:r.left, oy:r.top, moved:false, t:e.target};
     try{ mini.setPointerCapture(e.pointerId); }catch(x){}
@@ -140,7 +206,7 @@ window.KT = {
     if(!drag) return;
     var dx = e.clientX - drag.sx, dy = e.clientY - drag.sy;
     if(!drag.moved){
-      if(Math.hypot(dx, dy) < 6) return;            // small movement = still a tap
+      if(Math.hypot(dx, dy) < 6) return;
       drag.moved = true;
       mini.style.right = 'auto'; mini.style.bottom = 'auto';
       mini.style.transition = 'none';
@@ -160,16 +226,16 @@ window.KT = {
       mini.style.transition = 'left .2s ease';
       mini.style.left = (toRight ? innerWidth - r.width - M : M) + 'px';
     }else if(e.type === 'pointerup' && d.t === mv){
-      KT.expand();                                   // plain tap on the video
+      KT.expand();
     }
   }
   mini.addEventListener('pointerup', end);
   mini.addEventListener('pointercancel', end);
 
-  addEventListener('resize', function(){            // keep it on screen after rotate/resize
+  addEventListener('resize', function(){
     if(mini.style.left){
       mini.style.left = clampX(parseFloat(mini.style.left)) + 'px';
-      mini.style.top  = clampY(parseFloat(mini.style.top))  + 'px';
+      mini.style.top  = clampY(parseFloat(mini.style.top)) + 'px';
     }
   });
 })();
