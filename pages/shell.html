@@ -1,76 +1,182 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8">
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>KEYTUBE</title>
 <style>
 html,body{margin:0;height:100%;background:#000}
 #app{position:fixed;inset:0;width:100%;height:100%;border:0;background:#fff}
+
+/* Mini player */
 #mini{display:none;position:fixed;right:10px;bottom:76px;width:210px;background:#000;
- border-radius:10px;overflow:hidden;box-shadow:0 4px 20px rgba(0,0,0,.55);z-index:9999}
-#mini video{width:100%;aspect-ratio:16/9;display:block}
-#mini .bar{display:flex;align-items:center;gap:6px;padding:4px 8px;color:#fff;font:12px sans-serif}
+  border-radius:10px;overflow:hidden;box-shadow:0 4px 20px rgba(0,0,0,.55);z-index:9999;
+  touch-action:none;user-select:none;-webkit-user-select:none;cursor:grab}
+#mini video{width:100%;aspect-ratio:16/9;display:block;background:#000}
+#mini .bar{display:flex;align-items:center;gap:4px;padding:4px 8px;color:#fff;font:12px sans-serif}
 #mini .t{flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-#mini button{background:none;border:0;color:#fff;font-size:16px;padding:4px}
+#mini button{background:none;border:0;color:#fff;font-size:16px;padding:4px 6px;cursor:pointer}
+
+/* Download pill */
 #dl{display:none;position:fixed;top:8px;left:50%;transform:translateX(-50%);z-index:10000;
- background:#222;color:#fff;font:12px sans-serif;padding:7px 14px;border-radius:20px;white-space:nowrap}
-</style></head><body>
-<iframe id="app"></iframe>
+  background:#222;color:#fff;font:12px sans-serif;padding:7px 14px;border-radius:20px;
+  white-space:nowrap;max-width:92vw;overflow:hidden;text-overflow:ellipsis;box-shadow:0 2px 10px rgba(0,0,0,.4)}
+</style>
+</head>
+<body>
+
+<iframe id="app" allow="autoplay; fullscreen; encrypted-media" allowfullscreen></iframe>
+
 <div id="dl"></div>
-<div id="mini"><video id="mv" playsinline></video>
- <div class="bar"><span class="t" id="mt"></span>
- <button onclick="KT.toggle()" id="mp">⏸</button><button onclick="KT.expand()">⤢</button>
- <button onclick="KT.closeMini()">✕</button></div></div>
 
-<script src="app/api.js"></script><!-- for logDownload -->
+<div id="mini">
+  <video id="mv" playsinline></video>
+  <div class="bar">
+    <span class="t" id="mt"></span>
+    <button id="mp" onclick="KT.toggle()">⏸</button>
+    <button onclick="KT.expand()" title="Expand">⤢</button>
+    <button onclick="KT.closeMini()" title="Close">✕</button>
+  </div>
+</div>
+
+<!-- Needed only so logDownload can be sent to your API. Remove if api.js touches the DOM badly. -->
+<script src="app/api.js"></script>
 <script>
-var app=document.getElementById('app'),mv=document.getElementById('mv'),
-    mini=document.getElementById('mini'),cur=null;
+var app  = document.getElementById('app'),
+    mv   = document.getElementById('mv'),
+    mini = document.getElementById('mini'),
+    cur  = null;
 
-// open requested page (or index)
-var go=new URLSearchParams(location.search).get('go');
-try{var u=new URL(go||'index.html',location.href);
-  app.src=(u.origin===location.origin)?u.href:'index.html';}catch(e){app.src='index.html';}
+/* Open the requested page (or index.html) inside the iframe — same origin only */
+(function(){
+  var go = new URLSearchParams(location.search).get('go');
+  try{
+    var u = new URL(go || 'index.html', location.href);
+    app.src = (u.origin === location.origin) ? u.href : 'index.html';
+  }catch(e){ app.src = 'index.html'; }
+})();
 
-window.KT={
-  openMini:function(o){            // {url,time,id,title,cover}
-    cur=o;
-    mv.src=o.url;
-    mv.addEventListener('loadedmetadata',function(){
-      mv.currentTime=o.time||0; mv.play().catch(function(){});
-    },{once:true});
-    document.getElementById('mt').textContent=o.title||'';
-    mini.style.display='block';
+window.KT = {
+  /* ── Mini player ── */
+  openMini: function(o){            // o = {url,time,id,title,cover}
+    if(!o || !o.url) return;
+    cur = o;
+    mv.pause();
+    mv.src = o.url;
+    mv.addEventListener('loadedmetadata', function(){
+      try{ mv.currentTime = o.time || 0; }catch(e){}
+      mv.play().catch(function(){});
+    }, {once:true});
+    document.getElementById('mt').textContent = o.title || '';
+    mini.style.display = 'block';
   },
-  closeMini:function(){mv.pause();mv.removeAttribute('src');mv.load();mini.style.display='none';cur=null;},
-  toggle:function(){mv.paused?mv.play():mv.pause();},
-  expand:function(){
-    if(!cur)return;
-    var t=Math.floor(mv.currentTime||0),id=cur.id;
+  closeMini: function(){
+    try{ mv.pause(); mv.removeAttribute('src'); mv.load(); }catch(e){}
+    mini.style.display = 'none';
+    cur = null;
+  },
+  toggle: function(){ mv.paused ? mv.play() : mv.pause(); },
+  expand: function(){
+    if(!cur) return;
+    var t = Math.floor(mv.currentTime || 0), id = cur.id;
     KT.closeMini();
-    app.src='pages/watch.html?id='+encodeURIComponent(id)+'&t='+t;
+    app.src = 'pages/watch.html?id=' + encodeURIComponent(id) + '&t=' + t;
   },
-  download:async function(url,filename,movieId,movieName){
-    var box=document.getElementById('dl');box.style.display='block';box.textContent='⬇ Connecting…';
+
+  /* ── Download (keeps running while the user changes pages) ── */
+  download: async function(url, filename, movieId, movieName, gmail){
+    var box = document.getElementById('dl');
+    box.style.display = 'block';
+    box.textContent = '⬇ Connecting…';
     try{
-      var r=await fetch(url,{redirect:'follow'});
-      if(!r.ok)throw new Error('HTTP '+r.status);
-      var total=parseInt(r.headers.get('Content-Length')||'0'),rd=r.body.getReader(),ch=[],got=0;
+      var r = await fetch(url, {redirect:'follow'});
+      if(!r.ok) throw new Error('HTTP ' + r.status);
+      var total = parseInt(r.headers.get('Content-Length') || '0'),
+          rd = r.body.getReader(), chunks = [], got = 0, start = Date.now();
       while(true){
-        var x=await rd.read(); if(x.done)break;
-        ch.push(x.value); got+=x.value.length;
-        box.textContent='⬇ '+(total?Math.round(got/total*100)+'%':Math.round(got/1048576)+' MB')+' · '+filename;
+        var x = await rd.read();
+        if(x.done) break;
+        chunks.push(x.value);
+        got += x.value.length;
+        var kbps = Math.round(got / 1024 / Math.max(0.1,(Date.now()-start)/1000));
+        box.textContent = '⬇ ' + (total ? Math.round(got/total*100) + '%' : Math.round(got/1048576) + ' MB') +
+                          ' · ' + kbps + ' KB/s · ' + filename;
       }
-      var blob=new Blob(ch),a=document.createElement('a');
-      a.href=URL.createObjectURL(blob);a.download=filename;document.body.appendChild(a);a.click();a.remove();
-      setTimeout(function(){URL.revokeObjectURL(a.href)},5000);
-      box.textContent='✅ Downloaded: '+filename;
-      try{var us=JSON.parse(localStorage.getItem('user')||'null'); /* use your getUser() key */
-        if(typeof api==='function')api('logDownload',{gmail:us?us.gmail:'guest',movieId:movieId,movieName:movieName,status:'completed'},function(){});}catch(e){}
+      box.textContent = 'Saving…';
+      var blob = new Blob(chunks);
+      var a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = filename;
+      document.body.appendChild(a); a.click(); a.remove();
+      setTimeout(function(){ URL.revokeObjectURL(a.href); }, 5000);
+      box.textContent = '✅ Downloaded: ' + filename;
+      try{
+        if(typeof api === 'function')
+          api('logDownload', {gmail: gmail || 'guest', movieId: movieId, movieName: movieName, status: 'completed'}, function(){});
+      }catch(e){}
     }catch(err){
-      box.textContent='Download failed'; window.open(url,'_blank');
+      box.textContent = 'Download failed';
+      try{ window.open(url, '_blank'); }catch(e){}
     }
-    setTimeout(function(){box.style.display='none'},3500);
+    setTimeout(function(){ box.style.display = 'none'; }, 3500);
   }
 };
-mv.onpause=function(){document.getElementById('mp').textContent='▶'};
-mv.onplay=function(){document.getElementById('mp').textContent='⏸'};
-</script></body></html>
+
+/* ── Draggable mini player: drag anywhere on it, snaps to the nearest side; tap video = expand ── */
+(function(){
+  var M = 10, drag = null;
+
+  function clampX(x){ return Math.max(M, Math.min(innerWidth  - mini.offsetWidth  - M, x)); }
+  function clampY(y){ return Math.max(M, Math.min(innerHeight - mini.offsetHeight - M, y)); }
+
+  mini.addEventListener('pointerdown', function(e){
+    if(e.target.closest('button')) return;          // let the buttons work normally
+    var r = mini.getBoundingClientRect();
+    drag = {sx:e.clientX, sy:e.clientY, ox:r.left, oy:r.top, moved:false, t:e.target};
+    try{ mini.setPointerCapture(e.pointerId); }catch(x){}
+  });
+
+  mini.addEventListener('pointermove', function(e){
+    if(!drag) return;
+    var dx = e.clientX - drag.sx, dy = e.clientY - drag.sy;
+    if(!drag.moved){
+      if(Math.hypot(dx, dy) < 6) return;            // small movement = still a tap
+      drag.moved = true;
+      mini.style.right = 'auto'; mini.style.bottom = 'auto';
+      mini.style.transition = 'none';
+      mini.style.cursor = 'grabbing';
+    }
+    mini.style.left = clampX(drag.ox + dx) + 'px';
+    mini.style.top  = clampY(drag.oy + dy) + 'px';
+  });
+
+  function end(e){
+    if(!drag) return;
+    var d = drag; drag = null;
+    mini.style.cursor = 'grab';
+    if(d.moved){
+      var r = mini.getBoundingClientRect();
+      var toRight = (r.left + r.width/2) > innerWidth/2;
+      mini.style.transition = 'left .2s ease';
+      mini.style.left = (toRight ? innerWidth - r.width - M : M) + 'px';
+    }else if(e.type === 'pointerup' && d.t === mv){
+      KT.expand();                                   // plain tap on the video
+    }
+  }
+  mini.addEventListener('pointerup', end);
+  mini.addEventListener('pointercancel', end);
+
+  addEventListener('resize', function(){            // keep it on screen after rotate/resize
+    if(mini.style.left){
+      mini.style.left = clampX(parseFloat(mini.style.left)) + 'px';
+      mini.style.top  = clampY(parseFloat(mini.style.top))  + 'px';
+    }
+  });
+})();
+
+mv.onpause = function(){ document.getElementById('mp').textContent = '▶'; };
+mv.onplay  = function(){ document.getElementById('mp').textContent = '⏸'; };
+mv.onended = function(){ KT.closeMini(); };
+</script>
+</body>
+</html>
