@@ -106,8 +106,8 @@ function getAgasobanuyeSection(){
   section.id='srAgasobanuye';
   section.style.marginTop='18px';
   if(results){
-    var exact=document.getElementById('srExact');
-    if(exact&&exact.parentNode===results)results.insertBefore(section,exact);
+    var after=document.getElementById('srSimilar');
+    if(after&&after.parentNode===results)results.insertBefore(section,after.nextSibling);
     else results.appendChild(section);
   }
   return section;
