@@ -142,6 +142,14 @@ function startHeroTimer(){
 function heroPlay(){var m=_heroMovies[_heroIdx];if(m)window.location.href='pages/watch.html?id='+m.id;}
 function heroInfo(){var m=_heroMovies[_heroIdx];if(m)window.location.href='pages/watch.html?id='+m.id;}
 
+// ════════════════ SHELL (mini player / background download) ════════════════
+function ktShell(){
+  try{
+    if(window.parent&&window.parent!==window&&window.parent.KT)return window.parent.KT;
+  }catch(e){}
+  return null;
+}
+
 function initWatchPage(){
   var pgL=document.getElementById('pgLoad');
   var id=getParam('id');
@@ -158,6 +166,23 @@ function initWatchPage(){
     var m=r.movie;
     window._currentMovie=m;
     renderWatchMovie(m,u);
+
+    // Opening a movie closes any mini player from the shell
+    try{var _sh=ktShell();if(_sh)_sh.closeMini();}catch(e){}
+
+    // Resume after "expand" from the mini player
+    if(getParam('t'))onPlayTap();
+
+    // When the user leaves this page while a video is playing → hand it to the mini player
+    window.addEventListener('pagehide',function(){
+      try{
+        var v=_video,mv=window._currentMovie,s=ktShell();
+        if(!v||!mv||!s)return;
+        if(v.paused||v.ended)return;
+        s.openMini({url:v.currentSrc||v.src,time:v.currentTime,id:mv.id,title:mv.name,cover:mv.cover});
+      }catch(e){}
+    });
+
     api('logView',{movieId:m.id,gmail:u?u.gmail:'guest'});
     api('logTraffic',{user:u?u.gmail:'guest',action:'view',country:u?u.country:'',details:m.name});
 
@@ -297,6 +322,8 @@ function onPlayTap(){
   var heroMedia=document.getElementById('heroMedia');
   vw.innerHTML=buildPlayer(m.videoURL);
   _video=vw.querySelector('video');
+  // Resume from saved time (coming from the mini player)
+  try{var _t=parseFloat(getParam('t')||0);if(_video&&_t>0)_video.addEventListener('loadedmetadata',function(){try{_video.currentTime=_t;}catch(e){}},{once:true});}catch(e){}
   vw.style.display='block';
   if(heroMedia)heroMedia.style.display='none';
   vw.scrollIntoView({behavior:'smooth',block:'start'});
@@ -517,7 +544,16 @@ function onDownloadTap(){
   var m=window._currentMovie;if(!m)return;
   if(!m.downloadURL){toastErr('No download available.');return;}
   if(!requireLogin())return;
-  segDownload(m.downloadURL,(m.name.replace(/[^a-z0-9]/gi,'_')||'video')+'.mp4',m.id,m.name);
+  var fn=(m.name.replace(/[^a-z0-9]/gi,'_')||'video')+'.mp4';
+  var sh=ktShell();
+  if(sh){
+    // Runs inside the shell, so it keeps going when the user changes page
+    var u=getUser();
+    sh.download(m.downloadURL,fn,m.id,m.name,u?u.gmail:'guest');
+    toastOK('Download started — you can keep browsing');
+  }else{
+    segDownload(m.downloadURL,fn,m.id,m.name);
+  }
 }
 
 async function segDownload(url,filename,movieId,movieName){
