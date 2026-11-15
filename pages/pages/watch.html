@@ -1,0 +1,12 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<script>
+var f=location.pathname.replace(/\/pages\/pages\//,'/pages/')+location.search+location.hash;
+if(f===location.pathname+location.search+location.hash){f='../watch.html'+location.search+location.hash;}
+location.replace(f);
+</script>
+</head>
+<body></body>
+</html>
