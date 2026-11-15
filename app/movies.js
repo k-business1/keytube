@@ -52,7 +52,6 @@ function renderGrid(movies,gridId,emptyId,emptyMsg,batchSize){
   var id=gridId||'mGrid';
   var g=document.getElementById(id),e=document.getElementById(emptyId||'emptySt');
   if(!g)return;
-  // Clean up any previous infinite-scroll watcher on this grid
   if(_gridObserver){_gridObserver.disconnect();_gridObserver=null;}
   var oldSentinel=document.getElementById(id+'-sentinel');
   if(oldSentinel)oldSentinel.remove();
@@ -67,15 +66,13 @@ function renderGrid(movies,gridId,emptyId,emptyMsg,batchSize){
   }
   if(e)e.classList.add('hidden');
   if(!batchSize){
-    // No batch size given — render everything at once (old behavior).
     movies.forEach(function(m){g.appendChild(makeCard(m,'grid'));});
     return;
   }
-  // ── Batched / infinite-scroll rendering ──
   _gridAllMovies=movies;
   _gridRendered=0;
   appendNextGridBatch(g,batchSize);
-  if(_gridRendered>=_gridAllMovies.length)return; // everything already fit in one batch
+  if(_gridRendered>=_gridAllMovies.length)return;
   var sentinel=document.createElement('div');
   sentinel.id=id+'-sentinel';
   sentinel.style.cssText='height:1px';
@@ -86,7 +83,6 @@ function renderGrid(movies,gridId,emptyId,emptyMsg,batchSize){
     },{rootMargin:'600px'});
     _gridObserver.observe(sentinel);
   }else{
-    // Fallback for very old browsers: check on scroll/resize
     var onScroll=function(){
       var r=sentinel.getBoundingClientRect();
       if(r.top<window.innerHeight+600)appendNextGridBatch(g,batchSize,sentinel);
@@ -150,8 +146,83 @@ function ktShell(){
   return null;
 }
 
+// ════════════════ AGASOBANUYE WATCH PAGE ════════════════
+function initAgasobanuyeWatch(slug){
+  var pgL=document.getElementById('pgLoad');
+  var u=getUser();
+  updateNavUI();
+  if(!window.AgasobanuSearch||typeof AgasobanuSearch.getMovie!=='function'){
+    if(pgL)pgL.style.display='none';
+    toastErr('AGASOBANUYE is not available. Add agasobanu-searchapi.js to watch.html');
+    return;
+  }
+  AgasobanuSearch.getMovie(slug).then(function(movie){
+    if(pgL)pgL.style.display='none';
+    var parts=movie.parts||[];
+    var first=parts[0]||{};
+    var m={
+      id:'ag_'+slug,
+      source:'agasobanuye',
+      name:movie.title||'Untitled movie',
+      cover:movie.poster||'',
+      description:movie.description||'',
+      category:movie.category||'agasobanuye',
+      type:movie.type||'movie',
+      year:movie.year||'',
+      country:'Rwanda',
+      videoURL:first.embedUrl||first.directUrl||'',
+      downloadURL:first.directUrl||''
+    };
+    window._currentMovie=m;
+    window._agParts=parts;
+    renderWatchMovie(m,u);
+    renderAgasobanuyeParts(parts);
+    if(u)startPing();
+  }).catch(function(err){
+    if(pgL)pgL.style.display='none';
+    console.warn('AGASOBANUYE movie error:',err);
+    toastErr('Could not load this movie');
+    setTimeout(function(){window.location.href='search.html';},2000);
+  });
+}
+
+function renderAgasobanuyeParts(parts){
+  var box=document.getElementById('agParts');
+  if(!box){
+    box=document.createElement('div');
+    box.id='agParts';
+    box.style.cssText='display:flex;gap:8px;flex-wrap:wrap;padding:12px 14px';
+    var vw=document.getElementById('videoWrap');
+    var anchor=document.getElementById('channelRow')||vw;
+    if(anchor&&anchor.parentNode)anchor.parentNode.insertBefore(box,anchor.nextSibling);
+    else document.body.appendChild(box);
+  }
+  box.innerHTML='';
+  if(!parts.length){
+    box.innerHTML='<span style="color:var(--t2);font-size:.8rem">No video links for this title yet.</span>';
+    return;
+  }
+  parts.forEach(function(p,i){
+    var b=document.createElement('button');
+    b.textContent=p.name||('Part '+(i+1));
+    b.style.cssText='padding:8px 14px;border-radius:20px;border:1.5px solid var(--red);background:'+(i===0?'var(--red)':'var(--w)')+';color:'+(i===0?'#fff':'var(--red)')+';font-size:.78rem;font-weight:700;cursor:pointer';
+    b.onclick=function(){
+      var m=window._currentMovie;if(!m)return;
+      m.videoURL=p.embedUrl||p.directUrl||'';
+      m.downloadURL=p.directUrl||'';
+      Array.prototype.forEach.call(box.children,function(x){x.style.background='var(--w)';x.style.color='var(--red)';});
+      b.style.background='var(--red)';b.style.color='#fff';
+      onPlayTap();
+    };
+    box.appendChild(b);
+  });
+}
+
 function initWatchPage(){
   var pgL=document.getElementById('pgLoad');
+  // AGASOBANUYE titles use ?source=agasobanuye&slug=...
+  var agSlug=getParam('slug');
+  if(getParam('source')==='agasobanuye'&&agSlug){initAgasobanuyeWatch(agSlug);return;}
   var id=getParam('id');
   if(!id){window.location.href='../index.html';return;}
   var u=getUser();
@@ -167,13 +238,10 @@ function initWatchPage(){
     window._currentMovie=m;
     renderWatchMovie(m,u);
 
-    // Opening a movie closes any mini player from the shell
     try{var _sh=ktShell();if(_sh)_sh.closeMini();}catch(e){}
 
-    // Resume after "expand" from the mini player
     if(getParam('t'))onPlayTap();
 
-    // When the user leaves this page while a video is playing → hand it to the mini player
     window.addEventListener('pagehide',function(){
       try{
         var v=_video,mv=window._currentMovie,s=ktShell();
@@ -186,18 +254,17 @@ function initWatchPage(){
     api('logView',{movieId:m.id,gmail:u?u.gmail:'guest'});
     api('logTraffic',{user:u?u.gmail:'guest',action:'view',country:u?u.country:'',details:m.name});
 
-    // Watch time tracker (safe guarded)
     var _wtSeconds=0;
     var _wtLastSent=0;
     clearInterval(_watchTimer);
     _watchTimer=setInterval(function(){
       try{
-        var v = _video || document.querySelector('#videoWrap video');
-        var isPlaying = false;
-        if(v && !v.paused && !v.ended){
-          isPlaying = true;
-        } else if(!v && document.querySelector('#videoWrap iframe') && document.visibilityState==='visible'){
-          isPlaying = true;
+        var v=_video||document.querySelector('#videoWrap video');
+        var isPlaying=false;
+        if(v&&!v.paused&&!v.ended){
+          isPlaying=true;
+        }else if(!v&&document.querySelector('#videoWrap iframe')&&document.visibilityState==='visible'){
+          isPlaying=true;
         }
         if(isPlaying){
           _wtSeconds+=5;
@@ -217,7 +284,7 @@ function initWatchPage(){
         if(remaining<1)return;
         var u3=getUser();
         var body=JSON.stringify({action:'logWatchTime',gmail:u3?u3.gmail:'guest',movieId:m.id,seconds:remaining,cumulativeSeconds:_wtSeconds,deviceId:getDeviceId()});
-        if(navigator.sendBeacon && typeof API_URL !== 'undefined'){
+        if(navigator.sendBeacon&&typeof API_URL!=='undefined'){
           navigator.sendBeacon(API_URL,new Blob([body],{type:'text/plain'}));
         }
       }catch(err){}
@@ -322,7 +389,6 @@ function onPlayTap(){
   var heroMedia=document.getElementById('heroMedia');
   vw.innerHTML=buildPlayer(m.videoURL);
   _video=vw.querySelector('video');
-  // Resume from saved time (coming from the mini player)
   try{var _t=parseFloat(getParam('t')||0);if(_video&&_t>0)_video.addEventListener('loadedmetadata',function(){try{_video.currentTime=_t;}catch(e){}},{once:true});}catch(e){}
   vw.style.display='block';
   if(heroMedia)heroMedia.style.display='none';
@@ -525,6 +591,7 @@ function buildPlayer(url){
 
 function toggleLike(){
   var m=window._currentMovie;if(!m)return;
+  if(m.source==='agasobanuye'){toastErr('Likes are not available for this title.');return;}
   if(!requireLogin())return;
   var u=getUser();
   var liked=window._isLiked;
@@ -547,7 +614,6 @@ function onDownloadTap(){
   var fn=(m.name.replace(/[^a-z0-9]/gi,'_')||'video')+'.mp4';
   var sh=ktShell();
   if(sh){
-    // Runs inside the shell, so it keeps going when the user changes page
     var u=getUser();
     sh.download(m.downloadURL,fn,m.id,m.name,u?u.gmail:'guest');
     toastOK('Download started — you can keep browsing');
