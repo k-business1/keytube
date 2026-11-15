@@ -116,19 +116,23 @@ function getAgasobanuyeSection(){
 function searchAgasobanuye(q){
   var token=++_agSearchToken;
   _agSearchCount=0;
+  var rs=document.getElementById('resultsSection');
+  if(rs)rs.classList.remove('hidden');
   var section=getAgasobanuyeSection();
-  if(!window.AgasobanuSearch||typeof AgasobanuSearch.search!=='function'){
-    section.innerHTML='';section.style.display='none';return;
-  }
-  section.innerHTML='<div style="padding:12px;color:var(--t2);font-size:.85rem">Searching AGASOBANUYE...</div>';
+  var msgStyle='padding:12px;color:var(--t2);font-size:.85rem';
   section.style.display='block';
+  if(!window.AgasobanuSearch||typeof AgasobanuSearch.search!=='function'){
+    section.innerHTML='<div style="'+msgStyle+'">AGASOBANUYE: agasobanu-searchapi.js is not loaded (check file name and path in app/).</div>';
+    return;
+  }
+  section.innerHTML='<div style="'+msgStyle+'">Searching AGASOBANUYE...</div>';
   AgasobanuSearch.search(q,12).then(function(movies){
     if(token!==_agSearchToken)return;
     renderAgasobanuyeResults(movies||[]);
   }).catch(function(err){
     if(token!==_agSearchToken)return;
     console.warn('AGASOBANUYE search error:',err);
-    section.innerHTML='';section.style.display='none';
+    section.innerHTML='<div style="'+msgStyle+'">AGASOBANUYE error: '+h(String(err&&err.message||err))+'</div>';
   });
 }
 
@@ -137,7 +141,11 @@ function renderAgasobanuyeResults(movies){
   if(rs)rs.classList.remove('hidden');
   var section=getAgasobanuyeSection();
   section.innerHTML='';
-  if(!movies.length){section.style.display='none';_agSearchCount=0;updateSearchSummary();return;}
+  if(!movies.length){
+    section.style.display='block';
+    section.innerHTML='<div style="padding:12px;color:var(--t2);font-size:.85rem">AGASOBANUYE: no movies found.</div>';
+    _agSearchCount=0;updateSearchSummary();return;
+  }
   section.style.display='block';
   _agSearchCount=movies.length;
 
