@@ -741,9 +741,15 @@ function scrollToComments(){var el=document.getElementById('commentsAnchor');if(
 
 function shareMovie(){
   var m=window._currentMovie;
+  var link=window.location.href;
+  /* Agasobanuye: share a clean link to the watch page of this movie */
+  if(m&&m.source==='agasobanuye'){
+    var slug=String(m.id||'').replace(/^ag_/,'');
+    link=window.location.origin+window.location.pathname+'?source=agasobanuye&slug='+encodeURIComponent(slug);
+  }
   if(navigator.share&&m){
-    navigator.share({title:m.name,text:'Watch '+m.name+' on KEYTUBE',url:window.location.href}).catch(function(){});
+    navigator.share({title:m.name,text:'Watch '+m.name+' on KEYTUBE',url:link}).catch(function(){});
   }else{
-    navigator.clipboard&&navigator.clipboard.writeText(window.location.href).then(function(){toastOK('Link copied!');});
+    navigator.clipboard&&navigator.clipboard.writeText(link).then(function(){toastOK('Link copied!');});
   }
 }
