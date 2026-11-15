@@ -122,6 +122,14 @@ var app  = document.getElementById('app'),
   }catch(e){ app.src = 'index.html'; }
 })();
 
+/* Remember the current page so refresh stays on it */
+app.addEventListener('load',function(){
+  try{
+    var u=app.contentWindow.location.href;
+    if(u&&u!=='about:blank')history.replaceState(null,'','?go='+encodeURIComponent(u));
+  }catch(e){}
+});
+
 window.KT = {
   /* Mini player */
   openMini: function(o){
