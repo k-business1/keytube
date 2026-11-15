@@ -90,7 +90,7 @@ function execSearch(q){
   history.pushState({},'','?q='+encodeURIComponent(q));
   var u=getUser();
   api('searchMovies',{query:q,isLoggedIn:!!u},function(r){
-    if(!r.ok)return;
+    if(!r||!r.ok){renderSearchResults(q,[],[]);return;}
     renderSearchResults(q,r.exact||[],r.similar||[]);
   });
   searchChannels(q);
@@ -133,6 +133,8 @@ function searchAgasobanuye(q){
 }
 
 function renderAgasobanuyeResults(movies){
+  var rs=document.getElementById('resultsSection');
+  if(rs)rs.classList.remove('hidden');
   var section=getAgasobanuyeSection();
   section.innerHTML='';
   if(!movies.length){section.style.display='none';_agSearchCount=0;updateSearchSummary();return;}
