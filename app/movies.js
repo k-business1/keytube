@@ -150,7 +150,7 @@ function ktShell(){
 function initAgasobanuyeWatch(slug){
   /* Open inside the shell (shell.html) so it gets the shell features */
   if(!ktShell() && window.parent===window){
-    window.location.replace('../shell.html?go='+encodeURIComponent('pages/watch.html'+location.search));
+    window.location.replace('shell.html?go='+encodeURIComponent('watch.html'+location.search));
     return;
   }
   var pgL=document.getElementById('pgLoad');
