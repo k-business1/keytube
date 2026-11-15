@@ -148,6 +148,11 @@ function ktShell(){
 
 // ════════════════ AGASOBANUYE WATCH PAGE ════════════════
 function initAgasobanuyeWatch(slug){
+  /* Open inside the shell (shell.html) so it gets the shell features */
+  if(!ktShell() && window.parent===window){
+    window.location.replace('../shell.html?go='+encodeURIComponent('pages/watch.html'+location.search));
+    return;
+  }
   var pgL=document.getElementById('pgLoad');
   var u=getUser();
   updateNavUI();
@@ -218,6 +223,21 @@ function renderAgasobanuyeParts(parts){
   });
 }
 
+/* Full screen toggle for the Agasobanuye player (tries landscape on mobile) */
+function ktAgFS(el){
+  var fsEl=document.fullscreenElement||document.webkitFullscreenElement;
+  if(!fsEl){
+    var p=el.requestFullscreen?el.requestFullscreen():(el.webkitRequestFullscreen&&el.webkitRequestFullscreen());
+    Promise.resolve(p).then(function(){
+      try{screen.orientation&&screen.orientation.lock&&screen.orientation.lock('landscape').catch(function(){});}catch(e){}
+    }).catch(function(){});
+  }else{
+    try{screen.orientation&&screen.orientation.unlock&&screen.orientation.unlock();}catch(e){}
+    if(document.exitFullscreen)document.exitFullscreen();
+    else if(document.webkitExitFullscreen)document.webkitExitFullscreen();
+  }
+}
+
 function playAgasobanuyePart(p){
   var m=window._currentMovie;if(!m)return;
   var link=p.embedUrl||p.directUrl||'';
@@ -230,8 +250,15 @@ function playAgasobanuyePart(p){
   var isFile=/\.(mp4|webm|ogg|mkv|mov)(\?.*)?$/i.test(link);
   vw.innerHTML=isFile
     ?buildPlayer(link)
-    :'<iframe src="'+h(link)+'" allowfullscreen referrerpolicy="no-referrer" allow="autoplay;encrypted-media;fullscreen" style="width:100%;height:100%;border:none"></iframe>';
+    :'<iframe src="'+h(link)+'" sandbox="allow-scripts allow-same-origin allow-presentation allow-forms" allowfullscreen referrerpolicy="no-referrer" allow="autoplay;encrypted-media;fullscreen" style="width:100%;height:100%;border:none"></iframe>';
   _video=vw.querySelector('video');
+  if(getComputedStyle(vw).position==='static')vw.style.position='relative';
+  var fb=document.createElement('button');
+  fb.textContent='⛶';
+  fb.title='Full screen';
+  fb.style.cssText='position:absolute;top:8px;right:8px;z-index:20;width:38px;height:38px;border:0;border-radius:50%;background:rgba(0,0,0,.65);color:#fff;font-size:20px;cursor:pointer';
+  fb.onclick=function(e){e.stopPropagation();ktAgFS(vw);};
+  vw.appendChild(fb);
   vw.style.display='block';
   if(heroMedia)heroMedia.style.display='none';
   var old=document.getElementById('agOpenLink');if(old)old.remove();
@@ -432,17 +459,25 @@ function ktFmt(s){
   return (h?h+':'+(m<10?'0':''):'')+m+':'+(x<10?'0':'')+x;
 }
 function ktW(el){return el.closest('.kt-pl');}
+/* Measure the duration ONCE and lock it, so the ball does not jump */
+function ktDur(w){
+  if(w._dur)return w._dur;
+  var v=w.querySelector('video');
+  var d=v?v.duration:0;
+  if(isFinite(d)&&d>0){w._dur=d;return d;}
+  return 0;
+}
 function ktUI(w,t){
-  var v=w.querySelector('video'),d=v.duration||0;
+  var d=ktDur(w);
   var pct=d?Math.max(0,Math.min(100,t/d*100)):0;
   var f=w.querySelector('.v-prog-fill');if(f)f.style.width=pct+'%';
   var th=w.querySelector('.v-thumb');if(th)th.style.left=pct+'%';
   var tl=w.querySelector('.v-time-lbl');if(tl)tl.textContent=ktFmt(t)+' / '+ktFmt(d);
 }
 function ktBuf(w){
-  var v=w.querySelector('video'),b=w.querySelector('.v-buf');
-  if(!b||!v.duration||!v.buffered.length)return;
-  b.style.width=(v.buffered.end(v.buffered.length-1)/v.duration*100)+'%';
+  var v=w.querySelector('video'),b=w.querySelector('.v-buf'),d=ktDur(w);
+  if(!b||!d||!v.buffered.length)return;
+  b.style.width=Math.min(100,v.buffered.end(v.buffered.length-1)/d*100)+'%';
 }
 function ktTU(v){
   var w=ktW(v);
@@ -450,9 +485,9 @@ function ktTU(v){
   ktUI(w,v.currentTime);ktBuf(w);
 }
 function ktSeekTo(w,t){
-  var v=w.querySelector('video');
-  if(!v||!v.duration)return;
-  t=Math.max(0,Math.min(v.duration,t));
+  var v=w.querySelector('video'),d=ktDur(w);
+  if(!v||!d)return;
+  t=Math.max(0,Math.min(d,t));
   var l=w.querySelector('.v-loader');
   if(l)l.style.display='block';
   v.addEventListener('seeked',function(){if(l)l.style.display='none';},{once:true});
@@ -501,15 +536,15 @@ function ktOS(el,e){
   el._st=v.currentTime;el._moved=false;el._t=null;
 }
 function ktOM(el,e){
-  var w=ktW(el),v=w.querySelector('video');
+  var w=ktW(el),v=w.querySelector('video'),d=ktDur(w);
   var dx=e.touches[0].clientX-el._sx,dy=e.touches[0].clientY-el._sy;
   if(!el._moved&&Math.abs(dx)>10&&Math.abs(dx)>Math.abs(dy)){el._moved=true;w._busy=true;}
-  if(!el._moved||!v.duration)return;
+  if(!el._moved||!d)return;
   if(e.cancelable)e.preventDefault();
-  el._t=Math.max(0,Math.min(v.duration,el._st+dx/5));
+  el._t=Math.max(0,Math.min(d,el._st+dx/5));
   ktUI(w,el._t);
   var b=w.querySelector('.v-time-badge');
-  if(b){b.style.display='block';b.textContent=ktFmt(el._t)+' / '+ktFmt(v.duration);}
+  if(b){b.style.display='block';b.textContent=ktFmt(el._t)+' / '+ktFmt(d);}
 }
 function ktOE(el,e){
   var w=ktW(el);
@@ -538,21 +573,21 @@ function ktBR(el,x){
 }
 function ktBS(el,e){
   e.stopPropagation();
-  var w=ktW(el),v=w.querySelector('video');
-  if(!v.duration)return;
+  var w=ktW(el),d=ktDur(w);
+  if(!d)return;
   w._busy=true;
-  el._t=ktBR(el,e.touches[0].clientX)*v.duration;
+  el._t=ktBR(el,e.touches[0].clientX)*d;
   ktUI(w,el._t);
 }
 function ktBM(el,e){
   e.stopPropagation();
   if(e.cancelable)e.preventDefault();
-  var w=ktW(el),v=w.querySelector('video');
-  if(!v.duration)return;
-  el._t=ktBR(el,e.touches[0].clientX)*v.duration;
+  var w=ktW(el),d=ktDur(w);
+  if(!d)return;
+  el._t=ktBR(el,e.touches[0].clientX)*d;
   ktUI(w,el._t);
   var b=w.querySelector('.v-time-badge');
-  if(b){b.style.display='block';b.textContent=ktFmt(el._t)+' / '+ktFmt(v.duration);}
+  if(b){b.style.display='block';b.textContent=ktFmt(el._t)+' / '+ktFmt(d);}
 }
 function ktBE(el,e){
   e.stopPropagation();
@@ -567,9 +602,9 @@ function ktBE(el,e){
 function ktBC(el,e){
   e.stopPropagation();
   if(el._tch&&Date.now()-el._tch<600)return;
-  var w=ktW(el),v=w.querySelector('video');
-  if(!v.duration)return;
-  ktSeekTo(w,ktBR(el,e.clientX)*v.duration);
+  var w=ktW(el),d=ktDur(w);
+  if(!d)return;
+  ktSeekTo(w,ktBR(el,e.clientX)*d);
 }
 // ════════════════ END PLAYER HELPERS ════════════════
 
