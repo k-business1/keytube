@@ -250,7 +250,7 @@ function playAgasobanuyePart(p){
   var isFile=/\.(mp4|webm|ogg|mkv|mov)(\?.*)?$/i.test(link);
   vw.innerHTML=isFile
     ?buildPlayer(link)
-    :'<iframe src="'+h(link)+'" sandbox="allow-scripts allow-same-origin allow-presentation allow-forms" allowfullscreen referrerpolicy="no-referrer" allow="autoplay;encrypted-media;fullscreen" style="width:100%;height:100%;border:none"></iframe>';
+    :'<iframe src="'+h(link)+'" allowfullscreen referrerpolicy="no-referrer" allow="autoplay;encrypted-media;fullscreen" style="width:100%;height:100%;border:none"></iframe>';
   _video=vw.querySelector('video');
   if(getComputedStyle(vw).position==='static')vw.style.position='relative';
   var fb=document.createElement('button');
