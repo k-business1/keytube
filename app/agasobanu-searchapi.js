@@ -78,6 +78,46 @@ var AgasobanuSearch = (function () {
     };
   }
 
+  /* Walk any JSON and collect video links (embed pages or direct files) */
+  function deepCollectParts(root) {
+    var found = [], seen = {};
+    var skipKeys = /^(poster|imgUrl|img|image|cover|thumbnail|trailerUrl|avatar|icon)$/i;
+    function isVideoLink(s) {
+      return /^https?:\/\//i.test(s) &&
+        !/\.(jpe?g|png|gif|webp|svg)(\?.*)?$/i.test(s);
+    }
+    function add(url, name, isDirect) {
+      var m = String(url).match(/src=["']([^"']+)["']/i);
+      url = (m ? m[1] : url).trim();
+      if (!isVideoLink(url) || seen[url]) return;
+      seen[url] = 1;
+      found.push({
+        id: "",
+        name: name || ("Part " + String.fromCharCode(65 + found.length)),
+        embedUrl: isDirect ? "" : url,
+        directUrl: isDirect ? url : ""
+      });
+    }
+    function walk(o, depth) {
+      if (depth > 6 || o == null) return;
+      if (Array.isArray(o)) { o.forEach(function (x) { walk(x, depth + 1); }); return; }
+      if (typeof o !== "object") return;
+      var label = o.name || o.title || "";
+      Object.keys(o).forEach(function (k) {
+        var v = o[k];
+        if (typeof v === "string") {
+          if (skipKeys.test(k)) return;
+          var direct = /\.(mp4|webm|ogg|mkv|mov)(\?.*)?$/i.test(v);
+          if (/^https?:\/\//i.test(v.trim()) || /<iframe/i.test(v)) add(v, label, direct);
+        } else {
+          walk(v, depth + 1);
+        }
+      });
+    }
+    walk(root, 0);
+    return found;
+  }
+
   function findList(o, depth) {
     if (Array.isArray(o)) return o;
     if (!o || typeof o !== "object" || depth > 3) return null;
@@ -136,6 +176,12 @@ var AgasobanuSearch = (function () {
         .filter(function (part) {
           return part.embedUrl || part.directUrl;
         });
+
+      /* Fallback: scan the whole response for any video-looking links */
+      if (!normalized.parts.length) {
+        normalized.parts = deepCollectParts(result);
+        console.log("AGASOBANUYE deep-scan parts:", normalized.parts);
+      }
       return normalized;
     });
   }
