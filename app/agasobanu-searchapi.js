@@ -54,13 +54,27 @@ var AgasobanuSearch = (function () {
     };
   }
 
+  function pickUrl(part, keys) {
+    for (var i = 0; i < keys.length; i++) {
+      var v = part[keys[i]];
+      if (typeof v === "string" && v.trim()) {
+        var m = v.match(/src=["']([^"']+)["']/i); // iframe HTML -> src
+        return (m ? m[1] : v).trim();
+      }
+    }
+    return "";
+  }
+
   function normalizePart(part, index) {
+    if (typeof part === "string") part = { url: part };
     part = part || {};
+    var embed = pickUrl(part, ["embedUrl", "embed_url", "embed", "iframe", "iframeUrl", "iframe_url", "url", "link", "src", "videoUrl", "video_url", "streamUrl", "stream_url", "player"]);
+    var direct = pickUrl(part, ["directUrl", "direct_url", "downloadUrl", "download_url", "download", "file", "mp4"]);
     return {
       id: part.id || "",
       name: part.name || part.title || ("Part " + String.fromCharCode(65 + index)),
-      embedUrl: part.embedUrl || part.embed_url || "",
-      directUrl: part.directUrl || part.direct_url || part.downloadUrl || part.download_url || ""
+      embedUrl: embed,
+      directUrl: direct
     };
   }
 
@@ -100,10 +114,20 @@ var AgasobanuSearch = (function () {
       action: "movie",
       slug: slug
     }).then(function (result) {
+      console.log("AGASOBANUYE raw movie response:", result); // check this in the console
       var movie = result.movie || result.data || {};
-      var movieParts = Array.isArray(movie.parts) ? movie.parts : [];
-      var responseParts = Array.isArray(result.parts) ? result.parts : [];
-      var rawParts = movieParts.length ? movieParts : responseParts;
+      var candidates = [
+        movie.parts, result.parts, movie.links, result.links,
+        movie.sources, result.sources, movie.videos, result.videos,
+        movie.episodes, result.episodes
+      ];
+      var rawParts = [];
+      for (var i = 0; i < candidates.length; i++) {
+        if (Array.isArray(candidates[i]) && candidates[i].length) {
+          rawParts = candidates[i];
+          break;
+        }
+      }
 
       var normalized = normalizeMovie(movie);
       normalized.slug = normalized.slug || slug;
