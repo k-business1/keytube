@@ -1,5 +1,9 @@
 var _movies=[],_heroMovies=[],_heroIdx=0,_heroTimer=null,_watchTimer=null,_video=null;
 
+/* ── Embed host detection (vsembed.com, vidsrc.*) ── */
+var EMBED_HOSTS=/^(?:https?:)?\/\/(?:www\.)?(?:vsembed\.com|vidsrc\.[a-z]+)\//i;
+function isEmbedUrl(u){return EMBED_HOSTS.test((u||'').trim());}
+
 function recordWatchTime(category,seconds){
   if(!category)return;
   try{
@@ -247,10 +251,10 @@ function playAgasobanuyePart(p){
   var vw=document.getElementById('videoWrap');
   var heroMedia=document.getElementById('heroMedia');
   if(!vw)return;
-  var isFile=/\.(mp4|webm|ogg|mkv|mov)(\?.*)?$/i.test(link);
+  var isFile=!isEmbedUrl(link)&&/\.(mp4|webm|ogg|mkv|mov)(\?.*)?$/i.test(link);
   vw.innerHTML=isFile
     ?buildPlayer(link)
-    :'<iframe src="'+h(link)+'" allowfullscreen referrerpolicy="no-referrer" allow="autoplay;encrypted-media;fullscreen" style="width:100%;height:100%;border:none"></iframe>';
+    :'<iframe src="'+h(link)+'" allowfullscreen referrerpolicy="no-referrer" allow="autoplay;encrypted-media;fullscreen;picture-in-picture" style="width:100%;height:100%;border:none"></iframe>';
   _video=vw.querySelector('video');
   if(getComputedStyle(vw).position==='static')vw.style.position='relative';
   var fb=document.createElement('button');
@@ -619,6 +623,9 @@ function buildPlayer(url){
   if(dm)return'<iframe src="https://www.dailymotion.com/embed/video/'+dm[1]+'?autoplay=1" allowfullscreen allow="autoplay" style="width:100%;height:100%;border:none"></iframe>';
   var gd=url.match(/drive\.google\.com\/file\/d\/([^/]+)/);
   if(gd)return'<iframe src="https://drive.google.com/file/d/'+gd[1]+'/preview" allowfullscreen allow="autoplay" style="width:100%;height:100%;border:none"></iframe>';
+  /* vsembed.com / vidsrc.* embed links */
+  if(isEmbedUrl(url))
+    return'<iframe src="'+h(url)+'" allowfullscreen referrerpolicy="no-referrer" allow="autoplay;encrypted-media;fullscreen;picture-in-picture" style="width:100%;height:100%;border:none"></iframe>';
   if(/\.(mp4|webm|ogg|mkv|mov)(\?.*)?$/i.test(url)){
     var src=h(typeof ktVideoURL==='function'?ktVideoURL(url):url);
     var poster=h((window._currentMovie&&window._currentMovie.cover)||'');
